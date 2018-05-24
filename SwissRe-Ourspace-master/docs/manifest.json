@@ -1,0 +1,6 @@
+{
+  "name": "online-bank-statement-app",
+  "short_name": "online-bank-statement-app",
+  "start_url": "/",
+  "display": "standalone"
+}

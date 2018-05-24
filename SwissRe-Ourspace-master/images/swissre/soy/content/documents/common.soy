@@ -1,0 +1,231 @@
+{namespace jive.documents}
+
+/**
+ * @param bean com.jivesoftware.community.content.document.action.beans.EditDocumentActionBean
+ */
+{template .dataPassthrough}
+    {call jive.content.dataPassthrough}
+        {param bean: $bean /}
+    {/call}    
+    {if $bean.documentID}
+        <input type="hidden" name="documentID" value="{$bean.documentID}"/>
+    {/if}
+{/template}
+
+/**
+ * param bean com.jivesoftware.community.content.action.beans.AttachmentConfigActionBean
+ * @param uploadDocumentActionBean com.jivesoftware.community.content.document.bean.UploadDocumentActionBean
+ * @param required text for the required message
+ * @param subject the subject of the document
+ */
+{template .composeattachbinarybody}
+
+            <div class="jive-upload-doc">
+                <div class="jive-error-message js-upload-error-msg">&nbsp;</div>
+                {call .fileUploadArea data="all"}
+                    {param documentId:$uploadDocumentActionBean.documentID /}
+                {/call}
+            </div>
+
+            <div id="jive-upload-doc-title" style="display: none">
+                <div class="jive-form-label">
+                    <label for="subject">
+                        {i18nText('global.title')}
+                    </label>
+                </div>
+                <input type="text" name="subject" size="75" maxlength="255" id="subject" value="{if $subject}{$subject}{/if}" aria-required="true" required data-required="{$required}" >
+
+                {if $uploadDocumentActionBean.displayOfficePluginDownload or $uploadDocumentActionBean.displayShortOfficePluginDownload}
+                     <span id="jive-plugin-popup">
+                        <a href="#" class="font-color-normal" id="officeintegration">
+                            {i18nText('officeintegration.plugin.sidebartitle')}
+                        </a>
+                     </span>
+                     {call jive.documents.downloadOfficeLink}
+                        {param uploadDocumentActionBean : $uploadDocumentActionBean /}
+                     {/call}
+                {/if}
+            </div>
+{/template}
+
+
+/**
+ * @param? binaryBodyBean com.jivesoftware.community.content.document.action.beans.BinaryBodyBean
+ * @param? documentId
+ * @param? isUploadFileRequired whether or not the upload file is required to be specified
+ */
+{template .fileUploadArea}
+    {let $inEditMode:not $binaryBodyBean /}
+
+    <div class="jive-upload-doc-select js-file-upload" tabindex="0"
+            data-multiple="{$inEditMode}"
+            data-required="{$isUploadFileRequired}"
+            >
+	    //Swissre Theme migration
+    <div style="font-size:12px">Do not attach / upload copyrighted information or business records. When in doubt consult the Ourspace Policy or contact somebody from Intellectual Property, Legal, Knowledge & Records or Compliance.</div>
+        {call jive.shared.file.dropTarget}
+            {param downloadLink}
+                {call .currentFileUrl}
+                    {param bean:$binaryBodyBean /}
+                    {param documentId:$documentId/}
+                {/call}
+            {/param}
+            {param multiple:$inEditMode /}
+            {param required:$isUploadFileRequired /}
+        {/call}
+
+
+        {call jive.documents.currentFileDetails}
+            {param bean: $binaryBodyBean /}
+            {param documentId:$documentId /}
+        {/call}
+    </div>
+{/template}
+
+
+/**
+
+/**
+  * Constructs a url for direct download of the uploaded file.  Duplicates logic found in presenter-body.ftl. See JIVE-40836.
+  *
+  * @param bean com.jivesoftware.community.content.document.action.beans.BinaryBodyBean
+  * @param documentId
+ */
+{template .currentFileUrl}
+    {if $bean}
+    /servlet/JiveServlet/downloadBody/{$documentId}-102-{$bean.version}-{$bean.id}/{$bean.name}
+    {/if}
+{/template}
+
+/**
+ * @param body content for the wsysiwyg editor
+ */
+{template .composedescriptionarea}
+
+        <div class="jive-editor-panel" style="display: none;">
+            <div class="jive-form-label">
+                <label for="wysiwygtext"  id="jive-upload-description-label">
+                    {i18nText('global.description')}
+                    <span class="jive-compose-directions font-color-meta-light">{i18nText('doc.upload.description.info')}</span>
+                </label>
+            </div>
+
+            <textarea id="wysiwygtext" name="body" rows="10" cols="30">{if $body}{$body}{/if}</textarea>
+
+        </div>
+{/template}
+
+/**
+  * @param bean com.jivesoftware.community.content.document.action.beans.BinaryBodyBean
+  */
+{template .currentFileDetails}
+
+    {if $bean}
+        <div id="jive-compose-current-details" class="js-file-input">
+            <strong>
+                <span class="font-color-meta">{i18nText('doc.upload.curDocDetails.gtitle')}</span>{sp}
+                <span class="{$bean.css}"></span><a href="{call .currentFileUrl data="all" /}">{$bean.name}</a>
+            </strong>{sp}
+            <small class="font-color-meta-light">({$bean.size}, {i18nText('doc.upload.creation_date.radio')} {formatDate($bean.uploadDate,'med','datetime')})</small>
+       </div>
+    {/if}
+{/template}
+
+/**
+ * Display Office plugin download link
+ *
+ * @depends path=/resources/scripts/apps/content/documents/main.js
+ * @param uploadDocumentActionBean com.jivesoftware.community.content.document.bean.UploadDocumentActionBean
+ */
+{template .downloadOfficeLink}
+<div id="jive-office-plugin-download" class="jive-office-plugin-download" style="display:none;">
+    {if $uploadDocumentActionBean.displayOfficePluginDownload}
+        <div class="j-box">
+            <div>
+                <h4>{i18nText('officeintegration.plugin.sidebartitle')}</h4>
+            </div>
+            <div class="jive-sidebar-downloadPlugin">
+                <p>
+                    <img src="{buildUrl('/images/logoMark_msOffice.gif')}" title="{i18nText('officeintegration.tools.logomark')}" alt="{i18nText('officeintegration.tools.logomark')}"  />
+                    {i18nText('officeintegration.plugin.description')}
+                </p>
+                <p>{i18nText('officeintegration.plugin.requirements')}</p>
+                <p>
+                    <a href="{$uploadDocumentActionBean.officePluginDownloadURL}">{i18nText('officeintegration.plugin.download')}</a>
+                </p>
+
+                {if $uploadDocumentActionBean.jiveUrl}
+                <p class="jive-sidebar-configPlugin">
+                    {i18nText('officeintegration.plugin.help', $uploadDocumentActionBean.jiveUrl)}
+                </p>
+                {/if}
+            </div>
+        </div>
+    {elseif $uploadDocumentActionBean.displayShortOfficePluginDownload}
+        <div class="j-box">
+            <header>
+                <h4>{i18nText('officeintegration.plugin.download.tag')}</h4>
+            </header>
+
+            <div class="j-box-body jive-sidebar-body">
+                    <div class="jive-sidebar-downloadPlugin-short">
+                            <a href="{$uploadDocumentActionBean.officePluginDownloadURL}">{i18nText('officeintegration.plugin.download.short')}</a>
+                    </div>
+            </div>
+        </div>
+    {else}
+        <span></span>
+    {/if}
+</div>
+{/template}
+
+
+/**
+  * @depends i18nKeys=global.comments.singular
+  * @depends i18nKeys=global.comments.plural
+  *
+  * @param canViewComments
+  * @param commentCount
+  */
+{template .comments}
+
+    {if $canViewComments}
+
+        <div class="j-comment-wrapper j-rc5">
+
+           <header>
+                <h3>{i18nText('global.comments.plural', $commentCount)}</h3>
+            </header>
+
+            <ul class="j-comment-options">
+                <li id="jive-comments-tab" class="jive-body-tab j-tab-selected">
+                    <a href="#" class="font-color-normal">
+                         {call jive.shared.soy.i18nHelper}
+                            {param i18nKey}
+                                {if $commentCount == 1}
+                                    {i18nKey('global.comments.singular')}
+                                {else}
+                                    {i18nKey('global.comments.plural')}
+                                {/if}
+                            {/param}
+                            {param arg0}
+                                <span class="j-comment-count">
+                                    {$commentCount}
+                                <span>
+                            {/param}
+                            {param noAutoEscape:true/}
+                        {/call}
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <div id="jive-comments"></div>
+        </div>
+
+
+    {/if}
+
+
+{/template}

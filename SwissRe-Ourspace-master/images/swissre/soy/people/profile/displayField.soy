@@ -1,0 +1,26 @@
+{namespace jive.people.profile}
+
+
+/**
+ * Displays an individual profile field.
+ * @param field the profile field
+ * @param targetUser
+ * @param orgChartingEnabled
+ */
+{template .displayField}
+    {if $field and ($field.value or $field.values)}
+
+    	{if $field.name == 'Last Logged In'}
+		
+		    
+        {else}
+        <li tabindex="0"><span class="font-color-meta-light">{$field.displayName}</span>{call .value data="$field" /}
+            {if $field.id == 1 and $orgChartingEnabled}
+                <span class="jive-orgchart-recenter font-color-meta">
+                    <a href="{buildUrl('/people/' + $targetUser.username + '/people?filterID=orgchart')}" class="font-color-meta-light" title="{i18nText('profile.org.view-orgchart.link')}" aria-label="{i18nText('profile.org.view-orgchart.link')}"><span class="jive-icon-sml jive-glyph-orgchart"></span></a>
+                </span>
+            {/if}
+        </li>
+        {/if}
+    {/if}
+{/template}

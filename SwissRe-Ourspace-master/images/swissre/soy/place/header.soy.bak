@@ -1,0 +1,418 @@
+{namespace jive.place autoescape="contextual"}
+
+
+/**
+ * Renders the header section for a "place".
+ *
+ * @param place the {@link Place} that we are displaying.
+ * @param placeTabLinks the tab links for the {@link Place} that we are displaying.
+ * @param placeActionsLink the "actions" link (parent of place actions links)
+ * @param placeActionsMenu the menu that appears under the place actions tab
+ * @param placeManageLink the "manage" link (parent of place manage links)
+ * @param placeManageLinks the links that appear under the place manage tab
+ * @param announcements the links that appear under the place manage tab
+ * @param canManageAnnouncements true if the current user can manage announcements
+ * @param canManageCategories true if the current user can manage categories
+ * @param? accountCreationEnabled Whether or not account creation is enabled
+ * @param? sharingEnabled Whether or not sharing content is enabled
+ * @param? validationEnabled Whether or not account validation is enabled
+ * @param? moveData Data about if this object was just moved.
+ * @param legacyBreadcrumb true if the system property is set to enable legacy breadcrumbs
+ * @param breadcrumbBean the bean for the breadcrumbs
+ * @param? suppressTabs whether to suppress tabs
+ * @param? imageURL url of image
+ * @param templateView
+ * @param canManageContainer
+ *
+ * @depends template=jive.shared.soy.actionLink
+ * @depends template=jive.announcements.list
+ *
+ * @allowDependsWildcard
+ *
+ * @depends template=jive.soy.email_notification.*
+ * @depends template=jive.movecontent.successMessage
+ * @depends template=jive.shared.breadcrumb.*
+ * @depends template=jive.soy.share.control
+ * @depends i18nKeys=global.access.content.type.*
+ * @depends path=/resources/scripts/apps/places/nav/place_nav_main.js
+ * @depends i18nKeys=place.actions.menu.*
+ * @depends i18nKeys=browse.guesttip.place
+ * @depends i18nKeys=browse.guesttip.joinnow
+ * @depends i18nKeys=profile.friends.following.streams.link.singular
+ * @depends i18nKeys=profile.friends.following.streams.link.plural
+ * @depends i18nKeys=socialgroup.startFollow.link
+ * @depends i18nKeys=we.startFollow.link
+ * @depends i18nKeys=community.startFollow.link
+ * @depends i18nKeys=tse.startFollow.link
+ * @depends i18nKeys=blog.startFollow.link
+ * @depends i18nKeys=project.startFollow.link
+ * @depends i18nKeys=task.details.startFollow.link
+ */
+{template .header}
+
+
+    <header class="j-page-header">
+//      TODO: only show this link to admins
+
+        {if $canManageContainer}
+            <a href="#" class="j-place-editBg font-color-white" data-command="showPlaceBackgroundMenu" data-menu-id="backgroundMenu" title="{i18nText('place.manage.editbg.link')}" data-orientation="below">
+                <span class="jive-icon-big jive-icon-editPlaceBg"></span>
+                <span class="lnk">{i18nText('place.manage.editbg.link')}</span>
+            </a>
+        {/if}
+        <div class="j-placeHdImg">
+            {if $imageURL}
+                <div class="placeImg" style="background-image: url('{buildUrl($imageURL)}');"></div>
+                <img src="{buildUrl($imageURL)}" alt="" border="0" class="placeImg">
+            {/if}
+        </div>
+        {if (not $place.partner) and ($place.visibleToPartner) }
+            <span class="j-browse-external-access"> <em>{i18nText('partner.browse.ext_access.header')}</em></span>
+        {/if}
+        <div class="j-placeHeaderWrap">
+            <div class="j-placeHeaderInner{if not $legacyBreadcrumb}{if not $place.displayParent} noParent{else} showParent{/if}{/if}">
+                {call .legacyBreadcrumbs data="all"/}
+//            inner div is for vertical alignment of the place name + parent + buttons
+                <h1 class="j-placeTitle">
+                    <a href="{buildUrl($place.objectURL)}" class="font-color-white j-placeName">
+                        {if $place.archived}
+                            <span class="font-color-white j-place-archived">[{i18nText('global.archived')}]</span>{sp}
+                        {/if}
+                        {$place.name}
+                    </a>
+                    {if not $legacyBreadcrumb}
+                        {if $place.displayParent}
+                            <span class="j-page-header-parent">
+                                {i18nText('global.in')} <a href="{buildUrl($place.parentUrl)}" class="j-parentPlaceName">{$place.parentName}</a>
+                                {call jive.shared.breadcrumb.contextMenu data="$breadcrumbBean"/}
+                            </span>
+                        {else}
+                            {call jive.shared.breadcrumb.contextMenu data="$breadcrumbBean"/}
+                        {/if}
+                    {/if}
+                </h1>
+                <div id="j-place-header-actions" class="j-placeHdActions" data-ann="{buildJson($announcements)}">
+                    {if not $place.guest}
+                        <div class="j-js-follow-controls" data-location="content-page" data-streamsassoc="{$place.streamsAssociatedCount}" aria-live="polite" aria-atomic="true">
+                            <a href="#" class="j-place-button font-color-white j-button-follow notlast" id="jive-link-{$place.placeI18nKeyPrefix}-startFollowing" {if $place.followed}style="display: none;"{/if}>
+                                {i18nText(i18nKey($place.placeI18nKeyPrefix + '.startFollow.link', true))}{sp}
+                                <span class="jive-icon-glyph icon-pulse j-instreamicon"></span>
+                            </a>
+                            <a href="#" class="j-place-button font-color-white j-button-following notlast" id="jive-link-{$place.placeI18nKeyPrefix}-following" {if not $place.followed}style="display: none;"{/if}>
+                                {call jive.people.profile.followingAssociatedStreamCount}
+                                    {param count: $place.streamsAssociatedCount /}
+                                    {param renderLocation: 'content-page' /}
+                                {/call}
+                            </a>
+                        </div>
+
+                        {if $place.membershipSupported}
+                        <a href="#" class="j-place-button font-color-white j-button-join" id="jive-link-joinSocialGroup" {if not $place.canJoinPlace}style="display: none;"{/if}>
+                            {i18nText('sgroup.join.link')}
+                        </a>
+                        <a href="#" class="j-place-button font-color-white j-button-leave" id="jive-link-leaveSocialGroup" {if not $place.canLeavePlace}style="display: none;"{/if}>
+                            {i18nText('sgroup.leave.link')}
+                        </a>
+                        {/if}
+
+                        {if $suppressTabs}
+                            {call .actionsLink}
+                                {param suppressTabs: $suppressTabs /}
+                                {param isButton: true /}
+                                {param placeActionsLink: $placeActionsLink /}
+                            {/call}
+
+                            {call .manageLink}
+                                {param suppressTabs: $suppressTabs /}
+                                {param isButton: true /}
+                                {param placeManageLink: $placeManageLink /}
+                            {/call}
+                        {/if}
+                    {/if}
+                </div>
+            </div>
+        </div>
+              <script>
+console.log("inside header");
+console.log(document.getElementById("jive-place-link-actions-video"));
+   try {lb}
+          if(document.getElementById("jive-place-link-actions-video") != null )
+          {lb}
+               
+               document.getElementById("jive-place-link-actions-video").style.display = "none";{rb}
+              
+         {rb}      
+       
+       catch (err) 
+       {lb}
+                // Ignore the errors
+       {rb}
+</script>
+        <div class="j-placeNavWrap">
+    <!-- BEGIN browse place tabs -->
+        {if not $suppressTabs}
+            {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    $j(function() {lb}
+                        require(['apps/places/nav/main'], function(PlacesNavMain) {lb}
+                            var placeNav = new PlacesNavMain({lb}
+                                menuData: {buildJson($placeTabLinks)|noAutoescape},
+                                placeTab: '{$place.tab}'
+                            {rb});
+                            placeNav.postRender();
+                        {rb});
+                    {rb});
+                {/param}
+            {/call}
+            <nav id="j-placeNav" class="j-placeNav clearfix" role="navigation" aria-label="{i18nText('place.subnav.label')}">
+                <div class="j-placeNavBg"></div>
+                <a id="mobile-place-menu" href="#"><span>{i18nText('responsive.more')}</span></a>
+                <ul id="j-placeMainNav" class="j-placeMainNav j-placeLinks">
+                    {foreach $item in $placeTabLinks}
+                        {if ($item.visible)}
+                            <li id="{$item.id}-tab" data-id="{$item.id}"
+                                {if $item.id == $place.tab} class="j-tab-selected active j-ui-elem"{/if}>
+                                {call jive.shared.soy.actionLink data="$item"}
+                                    {param hideIcon:true /}
+                                    {param activeTab: $item.id == $place.tab /}
+                                {/call}
+                            </li>
+                        {/if}
+                   {/foreach}
+                   <li href="#" id="place-main-nav-more" class="j-place-main-nav-more">
+                       <a href="#">
+                           <span class="lnk">
+                               {i18nText('global.more')}
+                           </span>
+                           <span class="j-nav-more jive-icon-glyph icon-arrow-down2"></span>
+                       </a>
+                   </li>
+                </ul>
+
+                <ul id="j-placeActions" class="j-placeActions j-placeLinks">
+                    {call .actionsLink}
+                        {param suppressTabs: false /}
+                        {param isButton: false /}
+                        {param placeActionsLink: $placeActionsLink /}
+                    {/call}
+                    <li>
+                        <a id="jive-place-link-about" class="j-placeAboutLink" role="navigation" href="about-place.jspa?containerID={$place.id}&containerType={$place.objectType}">{i18nText('place.about.link')}</a>
+                    </li>
+
+    //            TODO: wire this up
+    //
+    //                <li id="jive-place-link-follow-tab">
+    //                    <a href="#">Follow</a>
+    //                    <a class="j-people-count j-rc3" href="#" role="button">3</a>
+    //                </li>
+
+                    {if $sharingEnabled}
+                        <li>
+                            {call jive.soy.share.control}
+                                {param objectId:$place.id /}
+                                {param objectType:$place.objectType /}
+                                {param type:'text' /}
+                                {param icon:false /}
+                                {param classes:'j-button-share' /}
+                            {/call}
+                        </li>
+                    {/if}
+
+                   {if not $suppressTabs}
+                       {call .manageLink}
+                           {param suppressTabs: false /}
+                           {param isButton: false /}
+                           {param placeManageLink: $placeManageLink /}
+                       {/call}
+                   {/if}
+
+               </ul>
+            </nav>
+            <div id="j-pp-main-nav-menu-pop" class="j-quick-menu j-menu" style="display:none;"></div>
+            <script>
+                // want this script to run inline so the "more" button showing/hiding is handled as soon
+                // as the menu is drawn.  Depends only on jQuery.
+                (function() {lb}
+                    var $upMenu = $j('#j-placeMainNav'),
+                        $menuItems = $upMenu.find('li'),
+                        $moreBtn = $j('#place-main-nav-more'),
+                        upMenuWidth = $upMenu.outerWidth(true),
+                        createMenuItemsTotalWidth = 0;
+                    $menuItems.each(function() {lb}
+                        createMenuItemsTotalWidth += $j(this).outerWidth(true);
+                        $j(this).data("width", createMenuItemsTotalWidth);
+                    {rb});
+
+                    var moreWidth = $moreBtn.outerWidth();
+                    $menuItems.not($moreBtn).each(function() {lb}
+                        var width = $j(this).data("width");
+                        if (width > upMenuWidth - moreWidth) {lb}
+                            $j(this).hide();
+                            $moreBtn.show();
+                        {rb} else {lb}
+                            $j(this).show();
+                            $moreBtn.hide();
+                        {rb}
+                    {rb});
+                {rb})();
+                
+              
+            </script>
+        {/if}
+        </div>
+    </header>
+
+
+//    announcements
+    {call jive.announcements.list}
+        {param announcements: $announcements /}
+        {param showDismiss: false /}
+    {/call}
+
+
+    {if $moveData}
+        {call jive.movecontent.successMessage data="$moveData"/}
+    {/if}
+
+    <!-- Display guest tip if unauthenticated -->
+    {if ($place.guest)}
+         <div class="j-guest-tip jive-info-box j-rc5">
+            {if $accountCreationEnabled}
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('browse.guesttip.place')}
+                    {/param}
+                    {param arg0}<a id="jive-guest-link-auth" href="{buildUrl('/login.jspa')}">{i18nText('browse.guesttip.login')}</a>{/param}
+                    {param arg1}{i18nText(i18nKey($place.placeI18nKeyPrefix, true))}{/param}
+                    {param noAutoEscape}true{/param}
+                {/call}
+                &nbsp;
+                {if $validationEnabled}
+                    {call jive.shared.soy.i18nHelper}
+                        {param i18nKey}
+                            {i18nKey('browse.guesttip.joinnow')}
+                        {/param}
+                        {param arg0}<a href="{buildUrl('/login.jspa?registerOnly=true')}">{i18nText('browse.guesttip.join')}</a>{/param}
+                        {param noAutoEscape}true{/param}
+                    {/call}
+                {else}
+                    {call jive.shared.soy.i18nHelper}
+                        {param i18nKey}
+                            {i18nKey('browse.guesttip.joinnow')}
+                        {/param}
+                        {param arg0}<a id="jive-guest-link-reg" href="{buildUrl('/create-account.jspa')}">{i18nText('browse.guesttip.join')}</a>{/param}
+                        {param noAutoEscape}true{/param}
+                    {/call}
+                {/if}
+            {else}
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('browse.guesttip.place')}
+                    {/param}
+                    {param arg0}<a id="jive-guest-link-auth" href="{buildUrl('/login.jspa')}">{i18nText('browse.guesttip.login')}</a>{/param}
+                    {param arg1}{i18nText(i18nKey($place.placeI18nKeyPrefix, true))}{/param}
+                    {param noAutoEscape}true{/param}
+                {/call}
+            {/if}
+         </div>
+    {/if}
+
+
+    <!-- END browse place tabs -->
+
+    <div id="j-place-actions-container" class="j-quick-menu j-choose-type j-small-view j-menu" style="display: none">
+
+        {foreach $section in $placeActionsMenu.sections}
+            {if ($section.visible)}
+                <strong class="j-menu-quick-sectionlabel font-color-meta-light">{i18nText(i18nKey($section.headingI18nKey, true))}</strong>
+                <ul class="j-place-actions-links j-icon-list">
+                {foreach $item in $section.links}
+                    {if ($item.visible)}
+                        {if ($item.appAction != true)}
+                            <li>
+                                {call jive.shared.soy.actionLink data="$item"}
+                                    {param iconSize: 'med'/}
+                                {/call}
+                            </li>
+                        {else}
+                            {call .appActionLink data="$item"}
+                                {param templateView: $templateView/}
+                            {/call}
+                        {/if}
+                    {/if}
+                {/foreach}
+                </ul>
+            {/if}
+        {/foreach}
+    </div>
+
+    <div id="j-place-manage-container" class="j-menu" style="display: none">
+        <ul class="j-place-manage-links">
+        {foreach $item in $placeManageLinks}
+        {if ($item.visible)}
+            <li>{call jive.shared.soy.actionLink data="$item"}
+                    {param hideIcon: true/}
+                {/call}
+            </li>
+        {/if}
+        {/foreach}
+        </ul>
+    </div>
+
+    // Author by email modal
+    {if $place.canCreateByEmail}
+    <div class="jive-modal jive-modal-medium jive-author-by-email-modal" id="jive-author-by-email-modal">
+        <header>
+            <h2>{i18nText('author.by.email.modal.title')}</h2>
+        </header>
+        <a href="#" class="j-modal-close-top close">{i18nText('author.by.email.modal.close')} <span class="j-close-icon j-ui-elem" role="img"></span></a>
+        <div class="jive-modal-content" id="vcard-modal">
+        </div>
+    </div>
+    {/if}
+    // End Author by email modal
+
+
+    // Announcement Modal
+    {if $canManageAnnouncements}
+    <div class="jive-modal" id="jive-modal-announcements">
+        <header>
+            <h2 class="jive-modal-title jive-modal-title-manage-announcements">{i18nText('announcement.manage.title')}</h2>
+            <h2 class="jive-modal-title jive-modal-title-add-announcement" style="display: none">{i18nText('announcement.manage.add.title')}</h2>
+            <h2 class="jive-modal-title jive-modal-title-edit-announcement" style="display: none">{i18nText('announcement.manage.edit.title')}</h2>
+        </header>
+        <a href="#" class="j-modal-close-top close">{i18nText('global.close')}  <span class="jive-icon-glyph icon-close-med" role="img"></span></a>
+
+        <div id="announcements-modal"></div>
+    </div>
+    {/if}
+    // End Announcement Modal
+
+    // Category Modal
+    {if $canManageCategories}
+    <div class="jive-modal jive-modal-wide" id="jive-modal-categories">
+        <header>
+            <h2 class="jive-modal-title jive-modal-title-manage-categories">{i18nText('category.manage.title')}</h2>
+            <h2 class="jive-modal-title jive-modal-title-add-category" style="display: none">{i18nText('category.manage.add.title')}</h2>
+            <h2 class="jive-modal-title jive-modal-title-edit-category" style="display: none">{i18nText('category.manage.edit.title')}</h2>
+        </header>
+        <a href="#" class="j-modal-close-top close">{i18nText('global.close')}  <span class="jive-icon-glyph icon-close-med" role="img"></span></a>
+
+        <div id="categories-modal"></div>
+    </div>
+    {/if}
+     // End Category Modal
+
+    {if $place.canArchive}
+    <!-- BEGIN archive panel -->
+    <div class="jive-modal" id="jive-modal-archive-project">
+        <header>
+        <h2 class="jive-modal-title jive-modal-title-unarchive-project">{i18nText('project.unarchive.title')}</h2>
+        <h2 class="jive-modal-title jive-modal-title-archive-project">{i18nText('project.archive.title')}</h2>
+        </header>
+        <section id="archive-modal" class="jive-modal-content jive-modal-archive-project clearfix"></section>
+    </div>
+    <!-- END archive panel -->
+    {/if}
+
+{/template}

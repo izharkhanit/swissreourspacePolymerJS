@@ -1,0 +1,51 @@
+{namespace jive.people.profile}
+
+
+/**
+ * Full bio modal
+ * @param profileImageEnabled
+ * @param extendedProfileFields
+ * @param otherProfileFields
+ */
+{template .fullBio}
+    <div id="j-profile-full-bio" class="jive-modal j-pop" style="display:none">
+        <header class="j-modal-header">
+            <h2>
+                {i18nText('profile.fullbio.title', 'user')}
+            </h2>
+        </header>
+        <a class="j-modal-close-top jive-close close" href="#">
+            {i18nText('global.close')} <span class="j-close-icon j-ui-elem close"></span>
+        </a>
+
+        <section class="jive-modal-content j-profile-overflow clearfix profile-data">
+        	//Upgrade - Profile changes
+            <div class="profile-tile j-extended-profile" id="j-profile-full-bio-div">
+                {if not $profileImageEnabled}
+                    // If profile images are not enabled the profile fields normally displayed in the extended profile area will be displayed in the modal.
+                    <ul>
+                        {foreach $field in $extendedProfileFields}
+                            {call .displayField data="all"}
+                                {param field: $field /}
+                            {/call}
+                        {/foreach}
+                    </ul>
+                {/if}
+
+                {if length($otherProfileFields) == 0}
+                    <p>{i18nText('profile.no.fullbio')}</p>
+                {else}
+                    <ul>
+                        {foreach $field in $otherProfileFields}
+                            {call .displayField data="all"}
+                                {param field: $field /}
+                            {/call}
+                        {/foreach}
+                    </ul>
+                {/if}
+            </div>
+
+            {call .renderPresence data="all" /}
+        </section>
+    </div>
+{/template}

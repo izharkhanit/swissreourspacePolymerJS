@@ -1,0 +1,1093 @@
+{namespace jive.publishbar}
+
+/**
+ * Renders the publish bar
+ *
+ * @param objectType the type of object being published
+ * @param objectDescriptor the object being edited
+ * @param visibilityOptions the visibility options
+ * @param creator if the content lives in a different users container, we will show them - otherwise null
+ * @param visibilityBean the bean for the visibility section
+ * @param organizeBean the bean for the organize section
+ * @param optionsBean the bean for advanced options section
+ * @param viewingUserPartner
+ * @param communityFeatureVisible
+ * @param showOrganizeSection
+ * @param showCollborationSection
+ * @param? identifier
+ * @param? placeRenderType
+ * @param? placeChangeable
+ * @param? showExStorageInfo
+ * @param? extendedAuthor
+ * @param? warnVisibleToPartner
+ *
+ * @depends path=/resources/scripts/apps/publish_bar/main.js
+*/
+{template .main}
+    {if $visibilityOptions}
+        <div class="j-publishbar j-publishbar-{if $placeRenderType}{$placeRenderType}{/if}" role="application">
+            <section id="{if $identifier}{$identifier}{/if}js-publishbar-visibility" class="j-publish-group{if $placeRenderType == 'quick'}-{$placeRenderType}{/if} j-rc5">
+                {call .visibilityOptions data="all"}
+                    {param isPartner : $viewingUserPartner/}
+                    {param identifier : $identifier/}
+                    {param placeRenderType}
+                        {if not $placeRenderType}standard{else}{$placeRenderType}{/if}
+                    {/param}
+                    {param placeChangeable: $placeChangeable /}
+                    {param showExStorageInfo: $showExStorageInfo /}
+                {/call}
+                <span id="{if $identifier}{$identifier}{/if}js-publishbar-loading"></span>
+                {if $extendedAuthor and $warnVisibleToPartner}
+                    <div class="j-browse-external-access"><em>{i18nText('publishbar.visibility.warn.partner')}</em></div>
+                {/if}
+            </section>
+
+            {if $showOrganizeSection}
+            <section id="{if $identifier}{$identifier}{/if}js-publishbar-organize">
+                {call .organize data="$organizeBean"}
+                    {param identifier : $identifier/}
+                {/call}
+            </section>
+            {/if}
+            {if $showCollborationSection}
+            <section id="{if $identifier}{$identifier}{/if}js-publishbar-collaboration" class="j-publishbar-collaboration" {if not $optionsBean.showOptionsLink}style="display: none;"{/if}>
+                {call .collaborationOptions data="$optionsBean"}
+                    {param identifier : $identifier/}
+                {/call}
+            </section>
+            {/if}
+        </div>
+    {elseif $creator}
+        // Don't render anything but pass through current data
+        {call .creatorVisibilityInfo}
+            {param visibilityBean : $visibilityBean/}
+            {param includeVisibilityValue : true/}
+        {/call}
+        <input type="hidden" name="publishBar.tags" value="{$organizeBean.tags}"/>
+    {/if}
+
+    <script>
+        function initiatePublishBar{if $identifier}{$identifier}{/if}() {lb}
+            var jivePublishBar{if $identifier}{$identifier}{/if} = new jive.PublishBar.Main({lb}
+                objectType: {$objectType|escapeJs},
+                {if $objectDescriptor}objectDescriptor:{$objectDescriptor|escapeJs},{/if}
+                {if $identifier}identifier:'{$identifier|escapeJs}',{/if}
+                {if $placeRenderType}placeRenderType:'{$placeRenderType|escapeJs}',{/if}
+                showCommunityOption: {not $viewingUserPartner and $visibilityBean.placeItemBean.prop.canPostToNetwork},
+                initData: {lb}
+                    visibilityBean: {if $visibilityBean}{buildJson($visibilityBean)|noAutoescape}{else}{lb}{rb}{/if},
+                    organizeBean: {if $organizeBean}{buildJson($organizeBean)|noAutoescape}{else}{lb}{rb}{/if},
+                    optionsBean: {if $optionsBean}{buildJson($optionsBean)|noAutoescape}{else}{lb}{rb}{/if}
+                {rb}
+            {rb});
+        {rb}
+    </script>
+    {if $identifier}
+        <script>
+            $j(function(){lb}initiatePublishBar{if $identifier}{$identifier}{/if}(){rb});
+        </script>
+    {/if}
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+            $j(function() {lb}
+                jive.global.communityFeatureVisible = {if $communityFeatureVisible}true{else}false{/if};
+                initiatePublishBar{if $identifier}{$identifier}{/if}();
+            {rb});
+        {/param}
+    {/call}
+
+{/template}
+
+/**
+ * Embed existing visiblity information to just be passed through.
+ *
+ * @param visibilityBean visibility information
+ * @param? includeVisibilityValue
+ * @param? identifier
+ */
+{template .creatorVisibilityInfo}
+    <input type="hidden" id="{if $identifier}{$identifier}{/if}js-container-objecttype" name="publishBar.container.objectType" value="{$visibilityBean.placeItemBean.type}"/>
+    <input type="hidden" id="{if $identifier}{$identifier}{/if}js-container-id" name="publishBar.container.objectID" value="{$visibilityBean.placeItemBean.id}"/>
+    {if $includeVisibilityValue}
+        <input type="hidden" name="publishBar.visibility" value="{$visibilityBean.visibility}"/>
+    {/if}
+{/template}
+
+/**
+ * Renders the visibility section of the publish bar
+ *
+ * @param placeVisibility true if the place visibility option is selected, false otherwise
+ * @param peopleVisibility true if the ppeopleisibility option is selected, false otherwise
+ * @param allVisibility true if the all visibility option is selected, false otherwise
+ * @param personalBlog the BlogViewBean for the users personal blog. If no personal blog, this bean will be
+ * @param visibility the visibility type (people, place, everyone...)
+ * @param showVisibility true if we should render the visibility section, false otherwise
+ * populated with the default name and id of -1 if the user can create a personal blog.
+ * @param communityFeatureVisible
+ * @param inputBrowse
+ * @param preInputNameKey
+ * @param? identifier
+ *
+ * @depends i18nKeys=publishbar.place.preInput.title
+ */
+{template .visibility}
+    {if $showVisibility}
+        <span id="{if $identifier}{$identifier}{/if}js-visibility-{$visibility}" class="js-visibility-option">
+        {if $placeVisibility}
+            {if $preInputNameKey and $preInputNameKey != ''}
+                <label for="{if $identifier}{$identifier}{/if}js-publishbar-place-input">{i18nText(i18nKey($preInputNameKey, true))}</label>
+            {/if}{sp}{sp}
+            <span class="j-publish-input-row">
+                 <input type="text" id="{if $identifier}{$identifier}{/if}js-publishbar-place-input" class="j-publish-input-entry" autocomplete="off" role="combobox"
+                    {if $communityFeatureVisible}
+                       placeholder="{i18nText('publishbar.visibility.place.holder')}" aria-label="{i18nText('publishbar.visibility.place.holder')}"
+                    {else}
+                       placeholder="{i18nText('publishbar.visibility.group.holder')}" aria-label="{i18nText('publishbar.visibility.group.holder')}"
+                    {/if}
+                />
+                {if $inputBrowse}
+                <a href="#trigger_modal" id="{if $identifier}{$identifier}{/if}js-publishbar-place-browse">
+                    {if $communityFeatureVisible}
+                        {i18nText('publishbar.visibility.place.browse')}
+                    {else}
+                        {i18nText('publishbar.visibility.group.browse')}
+                    {/if}
+                </a>
+                {/if}
+            </span>
+            <div id="{if $identifier}{$identifier}{/if}js-publishbar-place-results" class="j-pop j-autocomplete" style="display: none;"></div>
+        {elseif $peopleVisibility}
+            <span>
+                <input type="text" id="{if $identifier}{$identifier}{/if}js-publishbar-users" name="publishBar.users" class="j-autocomplete-input j-user-autocomplete j-ui-elem" role="combobox" placeHolder="{i18nText('publishbar.visibility.people.holder')}" aria-label="{i18nText('publishbar.visibility.people.holder')}"/>
+            </span>
+        {elseif $allVisibility and $personalBlog}
+            {if $personalBlog.id > 0}
+                {$personalBlog.name}
+            {else}
+                <span id="js-publishbar-createblog-default">{$personalBlog.name} {sp} <a href="#" class="font-color-meta" id="js-publishbar-createblog-change">{i18nText('publishbar.visibility.change.blog')}</a></span>
+                <span id="js-publishbar-createblog" style="display:none;"><label for="personal-blog-name-id" class="j-508-label" aria-hidden="true"></label><input id="personal-blog-name-id" type="text" name="publishBar.personalBlogName" value="{$personalBlog.name}"/></span>
+            {/if}
+        {/if}
+        </span>
+    {/if}
+{/template}
+
+/**
+ * Displays the view of a selected place in the publish bar
+ * depends for jive.uiExtensions.* will throw warning if no extension which uses it is installed. DON'T REMOVE IT!
+ *
+ * @param subject The item subject.
+ * @param iconCss An icon representing the item.
+ * @param id The place ID.
+ * @param type The place type.
+ * @param prop Properties of the container
+ * @param? identifier
+ * @param? placeRenderType
+ * @param? preInputNameKey
+ * @param? placeChangeable
+ * @param? showExStorageInfo
+ *
+ * @depends template=jive.eae.acclaim.count scope=client
+ *
+ * @allowDependsWildcard
+ *
+ * @depends template=jive.uiExtensions.* scope=client
+
+ * @depends i18nKeys=doc.create.reply_must_be_apprvd.text
+ * @depends i18nKeys=publishbar.place.preInput.title
+ * @depends i18nKeys=browse.info.sgroup.*
+ * @depends i18nKeys=we.form.no.place.selected
+ *
+ */
+{template .placeView}
+    <section {if $placeChangeable}{else}style="display:none;"{/if}>
+         <input type="hidden" id="{if $identifier}{$identifier}{/if}j-publishbar-place-type" name="publishBar.container.objectType" value="{$type}" />
+         <input type="hidden" id="{if $identifier}{$identifier}{/if}j-publishbar-place-id" name="publishBar.container.objectID" value="{$id}"/>
+         <div class="j-place-info clearfix" data-object-type="{$type}" data-object-id="{$id}">
+            {if $preInputNameKey and $preInputNameKey != ''}
+                /* INC006340293 - status update change */
+                {if $identifier == 'statusUpdateModal'}
+                  <label for="statusUpdateModaljs-publishbar-place-input">Post on</label>
+                {elseif $identifier == 'activityHome'}
+                  <label for="activityHomejs-publishbar-place-input">Post on</label>
+                {else}
+                  <label for="{if $identifier}{$identifier}{/if}js-publishbar-place-input">{i18nText(i18nKey($preInputNameKey, true))}</label>
+                {/if}
+            {/if}{sp}{sp}
+            <div>
+                {if not $placeRenderType or $placeRenderType == 'standard'}
+                <span class="{$iconCss} jive-icon-med"></span>
+                {if $prop.placeImage and $prop.placeImage.urlMedium}
+                <img src="{buildUrl($prop.placeImage.urlMedium)}" alt="{i18nText('place.image')}" width="60"/>
+                {/if}
+
+                <div class="j-place-view-info j-js-place-view-info">
+                    <strong>
+                            <span class="js-header-text">{$subject}</span>
+                    </strong>{sp}{sp}
+
+                    {if $prop.perms.allowedToMove}
+                    <a href="#" id="{if $identifier}{$identifier}{/if}js-publishbar-changePlace" class="font-color-meta">{i18nText('global.change')} <span class="j-508-label" aria-hidden="true">{i18nText('we.form.no.place.selected')}</span></a>
+                    {/if}
+
+                    {if $prop.parentInfo}<p class="j-browse-content-location font-color-meta-light">{i18nText('global.in')} <a href="{buildUrl($prop.parentInfo.link)}" class="font-color-meta-light jivecontainerTT-hover-container" data-objectId="{$prop.parentInfo.id}" data-objectType="{$prop.parentInfo.type}" target="_blank">{$prop.parentInfo.subject}</a></p>{/if}
+                    {if $prop.socialGroupInfo or $prop.isVisibleToPartner}
+                    <p class="j-browse-content-location font-color-meta-light">
+                        {if $prop.socialGroupInfo}
+                        <span class="jive-icon-sml role='img' jive-icon-group-{$prop.socialGroupInfo.typeName}-glyph" title="{i18nText(i18nKey('browse.info.sgroup.' + $prop.socialGroupInfo.typeName, true))}"></span>{i18nText(i18nKey('browse.info.sgroup.' + $prop.socialGroupInfo.typeName, true))}
+                        {/if}
+                        {if $prop.socialGroupInfo and $prop.isVisibleToPartner}, {/if}
+                        {if $prop.isVisibleToPartner}
+                            <span class="font-color-meta-light j-browse-external-access"> <em>({i18nText('partner.browse.ext_access')})</em></span>
+                        {/if}
+
+                    </p>
+                    {/if}
+                     {if $prop.placeCustom}
+                        {call jive.shared.soy.render}
+                            {param templateName: $prop.placeCustom.templateName /}
+                            {param data: Map(
+                                p('props', $prop.placeCustom.props)
+                            ) /}
+                            {param failGracefully: false /}
+                         {/call}
+
+
+                     {/if}
+
+                    {if $showExStorageInfo and $prop.exStorageInfo}
+                      {call jive.integration.storage.render_container_exstorage_info}
+                        {param exStorageInfo: $prop.exStorageInfo /}
+                      {/call}
+                    {/if}
+
+                    <p class="j-publish-bar-acclaim-container j-js-publish-bar-acclaim-container">
+                        {if $prop.followInfo}
+                            {call jive.eae.acclaim.count}
+                                {param command:'showFollowers' /}
+                                {param count}{if ($prop.followInfo and $prop.followInfo.numFollowers)}{$prop.followInfo.numFollowers}{else}0{/if}{/param}
+                                {param objectId:$id /}
+                                {param objectType:$type /}
+                                {param text}
+                                    {if ($prop.followInfo and $prop.followInfo.numFollowers)}
+                                    	{if $prop.followInfo.numFollowers == 1}
+                                    		{i18nText('browse.info.followers.singular',$prop.followInfo.numFollowers)}
+                                    	{else}
+                                    		{i18nText('browse.info.followers.plural',$prop.followInfo.numFollowers)}
+                                    	{/if}
+                                    {else}
+                                    	{i18nText('browse.info.followers.plural',0)}
+                                    {/if}
+                                {/param}
+                                {param accessibilityLinkLabel}
+                                    {call jive.shared.soy.getCountTextByType}
+                                        {param count}{if ($prop.followInfo and $prop.followInfo.numFollowers)}{$prop.followInfo.numFollowers}{else}0{/if}{/param}
+                                        {param type:'showfollowcount'/}
+                                    {/call}
+                                {/param}
+                            {/call}
+                        {/if}
+
+                        <br/>
+
+                        {if $prop.socialGroupInfo}
+                            {call jive.eae.acclaim.count}
+                                {param command:'showMembers' /}
+                                {param count}{if $prop.socialGroupInfo}{$prop.socialGroupInfo.numMembers}{else}0{/if}{/param}
+                                {param objectId:$id /}
+                                {param objectType:$type /}
+                                {param text}
+                                    {if ($prop.socialGroupInfo and $prop.socialGroupInfo.numMembers)}{$prop.socialGroupInfo.numMembers}{else}0{/if}{sp}{if $prop.socialGroupInfo.numMembers == 1}{i18nText('browse.info.members.singular')}{else}{i18nText('browse.info.members.plural')}{/if}
+                                {/param}
+                                {param accessibilityLinkLabel}
+                                    {call jive.shared.soy.getCountTextByType}
+                                        {param count}{if $prop.socialGroupInfo}{$prop.socialGroupInfo.numMembers}{else}0{/if}{/param}
+                                        {param type:'showmembercount'/}
+                                    {/call}
+                                {/param}
+                            {/call}
+                            {sp}
+                            ({call jive.eae.acclaim.count}
+                                {param command:'showExternalContributorMembers' /}
+                                {param count}
+                                    {if $prop.socialGroupInfo}{$prop.socialGroupInfo.numPartners}{else}0{/if}
+                                {/param}
+                                {param objectId:$id /}
+                                {param objectType:$type /}
+                                {param text}
+                                    {if $prop.socialGroupInfo.numPartners == 1}
+                                        {i18nText('browse.info.membercount.externalcontributors.singular', $prop.socialGroupInfo.numPartners)}
+                                    {else}
+                                        {i18nText('browse.info.membercount.externalcontributors.plural', $prop.socialGroupInfo.numPartners)}
+                                    {/if}
+                                {/param}
+                                {param accessibilityLinkLabel}
+                                    {call jive.shared.soy.getCountTextByType}
+                                        {param count}{if $prop.socialGroupInfo}{$prop.socialGroupInfo.numMembers}{else}0{/if}{/param}
+                                        {param type:'showmembercount'/}
+                                    {/call}
+                                {/param}
+                            {/call})
+                        {/if}
+                    </p>
+
+                </div>
+                {else}
+                    {if $iconCss}
+                        <span class="{$iconCss} jive-icon-med"></span>
+                    {/if}
+                    <div>
+                        <strong>
+                            {if $preInputNameKey and $preInputNameKey != ''}
+                                <span class="j-508-label">{i18nText(i18nKey($preInputNameKey, true))}</span>
+                            {/if}
+			    /* INC006340293 - status update change */
+                            {if $subject == 'The Ourspace Community'}
+                              <span class="js-header-text" tabindex="0">Ourspace</span>
+                            {else}
+                              <span class="js-header-text" tabindex="0">{$subject}</span>
+                            {/if}
+                        </strong>
+                    </div>
+                    {if $prop.isVisibleToPartner}
+                        {sp}<span class="font-color-meta-light j-browse-external-access"> <em>({i18nText('partner.browse.ext_access')})</em></span>
+                    {/if}
+
+                    {sp}{sp}
+                    {if $prop.perms.allowedToMove}
+                    <a href="#" id="{if $identifier}{$identifier}{/if}js-publishbar-changePlace" class="font-color-meta">{i18nText('global.change')} <span class="j-508-label">{i18nText('we.form.no.place.selected')}</span></a>
+                    {/if}
+                {/if}
+            </div>
+
+        </div>
+
+    </section>
+{/template}
+
+/**
+ * Displays the organize section of the publish bar
+ *
+ * @param showTags true if we should show the tags section, false otherwise
+ * @param showCategories true if we should show the categories section, false otherwise
+ * @param? identifier
+ */
+{template .organize}
+    {if $showTags}
+        {call jive.tags.autocomplete.tags data="all"}
+            {param identifier : $identifier/}
+        {/call}
+
+        {if $showCategories}
+            {call .tagSets data="all"}
+                {param identifier : $identifier/}
+            {/call}
+
+        {/if}
+    {/if}
+{/template}
+
+/**
+ * Displays the collaboration options section of the publish bar
+ *
+ * @param expandAdvancedOptions true if we should show the options without first requiring the user to expand them
+ * @param showOptionsLink true if we should show the options link, false if this entire section should be empty
+ * @param showAuthors true if we should show the authors section in the options, false otherwise
+ * @param showApprovers true if we should show the approvers section in the options, false otherwise
+ * @param showCommentOptions true if we should show the comment options section in the options, false otherwise
+ * @param showBlogPostPublishDate true if we should show the blog post publish date section in the options, false otherwise
+ * @param showPollOptions true if we should show the poll vote section in the options, false otherwise
+ * @param authorsBean the PublishBarAuthorsBean for the authors section
+ * @param approversBean the PublishBarApproversBean for the approvers section
+ * @param commentOptionsBean the PublishBarCommentOptionsBean for the comment options section
+ * @param blogPostPublishDateBean the PublishDateBean for the blog post publish date section
+ * @param pollOptionsBean the PublishBarPollOptionsBean for the poll options section
+ * @param? identifier
+ */
+{template .collaborationOptions}
+    {if $showOptionsLink}
+        <label>
+            <a href="#" id="{if $identifier}{$identifier}{/if}js-publishbar-collab-link">
+                {if $expandAdvancedOptions}
+                    <span class="jive-icon-glyph icon-arrow-down2"></span>
+                {else}
+                    <span class="jive-icon-glyph icon-arrow-right2"></span>
+                {/if}
+                <strong>{i18nText('publishbar.collaboptions.link')}</strong>
+            </a>
+        </label>
+        <ul class="j-advanced-options" id="{if $identifier}{$identifier}{/if}js-publishbar-collab"{if not $expandAdvancedOptions} style="display: none;"{/if} role="group" >
+
+            {if $showAuthors}
+                {call .documentAuthors data="$authorsBean"}
+                    {param identifier : $identifier/}
+                {/call}
+
+                {if $showApprovers}
+                    {call .documentApprovers data="$approversBean"}
+                        {param identifier : $identifier/}
+                    {/call}
+                {/if}
+            {/if}
+
+            {if $showCommentOptions}
+                {call .commentOptions data="$commentOptionsBean"}
+                    {param identifier : $identifier/}
+                {/call}
+            {/if}
+
+            {if $showBlogPostPublishDate}
+                {call .blogPostPublishDate data="$blogPostPublishDateBean"}
+                    {param identifier : $identifier/}
+                {/call}
+            {/if}
+
+            {if $showPollOptions}
+                {call .pollOptions data="$pollOptionsBean"}
+                    {param identifier : $identifier/}
+                {/call}
+            {/if}
+        </ul>
+    {/if}
+{/template}
+
+/**
+ * Displays the category section of the publish bar for a place
+ *
+ * @param placeCategories the list of available categories (TagSetBean)s in the selected place
+ * @param categoriesPerColumn the number of categories to dispaly per column
+ * @param? categories the list of selected tag set ids for the published object
+ * @param? identifier
+ */
+{template .tagSets}
+    {if $placeCategories and length($placeCategories) > 0}
+    <div id="{if $identifier}{$identifier}{/if}js-publishbar-tagsets">
+        <input type="hidden" name="publishBar.categories" id="{if $identifier}{$identifier}{/if}j-publishbar-categories" value="" />
+        <div id="jive-compose-categories" class="clearfix" role="group">
+            <label></span>{i18nText('global.categories')}
+                <span class="font-color-meta">{i18nText('category.create-content.text')}</span>
+            </label>
+            <table>
+                <tr>
+                    <td>
+                    {foreach $placeCategory in $placeCategories}
+                    {if not isFirst($placeCategory) and index($placeCategory) % $categoriesPerColumn == 0}
+                    </td><td>
+                    {/if}
+                        <div><span class="jive-category-wrap">
+                            <input type="checkbox" id="{if $identifier}{$identifier}{/if}j-category_{$placeCategory.id}" class="j-category-input" value="{$placeCategory.id}" {if $categories and indexOf($categories, $placeCategory.id) > -1}checked="checked"{/if} data-tags="{foreach $tag in $placeCategory.tags}{$tag}{if not isLast($tag)},{sp}{/if}{/foreach}" role="checkbox" />
+                            <label for="j-category_{$placeCategory.id}" class="font-color-normal">
+                                <i class="jive-icon-glyph icon-categories"></i>
+                                <span class="j-catname">
+                                    {$placeCategory.name}
+                                </span>
+                            </label>
+                        </span></div>
+                    {/foreach}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <content tag="jiveTooltip">
+            <div id="jiveTT-note-suggest" class="jive-tooltip-help notedefault snp-mouseoffset">
+                <div id="jive-note-category-suggestion-body">
+                    <strong>{i18nText('category.create-content.suggested.text')}</strong>
+                    <p>
+                        {i18nText('category.publishbar.related-tags.tooltip')}
+                        &nbsp;<strong id="jive-note-category-tags"></strong>
+                    </p>
+                </div>
+            </div>
+        </content>
+    </div>
+    {/if}
+{/template}
+
+
+/**
+ * @param tags the list of tags for this category
+ */
+{template .categoryTooltip private="true" autoescape="contextual"}
+    <div class="jive-tooltip-help snp-mouseoffset">
+        <div id="jive-note-category-suggestion-body">
+            <strong>{i18nText('category.create-content.suggested.text')}</strong>
+            <p>
+                {i18nText('category.publishbar.related-tags.tooltip')}
+                &nbsp;<strong>{if $tags}{foreach $tag in $tags}{$tag}{if not isLast($tag)},{sp}{/if}{/foreach}{/if}</strong>
+            </p>
+        </div>
+    </div>
+{/template}
+
+
+/**
+ * Displays the document authors options
+ *
+ * @param authorPolicyNameKey the selected author policy, if exists
+ * @param authorPolicyDescriptionKey the selected author policy, if exists
+ * @param authorPolicy the selected author policy, if exists
+ * @param defaultAuthorPolicySelected true if the authorPolicy is the default
+ * @param defaultAuthorPolicy the default authorship policy
+ * @param authorPolicyOptions the list of author policy options
+ * @param authorPolicyMultiple true if the author policy is set to multiple
+ * @param forceAuthorList true if the author list has to be shown
+ * @param? identifier
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=publishbar.authorPolicy.*
+ * @depends i18nKeys=event.publishbar.authorPolicy.* please change these sets of keys so we only need one generic wildcard
+ * @depends i18nKeys=idea.publishbar.authorPolicy.*  please change these sets of keys so we only need one generic wildcard
+ */
+{template .documentAuthors}
+    <li class="j-rc5">
+        // Checkbox don't normally use the value attribute, however form2js does not treat as boolean unless value is "true"
+        // Without this, publish bar can't distinguish between 'unchecked' vs. not-present (e.g. user does not have advanced options)
+        <input type="checkbox" name="publishBar.docAuthorsOption" id="{if $identifier}{$identifier}{/if}js-publishbar-docAuthorsOption" {if not $defaultAuthorPolicySelected or $forceAuthorList} checked="checked"{/if} role="checkbox" value="true"/>
+        <input type="hidden" name="publishBar.defaultAuthorshipPolicy" id="{if $identifier}{$identifier}{/if}js-publishbar-docDefaultAuthorshipPolicy"  value="{$defaultAuthorPolicy}"/>
+        <label for="{if $identifier}{$identifier}{/if}js-publishbar-docAuthorsOption">{i18nText(i18nKey($authorPolicyNameKey, true))} <span class="font-color-meta">{i18nText(i18nKey($authorPolicyDescriptionKey, true))}</span></label>
+
+        <div id="{if $identifier}{$identifier}{/if}js-publishbar-docAuthorDetails" class="j-advanced-details">
+            <ul role="radiogroup">
+            {foreach $authorPolicyOption in $authorPolicyOptions}
+                {call .authorPolicyOption data="$authorPolicyOption"}
+                    {param selected: $authorPolicy == $authorPolicyOption.value/}
+                    {param identifier: $identifier/}
+                {/call}
+            {/foreach}
+            </ul>
+            <div id="{if $identifier}{$identifier}{/if}js-publishbar-docAuthors-multiple" class="j-publishbar-people-block" {if not $authorPolicyMultiple}style="display:none;"{/if}>
+                <label for="{if $identifier}{$identifier}{/if}js-publishbar-docAuthors" class="j-508-label">{i18nText('publishbar.authorPolicy.multiple.selected')}</label>
+                <input type="text" id="{if $identifier}{$identifier}{/if}js-publishbar-docAuthors" name="publishBar.authors" class="j-autocomplete-input j-user-autocomplete j-ui-elem" role="combobox"/>
+                /* todo: show invalid / disallowed authors, if exist */
+            </div>
+        </div>
+    </li>
+{/template}
+
+/**
+ * Displays the document authors options
+ *
+ * @param placeApprovers the list of pre-defined approvers (UserItemBean)s for the selected place
+ * @param approvers list of user-selected approvers
+ * @param? identifier
+ */
+{template .documentApprovers}
+    <li class="j-rc5">
+        <div class="clearfix">
+            <input type="checkbox" name="publishBar.docApproversOption" id="{if $identifier}{$identifier}{/if}js-publishbar-docApproversOption" {if $approvers and length($approvers) > 0}checked="checked"{/if} role="checkbox" />
+
+            <label for="{if $identifier}{$identifier}{/if}js-publishbar-docApproversOption">{i18nText('publishbar.approvers.toggle')}</label>
+        </div>
+
+
+        <div id="{if $identifier}{$identifier}{/if}js-publishbar-docApproversDetails" class="j-publishbar-people-block" {if not ($approvers and length($approvers) > 0)}style="display: none;"{/if}>
+
+            {if ($placeApprovers and length($placeApprovers) > 0)}
+                <div class="j-place-approvers">
+                    <span>{i18nText('doc.collab.approvers.label')}</span>
+                    <div class="jive-chooser-list j-result-list">
+                        <ul class="clearfix">
+                            {foreach $placeApprover in $placeApprovers}
+                                <li>{call jive.shared.displayutil.userDisplayNameLink data="$placeApprover"/}</li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                </div>
+
+            <label for="{if $identifier}{$identifier}{/if}js-publishbar-docApprovers">{i18nText('publishbar.additional.approvers')}</label><br/>
+            {/if}
+
+
+             <input type="text" id="{if $identifier}{$identifier}{/if}js-publishbar-docApprovers" name="publishBar.approvers" class="j-autocomplete-input j-user-autocomplete j-ui-elem" role="combobox" aria-label="{i18nText('publishbar.additional.approvers')}"/>
+        </div>
+
+    </li>
+{/template}
+
+/**
+ * Displays a list of containers for the place visibility. This template handles both suggestions on focus and search results.
+ *
+ * @param suggested true if we are showing the suggested list, false if we are showing search results
+ * @param containers A list of containers to display
+ * @param communityFeatureVisible
+ * @param communityName
+ * @param? userContainerDescriptor
+ * @param? renderType
+ * @param? showCommunityOption
+ */
+{template .placeSearchResults}
+    <div class="j-pop-main j-menu j-quick-menu">
+    {if $suggested and length($containers) == 0 and $renderType == 'standard'}
+    {if not $renderType or $renderType == 'standard'}
+        <div class="j-actions"><strong>{i18nText('publishbar.place.suggested.results')}</strong></div>
+        {if $communityFeatureVisible}
+            <p class="j-noresults">{i18nText('publishbar.place.suggested.noresults')}</p>
+        {else}
+            <p class="j-noresults">{i18nText('publishbar.group.suggested.noresults')}</p>
+        {/if}
+    {/if}
+    {else}
+        {if not $renderType or $renderType == 'standard'}
+        <p class="j-actions">
+            {if $suggested}
+                {if $communityFeatureVisible}
+                    {i18nText('publishbar.place.suggested.results')}
+                {else}
+                    {i18nText('publishbar.group.suggested.results')}
+                {/if}
+            {else}
+                {if $communityFeatureVisible}
+                    {i18nText('publishbar.place.search.results')}
+                {else}
+                    {i18nText('publishbar.group.search.results')}
+                {/if}
+            {/if}
+        </p>
+        {/if}
+        {call .containerList data="all"}
+            {param renderType: $renderType/}
+            {param showCommunityOption: $showCommunityOption/}
+        {/call}
+    {/if}
+    </div>
+{/template}
+
+/**
+ * Displays a list of containers each of which may be clicked to select that container.
+ *
+ * @param containers A list of containers to display
+ * @param contentType the selected type of content to choose a container for
+ * @param communityFeatureVisible
+ * @param communityName
+ * @param? upload flag indicating whether the user wants to upload a document
+ * @param? emptyKey The i18n key to display when no results are returned.
+ * @param? userContainerDescriptor
+ * @param? renderType
+ * @param? showCommunityOption
+ */
+{template .containerList}
+    <div class="j-places-list">
+        <ul class="j-autocomplete-results j-icon-list" role="listbox">
+            {foreach $container in $containers}
+                <li role="option">{call .containerLink data="$container"}
+                    {param contentType: $contentType /}
+                    {param iconSize: 'med' /}
+                    {param upload: $upload /}
+                    {param writableByUser: ($container.prop and $container.prop.perms and $container.prop.perms.allowedToContribute and $container.prop.perms.allowedToMove) /}
+                    {param props: $container.prop /}
+                {/call}</li>
+            {ifempty}
+                {if not $renderType or $renderType == 'standard'}
+                <li role="option">
+                {if $emptyKey}
+                    <p class="font-color-meta j-empty">{i18nText(i18nKey($emptyKey, true))}</p>
+                {else}
+                    <p class="font-color-meta j-empty">
+                    {if $communityFeatureVisible}
+                        {i18nText('publishbar.place.search.noresults')}
+                    {else}
+                        {i18nText('publishbar.group.search.noresults')}
+                    {/if}
+                    </p>
+                {/if}
+                </li>
+                {/if}
+            {/foreach}
+            {if $renderType and $renderType == 'quick'}
+                {if $showCommunityOption}
+                <li role="option">
+                    {call .containerLink}
+                        {param subject}
+                            {i18nText('publishbar.option.all',$communityName)}
+                        {/param}
+                        {param type: $userContainerDescriptor.objectType /}
+                        {param id: $userContainerDescriptor.id /}
+                        {param iconCss: '' /}
+                        {param iconSize: '' /}
+                        {param noIcon: true /}
+                        {param writableByUser: true /}
+                        {param overrideNameCssClass: 'js-container-title-override' /}
+                    {/call}
+                </li>
+                {/if}
+                <li role="option">
+                    {call .containerLink}
+                        {param subject}
+                            {i18nText('publishbar.place.suggested.browse')}
+                        {/param}
+                        {param type: -1 /}
+                        {param id: -1 /}
+                        {param iconCss: '' /}
+                        {param iconSize: '' /}
+                        {param noIcon: true /}
+                        {param extraCssClass: 'suggestBrowseAllPlaces' /}
+                        {param writableByUser: true /}
+                    {/call}
+                </li>
+            {/if}
+        </ul>
+    </div>
+{/template}
+
+/**
+ * Displays a link to create a given type of content in a specific container.
+ *
+ * @param subject name of this container
+ * @param type containerType for this container
+ * @param id containerID for this container
+ * @param iconCss The link icon CSS classes, if any.
+ * @param iconSize The size of the icon to render.  Choices are "sml", "med", and "big".  Default is "med".
+ * @param? caption optional text to display next to the container link
+ * @param? writableByUser Can the user contribute to this container?
+ * @param? props Item properties.
+ * @param? extraCssClass
+ * @param? overrideNameCssClass
+ * @param? noIcon
+ */
+{template .containerLink}
+    {if ($writableByUser)}
+        <a href="#" data-objecttype="{$type}" data-objectid="{$id}" class="{if $extraCssClass}{$extraCssClass}{/if} js-target-container{if $props and $props.isVisibleToPartner} j-external-access{/if}">
+    {else}
+        <span class="j-place-unavailable">
+    {/if}
+        {if $noIcon}
+        {else}
+            <span class="{if $writableByUser}{$iconCss} jive-icon-{if $iconSize}{$iconSize}{else}med{/if}{else}jive-icon-sml jive-icon-place-unavailable{/if}"></span>
+        {/if}
+        <span class="{if not $writableByUser}jive-container-unavailable-text{else}lnk{/if} js-container-title {if $overrideNameCssClass}{$overrideNameCssClass}{/if}" {if not $writableByUser}title="{if $type == 2020}{i18nText('place.picker.usercontainer.unavailable')}{else}{i18nText('place.picker.unavailable')}{/if}"{/if}>{$subject}</span>
+        {if $props and $props.isVisibleToPartner}
+            <span class="jive-icon-med jive-icon-partner" title="{i18nText('partner.browse.ext_access')}"></span>
+        {/if}
+
+    {if ($writableByUser)}
+        </a>
+    {else}
+        </span>
+    {/if}
+
+    {if $caption}{sp}<span class="j-container-caption font-color-meta">{$caption}</span>{/if}
+
+{/template}
+
+
+
+/**
+ * Displays the visibility options select list
+ *
+ * @param visibilityOptions the list of visiblity options to render
+ * @param visibilityBean the PublishBarVisibilityBean for rendering visibility
+ * @param communityName
+ * @param communityFeatureVisible
+ * @param isPartner
+ * @param? identifier
+ * @param? placeRenderType
+ * @param? placeChangeable
+ * @param? creator
+ * @param? showExStorageInfo
+ * @param? extendedAuthor
+ */
+{template .visibilityOptions}
+    <ul id="{if $identifier}{$identifier}{/if}js-publishbar-select" class="j-publishbar-select" role="radiogroup" {if $extendedAuthor}style="display:none;"{/if}>
+        {foreach $visibilityOption in $visibilityOptions}
+            {if (not ($isPartner)) or ($isPartner and $visibilityOption.value != 'all')}
+                <li role="radio" aria-labelledby="{if $identifier}{$identifier}{/if}j-publishbar-place-original-{$visibilityOption.value}" aria-checked="false">
+                    {if $visibilityOption.displayOptionName}
+                    <input type="radio" id="{if $identifier}{$identifier}{/if}js-{$visibilityOption.value}" name="publishBar.visibility" value ="{$visibilityOption.value}" {if $visibilityOption.selected}checked="checked"{/if} role="radio"/>
+                    <label for="{if $identifier}{$identifier}{/if}js-{$visibilityOption.value}">
+                        {if $visibilityOption.optionAll}
+                            {if $communityName == null}
+                                {i18nText('publishbar.option.all.no.community.name')}
+                            {else}
+                                {i18nText(i18nKey($visibilityOption.nameKey, true), $communityName)}
+                            {/if}
+                        {else}
+                            {i18nText(i18nKey($visibilityOption.nameKey, true))}
+                        {/if}
+                        {sp}<span>{i18nText(i18nKey($visibilityOption.helperKey, true))}</span>
+                    </label>
+                    {/if}
+
+                <input type="hidden" id="{if $identifier}{$identifier}{/if}j-publishbar-place-original-{$visibilityOption.value}" class="js-original-place" data-place-id="{if $visibilityBean.placeItemBean}{$visibilityBean.placeItemBean.id}{/if}" data-place-link="{if $visibilityBean.placeItemBean}{$visibilityBean.placeItemBean.link}{/if}" data-place-type-id="{if $visibilityBean.placeItemBean}{$visibilityBean.placeItemBean.type}{/if}" data-render-type="{$placeRenderType}" data-subject="{if $visibilityBean.placeItemBean}{$visibilityBean.placeItemBean.subject}{/if}" data-placechangeable="{$placeChangeable}" />
+                <div id="{if $identifier}{$identifier}{/if}js-publishbar-option-{$visibilityOption.value}" data-preInputNameKey="{$visibilityOption.preInputNameKey}" data-inputBrowse="{$visibilityOption.inputBrowse}" class="j-share-to-option" {if not ($visibilityOption.selected and $visibilityBean.showVisibility)}style="display: none;"{/if}>
+                    {if $visibilityOption.selected and $visibilityBean.showVisibility}
+                        {call .visibility data="$visibilityBean"}
+                            {param communityFeatureVisible: $communityFeatureVisible /}
+                            {param inputBrowse: $visibilityOption.inputBrowse /}
+                            {param identifier: $identifier /}
+                            {param preInputNameKey: $visibilityOption.preInputNameKey /}
+                        {/call}
+                    {/if}
+                    {if not($visibilityOption.placeVisibilityOption) and $creator}
+                        {call .creatorVisibilityInfo}
+                            {param visibilityBean : $visibilityBean/}
+                            {param includeVisibilityValue : false/}
+                        {/call}
+                    {/if}
+                </div>
+                {if $visibilityOption.placeVisibilityOption}
+                    <div id="{if $identifier}{$identifier}{/if}js-publishbar-place-selection" data-preInputNameKey="{$visibilityOption.preInputNameKey}" data-inputBrowse="{$visibilityOption.inputBrowse}" class="j-share-to-option {if $identifier}{$identifier}{/if}publishbar-place-selection-marker"  {if not ($visibilityOption.selected and $visibilityBean.placeSelected)}style="display: none;"{/if}>
+                        {if $visibilityBean.placeSelected}
+                            {call .placeView data="$visibilityBean.placeItemBean"}
+                                {param identifier: $identifier/}
+                                {param placeRenderType: $placeRenderType/}
+                                {param preInputNameKey: $visibilityOption.preInputNameKey /}
+                                {param placeChangeable: $placeChangeable /}
+                                {param showExStorageInfo: $showExStorageInfo /}
+                            {/call}
+                        {elseif $placeRenderType and $placeRenderType == 'quick'}
+                            // For status updates in particular (which use a render type mode of 'quick', we need to render the
+                            // place visibility box even if not place is selected to force the user into providing a destination
+                            // Couldn't make this a simple else (it would have broken the normal publish bar)
+                            {call .visibility data="$visibilityBean"}
+                                {param communityFeatureVisible: $communityFeatureVisible /}
+                                {param inputBrowse: $visibilityOption.inputBrowse /}
+                                {param identifier: $identifier /}
+                                {param preInputNameKey: $visibilityOption.preInputNameKey /}
+                            {/call}
+                        {/if}
+                    </div>
+                {/if}
+
+                </li>
+             {/if}
+        {/foreach}
+        <div id="{if $identifier}{$identifier}{/if}js-publishbar-move-notify-streams" class="jive-content-move-notify-streams-box" style="display:none;">
+            <input type="checkbox" name="moveNotifyStreams" value="true" id="{if $identifier}{$identifier}{/if}jive-compose-move-notify" />
+            <strong>
+                <label for="{if $identifier}{$identifier}{/if}jive-compose-move-notify">{i18nText('content.mv.notify_streams.text')}</label>
+            </strong>
+        </div>
+        {if not $placeRenderType or $placeRenderType == 'standard'}
+        <div id="{if $identifier}{$identifier}{/if}js-publishbar-moderation-warning"  class="jive-content-moderation-box"
+            tabindex="-1" role="alert" aria-live="assertive" aria-atomic="true"
+            {if not $visibilityBean.placeItemBean.prop.isModerated} style="display: none;" {/if}>
+            <span class="jive-icon-med jive-icon-warn"></span>{i18nText('mod.content.create')}
+        </div>
+        {/if}
+    </ul>
+{/template}
+
+/**
+ * Displays the option for a specific author policy
+ *
+ * @param value the value for this option
+ * @param nameKey the i18n key for the name of this option
+ * @param selected true if this option should be selected, false otherwise
+ * @param hidden true if this option should be hidden, false otherwise
+ * @param? identifier
+ *
+ */
+{template .authorPolicyOption}
+<li {if $hidden}style="display: none;"{/if}>
+    <input type="radio" id="{if $identifier}{$identifier}{/if}js-publishbar-docAuthorPolicy-{$value}" name="publishBar.authorPolicy" value="{$value}" {if $hidden}disabled="disabled" {/if}{if $selected}checked="checked"{/if} role="radio"/>
+    <label for="{if $identifier}{$identifier}{/if}js-publishbar-docAuthorPolicy-{$value}">{i18nText(i18nKey($nameKey, true))}</label>
+</li>
+{/template}
+
+/**
+ * Displays the comment options section
+ *
+ * @param restrictComments true if comments are restricted, false otherwise
+ * @param commentStatusOptions the PublishBarCommentStatusOptionsBean for rendering the comment status options section
+ * @param commentStatus the selected comment status value
+ * @param showAdditionalCommentOptions true if we should show additional comment options or if the checkbox is all that's needed
+ * @param? identifier
+ *
+ * @depends i18nKeys=publishbar.commentoptions.toggle
+ * @depends i18nKeys=doc.collab.cmntsNotAllwd.radio
+ * @depends i18nKeys=doc.collab.closed_commnts.radio
+ * @depends i18nKeys=doc.collab.cmntsModerated_comments.radio
+ * @depends i18nKeys=doc.collab.open_comments.radio
+ */
+{template .commentOptions}
+    <li class="j-rc5">
+        <input type="checkbox" name="publishBar.commentOption" id="{if $identifier}{$identifier}{/if}js-publishbar-commentOption" {if $restrictComments}checked="checked"{/if} role="checkbox" />
+        <label for="{if $identifier}{$identifier}{/if}js-publishbar-commentOption">{i18nText('publishbar.commentoptions.toggle')}</label>
+        <div id="{if $identifier}{$identifier}{/if}js-publishbar-commentOptionDetails" class="j-advanced-details" {if not $showAdditionalCommentOptions or not $restrictComments}style="display: none;"{/if}>
+            <ul role="radiogroup">
+                {foreach $commentStatusOption in $commentStatusOptions}
+                    {call .commentOption data="$commentStatusOption"}
+                        {param selected: $commentStatus == $commentStatusOption.value/}
+                        {param identifier : $identifier/}
+                    {/call}
+                {/foreach}
+            </ul>
+        </div>
+    </li>
+{/template}
+
+/**
+ * Displays the comment options
+ *
+ * @param value the value of the comment option
+ * @param id the id of the comment option
+ * @param nameKey the i18n name key of the comment option
+ * @param selected true if this comment option is selected
+ * @param hidden true if this comment options should be hidden
+ * @param? identifier
+ */
+{template .commentOption}
+    <li {if $hidden}style="display: none;"{/if}>
+        <input type="radio" id="{if $identifier}{$identifier}{/if}js-publishbar-{$id}" name="publishBar.commentStatus" value="{$value}"
+        {if $selected}checked="checked"{/if} role="radio" /><label for="{if $identifier}{$identifier}{/if}js-publishbar-{$id}">{i18nText(i18nKey($nameKey, true))}</label>
+    </li>
+{/template}
+
+/**
+ * Displays te publish date selection inputs for blog post scheduling.
+ *
+ * @param selectedHour the currently selected hour
+ * @param selectedMinute the currently selected minute
+ * @param selectedPeriod the currently selected period (AM/PM)
+ * @param periods the available period options
+ * @param is24HrTime is the user in a locale the uses a 24-hour clock?
+ * @param locale the locale to display dates in
+ * @param? selectedDate the currently selected date, if exists
+ * @param? identifier
+ */
+{template .blogPostPublishDate}
+    <li class="j-rc5">
+    <input type="checkbox" name="publishBar.blogPublishOption" id="{if $identifier}{$identifier}{/if}js-publishbar-blogPublishOption" value='true' {if $selectedDate}checked="checked"{/if} role="checkbox" />
+    <label for="{if $identifier}{$identifier}{/if}js-publishbar-blogPublishOption">{i18nText('publishbar.blogpost.date.toggle')}</label>
+
+    <div id="{if $identifier}{$identifier}{/if}js-publishbar-blogPublishDetails" {if not $selectedDate}style="display: none;"{/if}>
+        <span class="publishAtDateTimePicker"/>
+            <input type="text" id="{if $identifier}{$identifier}{/if}publishDate" name="{i18nText('publishBar.publishDate.selectedDate')}" aria-label="{i18nText('global.date')}" class="j-time-picker j-form-datepicker" autocomplete="off" value="" required />
+        </span>{sp}
+
+        {call jive.shared.soy.resourceInlineJs}
+            {param code}
+                jQuery(document).ready(function() {lb}
+                    define(['apps/shared/views/date_picker_view'], function(DatePickerView) {lb}
+                        var datePicker = new DatePickerView({lb} locale: "{$locale}" {rb});
+                        datePicker.addDatePicker('#{if $identifier}{$identifier}{/if}publishDate');
+                    {rb});
+                {rb});
+            {/param}
+        {/call}
+
+
+        <select name="publishBar.publishDate.selectedHour" aria-label="{i18nText('global.hour')}">
+            {if true == $is24HrTime}
+                {for $hour in range(0, 24)}
+                    <option value="{$hour}"{if $hour == $selectedHour} selected="true"{/if}>{$hour}</option>
+                {/for}
+            {else}
+                {for $hour in range(1, 13)}
+                    <option value="{$hour}"{if $hour == $selectedHour} selected="true"{/if}>{$hour}</option>
+                {/for}
+            {/if}
+        </select>
+
+        <select name="publishBar.publishDate.selectedMinute" aria-label="{i18nText('global.minute')}">
+            {for $minute in range(0, 60)}
+                <option value="{$minute}"{if $minute == $selectedMinute} selected="true"{/if}>{if $minute < 10}0{/if}{$minute}</option>
+            {/for}
+        </select>
+
+        {if true != $is24HrTime}
+            <select name="publishBar.publishDate.selectedPeriod" aria-label="{i18nText('global.period')}">
+                {foreach $period in $periods}
+                    <option value="{$period}"{if $period == $selectedPeriod} selected="true"{/if}>{$period}</option>
+                {/foreach}
+            </select>
+        {/if}
+    </li>
+{/template}
+
+/**
+ * Displays the advanced poll options
+ *
+ * @param voteStartOptions the available vote start options
+ * @param voteStartBean the selected VoteStartBean
+ * @param voteEndsOptions the available vote ends options
+ * @param voteEndsBean the selected VoteEndsBean
+ * @param defaultOptions true if the defaults are selected, false if we should show the selected poll options
+ * @param? identifier
+ */
+{template .pollOptions}
+    <li class="j-rc5">
+    <input type="checkbox" name="publishBar.pollVoteOptions" id="{if $identifier}{$identifier}{/if}js-publishbar-pollVoteOptions" value="true" {if not $defaultOptions}checked="checked"{/if} role="checkbox" />
+    <label for="{if $identifier}{$identifier}{/if}js-publishbar-pollVoteOptions">{i18nText('publishbar.polls.toggle')}</label>
+
+    <div id="{if $identifier}{$identifier}{/if}js-publishbar-pollVoteDetails" {if $defaultOptions}style="display: none;"{/if}>
+    {call jive.polls.voteStart}
+        {param voteStartOptions: $voteStartOptions /}
+        {param voteStartBean: $voteStartBean /}
+    {/call}
+    {call jive.polls.voteEnd}
+        {param voteEndOptions: $voteEndsOptions /}
+        {param voteEndBean: $voteEndsBean /}
+    {/call}
+    </div>
+    </li>
+{/template}
+
+/**
+ * Displays an user errors with authors / approvers.
+ *
+ * @param disallowedUsers the list of UserItemBeans without permissions
+ * @param invalidUsers the list of UserItemBeans that are invalid / disabled users
+ */
+{template .userErrors}
+    {if length($disallowedUsers) > 0}
+        <div class="jive-warn-box" aria-live="polite" aria-atomic="true">
+            <div>
+                <span class="jive-icon-med jive-icon-warn"></span>
+                {i18nText('doc.collab.err.no_perm.info')}
+                <ul>
+                    {foreach $disallowedUser in $disallowedUsers}
+                        <li>
+                            {call jive.shared.displayutil.avatar data="$disallowedUser"/}
+                            {call jive.shared.displayutil.userDisplayNameLink data="$disallowedUser"/}
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+    {/if}
+    {if length($invalidUsers) > 0}
+        <div class="jive-warn-box" aria-live="polite" aria-atomic="true">
+            <div>
+                <span class="jive-icon-med jive-icon-warn"></span>
+                {i18nText('doc.collab.err.usrsNtFound.text')}
+                <ul>
+                    {foreach $invalidUser in $invalidUsers}
+                        <li>
+                            {$invalidUser}
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+    {/if}
+{/template}
+
+/**
+ * Renders a message saying that a user doesn't have permission
+ */
+{template .userWithoutPermission}
+    <div class="j-tips">{i18nText('doc.collab.err.no_perm_user.info')}</div>
+{/template}
+
+/**
+ * Renders a message saying that a list doesn't have permission
+ */
+{template .listWithoutPermission}
+    <div class="j-tips">{i18nText('doc.collab.err.no_perm_list.info')}</div>
+{/template}
+
+/**
+ * Renders a message saying that a field is required
+ */
+{template .fieldRequired}
+    <div class="j-tips">{i18nText('global.required')}</div>
+{/template}
+
+/**
+ * renders a message saying the user will be invited to the system
+ */
+{template .guestInvited}
+    <div class="j-tips">{i18nText('publishbar.guest.invited')}</div>
+{/template}

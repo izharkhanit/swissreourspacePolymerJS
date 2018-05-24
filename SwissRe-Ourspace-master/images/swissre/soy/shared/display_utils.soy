@@ -1,0 +1,754 @@
+{namespace jive.shared.displayutil}
+
+/**
+ * Renders the user avatar using a standard set of default values. This will need to become more advanced if
+ * we need to support all the options currently supported by the 'userAvatar' macro
+ * @param? anonymous
+ * @param? enabled
+ * @param? username
+ * @param? visible
+ * @param? avatarID
+ * @param? forceAvatarID
+ * @param? prop
+ * @param? href
+ * @param? imageOnly
+ * @param displayName
+ * @param size the size in pixels for displaying the avatar
+ * todo: presence
+ */
+{template .avatar}
+    {let $src}
+        {if $href}
+            {$href}
+        {elseif not $enabled or not $visible}
+            /images/jive-avatar-disabled.png
+        {elseif $prop and $prop.integrationUserInfo and $prop.integrationUserInfo.avatar and not $forceAvatarID}
+            {buildUrl($prop.integrationUserInfo.avatar) |noAutoescape}
+        {elseif $anonymous}
+            /people/guest/avatar/{$size}.png
+
+        {elseif $username and $avatarID}
+
+            {buildUrl('/people/' + UrlEncode($username) + '/avatar/' + $size + '.png', 'a', $avatarID) |noAutoescape}
+
+        {elseif $username}
+            {buildUrl('/people/' + UrlEncode($username) + '/avatar/' + $size + '.png') |noAutoescape}
+        {else}
+            /images/jive-avatar-default.png
+        {/if}
+    {/let}
+    {if not $imageOnly and not ($prop and $prop.integrationUserInfo)}
+        {call .avatarLink data="all"}
+            {param displayName: $displayName /}
+            {param content}
+                {call .avatarImage data="all"}
+                    {param src: $src /}
+                {/call}
+            {/param}
+        {/call}
+    {else}
+        {call .avatarImage data="all"}
+            {param src: $src /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * Create an avatar from a coreApi person entity
+ * @param? uri - will be uri for coreApi
+ * @param jive
+ * @param size
+ * @param visible
+ */
+{template .coreApiAvatar}
+    {call .avatar data="all"}
+        {param enabled: $jive.enabled/}
+        {param visible: $visible or $jive.visible/}
+        {param username: $jive.username/}
+        {param partner: $jive.externalContributor/}
+        {param size: $size/}
+        {param uri: $uri/}
+    {/call}
+{/template}
+
+/**
+ * Renders the anonymous user avatar.
+ *
+ * @param size the size in pixels for displaying the avatar
+ */
+{template .anonymousAvatar}
+    {call .avatar}
+        {param anonymous: true /}
+        {param enabled: true /}
+        {param partner: false /}
+        {param username: 'guest' /}
+        {param id: 0 /}
+        {param ID: 0 /}
+        {param displayName: '' /}
+        {param visible: true /}
+        {param prop: null /}
+        {param avatarID: 0 /}
+        {param size: $size /}
+    {/call}
+{/template}
+
+/**
+ * @param? content
+ * @param? anonymous
+ * @param? enabled
+ * @param? partner
+ * @param? username
+ * @param? id
+ * @param? ID
+ * @param? uri - Alternate to id from coreApi
+ * @param displayName
+ * @param? visible
+ * @param? prop
+ * @param? avatarID
+ * @param size the size in pixels for displaying the avatar
+ * @param? currentUserPartner
+ * @param? hideTooltip
+ * @param? hideLink if we should[n't] wrap the avatar in an <a>
+ * @param? trackingID
+ * @param? hidePartnerBadge if we should hide the partner badge even though the user is a partner
+ * @param? showDisplayName
+ * @param? extraParams query parameters to include in the user link
+ * @param? extraClass extra css classes to add
+
+ */
+{template .avatarLink private="true"}
+    {let $extraParams_: $extraParams ?: [:] /}
+    {let $params: $trackingID ? augmentMap(['sr': $trackingID], $extraParams_) : $extraParams /}
+    {let $shouldShowUrl : $prop and  $prop.integrationUserInfo and not $prop.integrationUserInfo.overrideUrl ? true : false/}
+    {if not $anonymous and $visible}
+        {if not $hideLink and not $shouldShowUrl}
+            <a {if ($prop and $prop.integrationUserInfo) }
+            href="{buildUrl($prop.integrationUserInfo.overrideUrl, $params)|noAutoescape}"
+            {else}
+            href="{buildUrl('/people/' + UrlEncode($username), $params)|noAutoescape}"
+            {/if}
+               aria-label="{$displayName}"
+               class="j-avatar{sp}
+               {if $extraClass}{$extraClass}{sp}{/if}
+               {if not $hideTooltip and not ($prop and $prop.integrationUserInfo)} jiveTT-hover-user{/if}{if not $hidePartnerBadge and not $currentUserPartner and $partner and $size >= 32} j-partner{/if}"
+                // variations on user.id casing for both jackson and jettison json providers, can remove when we ditch jettison
+                {if not ($prop and $prop.integrationUserInfo)}data-userId="{if $ID}{$ID}{else}{$id}{/if}"{/if}
+                {if $prop and $prop.presence and not ($prop and $prop.integrationUserInfo)}{sp}
+                    data-online="{$prop.presence.online}"
+                    data-presence="{$prop.presence.jsObject}"
+                    data-externalId="{if $prop.presence.userExternalID}{$prop.presence.userExternalID}{/if}"
+                    {if $avatarID}{sp}
+                    data-avatarId="{$avatarID}"
+                    {/if}
+                    {if $username and not ($prop and $prop.integrationUserInfo)}{sp}
+                    {sp}data-username="{UrlEncode($username)}"
+                    {/if}
+                {/if}
+                {if $uri}{sp}data-uri="{$uri}"{/if}>
+        {/if}
+        {if $content}
+            {$content |noAutoescape}
+        {/if}
+        {if $enabled}
+            {if not $hidePartnerBadge and not $currentUserPartner and $partner and $size >= 32}
+                <span class="jive-icon-med jive-icon-partner" aria-label="{i18nText('partner.browse.external.contributor')}"></span>
+            {/if}
+            {if $showDisplayName}
+                {$displayName}
+            {/if}
+        {/if}
+         {if not $hideLink and $shouldShowUrl == false}
+            </a>
+        {/if}
+    {elseif $content}
+        {$content |noAutoescape}
+    {/if}
+{/template}
+
+/**
+ * @param src
+ * @param size
+ * @param? anonymous
+ * @param? enabled
+ * @param? visible
+ * @param? username
+ * @param? displayName
+ * @param? avatarID
+ * @param? hideHeight
+ * @param? storeSizeData
+ * @param? style         used for Theming
+ */
+{template .avatarImage private="true"}
+    <img class="jive-avatar"
+         src="{buildUrl($src)|noAutoescape}"
+         {if $avatarID} data-avatarId="{$avatarID}"{/if}
+         {if $username} data-username="{UrlEncode($username)}"{/if}
+         {if not $hideHeight}{sp}
+            height="{$size}"
+            data-height="{$size}"
+         {/if}
+         width="{$size}"
+         {if $storeSizeData}{sp}
+             data-size="{$size}"
+         {/if}
+         {if not $anonymous and $visible and $enabled}{sp}
+            data-random="{randomString()}"
+         {/if}
+         {if $style}{sp}
+            style="{$style}"
+         {/if}
+         {if $displayName}{sp}
+            alt="{$displayName}"
+            title="{$displayName}"
+         {/if} />
+{/template}
+
+/**
+ * Generates the icon for a jive object retrieved from the core API
+ * @param type
+ * @param size
+ * @param? productIcon
+ * @param? rootType
+ * @param? extension
+ * @param? parentContent
+ * @param? question
+ * @param? answer
+ * @param? helpful
+ * @param? jive
+ * @param? iconCss
+ * @depends template=jive.shared.file.fileTypeIconClass
+ *
+ * @allowDependsWildcard
+ * @depends i18nKeys=global.access.content.type.*
+ */
+{template .icon}
+    {if $type == 'url'}
+        <span aria-label="{i18nText('global.externalUrl')}" role=img class="jive-icon-{$size} jive-icon-external-site"></span>
+    {elseif $type == 'favorite'}
+        <span aria-label="{i18nText('global.bookmark')}" role="img" class="jive-icon-{$size} jive-icon-bookmark"></span>
+    {elseif $type == 'post'}
+        <span aria-label="{i18nText('global.blogPost')}" role="img" class="jive-icon-{$size} jive-icon-blog"></span>
+    {elseif $type == 'update'}
+        <span aria-label="{i18nText('global.status')}" role="img" class="jive-icon-{$size} jive-icon-status"></span>
+    {elseif $type == 'dm'}
+        <span aria-label="{i18nText('global.message')}" role="img" class="jive-icon-{$size} jive-icon-direct-message"></span>
+    {elseif $type == 'comment'}
+        {if $rootType}
+            {if $rootType == 'post'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-blog-comment"></span>
+            {elseif $rootType == 'update'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-status-comment"></span>
+            {elseif $rootType == 'entry' or $rootType == 'file'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-comment"></span>
+            {elseif $rootType == 'dm'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-direct-message"></span>
+            {elseif $rootType != 'comment'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-{$rootType}-comment"></span>
+            {/if}
+        {elseif $parentContent and $parentContent.type}
+            {if $parentContent.type == 'post'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-blog-comment"></span>
+            {elseif $parentContent.type == 'update'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-status-comment"></span>
+            {elseif $parentContent.type == 'entry'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-comment"></span>
+            {elseif $parentContent.type == 'dm'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-direct-message"></span>
+            {elseif $parentContent.type != 'comment'}
+                <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-{$parentContent.type}-comment"></span>
+            {/if}
+        {else}
+            <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-comment"></span>
+        {/if}
+    {elseif $type == 'discussion' or $type == 'message'}
+        {if $answer}
+            <span aria-label="{i18nText('global.discussion')}" role="img" class="jive-icon-{$size} jive-icon-discussion-correct"></span>
+        {elseif $helpful}
+            <span aria-label="{i18nText('global.discussion')}" role="img" class="jive-icon-{$size} jive-icon-discussion-helpful"></span>
+        {elseif $question}
+            <span aria-label="{i18nText('global.discussion')}" role="img" class="jive-icon-{$size} jive-icon-discussion-question"></span>
+        {else}
+            <span aria-label="{i18nText('global.discussion')}" role="img" class="jive-icon-{$size} jive-icon-discussion"></span>
+        {/if}
+    {elseif $type == 'file'}
+        <span aria-label="{i18nText('global.uploaded_file')}" class="{if $iconCss}jive-icon-{$size} {$iconCss}{else}{call jive.shared.file.fileTypeIconClass}{param extension: $extension/}{param size: $size/}{param defaultIcon: 'jive-icon-document-upload'/}{/call}{/if}"></span>
+    {elseif $type == 'person' and $jive}
+        {if $size == 'sml'}
+            {call .avatar data="all"}
+                {param username: $jive.username/}
+                {param size: 12/}
+                {param enabled: true/}
+                {param visible: true/}
+            {/call}
+        {elseif $size == 'med'}
+            {call .avatar data="all"}
+                {param username: $jive.username/}
+                {param size: 16/}
+                {param enabled: true/}
+                {param visible: true/}
+            {/call}
+        {elseif $size == 'big'}
+            {call .avatar data="all"}
+                {param username: $jive.username/}
+                {param size: 25/}
+                {param enabled: true/}
+                {param visible: true/}
+            {/call}
+        {else}
+            {call .avatar data="all"}
+                {param username: $jive.username/}
+                {param size: $size/}
+                {param enabled: true/}
+                {param visible: true/}
+            {/call}
+        {/if}
+    {elseif $type == 'userregistration'}
+        <span aria-label="{i18nText('global.profile')}" role="img" class="jive-icon-med jive-icon-profile"></span>
+    {elseif $type == 'extStreamActivity'}
+        <img aria-label="{i18nText('tse.objecttype.name')}" role="img" class="jive-icon-{$size}" alt="" src="{$productIcon}"></img>
+    {elseif $type == 'interaction' or $type == 'collaboration'}
+        <span aria-label="{i18nText('global.comment')}" role="img" class="jive-icon-{$size} jive-icon-direct-message"></span>
+    {elseif $type == 'profileimage'}
+        <span aria-label="{i18nText('people.profileimage.name')}" role="img" class="jive-icon-{$size} jive-icon-photo"></span>
+    {elseif $type}
+        //this should handle places and other content
+        <span aria-label="{i18nText(i18nKey('global.access.content.type.' + $type, true))}" role="img" class="jive-icon-{$size} jive-icon-{$type}"></span>
+    {/if}
+{/template}
+
+
+/**
+ */
+{template .cardError}
+    {i18nText('error.general')}
+{/template}
+
+
+/**
+ */
+{template .cardLoading}
+    <div class="j-card-loading"><strong class="jive-tooltip2-loading">{i18nText('global.loading')}</strong></div>
+{/template}
+
+/**
+
+/**
+* display username link
+* @param anonymous
+* @param enabled
+* @param username
+* @param id
+* @param displayName
+* @param? prop
+* @param? avatarID
+* @param visible
+* @param? hideTooltip
+* @param? renderInvisible
+* @param? displayNameOverride
+* @param? extraCss
+* @param? trackingID
+* @param? extraParams query parameters to include in user link
+*/
+{template .userDisplayNameLink}
+    {let $extraParams_: $extraParams ?: [:] /}
+    {let $params: $trackingID ? augmentMap(['sr': $trackingID], $extraParams_) : $extraParams /}
+    {if $displayName}
+        {if not $anonymous}
+            {if $prop and $prop.integrationUserInfo and not $prop.integrationUserInfo.overrideUrl}
+                <span class="jive-username-span jive-username-link jive-integration-user {if not $enabled} jive-user-disabled{/if} {if $extraCss} {$extraCss}{/if}"{sp}
+                {if $renderInvisible}style="display:none;"{/if}>
+                    {if $displayNameOverride}
+                        {$displayNameOverride}
+                    {else}
+                        {$displayName}
+                    {/if}
+                </span>
+            {elseif $visible}
+                <a {if $prop and $prop.integrationUserInfo}
+                       href="{buildUrl($prop.integrationUserInfo.overrideUrl, $params)|noAutoescape}"
+                       class="jive-username-link{sp}
+                   {else}
+                       href="{buildUrl('/people/' + UrlEncode($username), $params)|noAutoescape}"{sp}
+                       data-username="{$username}"{sp}
+                       data-avatarId="{$avatarID}"{sp}
+                       data-userId="{$id}"{sp}
+
+                       {if $prop and $prop.presence and $prop.presence.jsObject}
+                           data-online="{$prop.presence.online}"{sp}
+                           data-presence="{$prop.presence.jsObject}"{sp}
+                           data-externalId="{if $prop.presence.userExternalID}{$prop.presence.userExternalID}{/if}"{sp}
+                       {/if}
+
+                       class="jive-username-link {if not $hideTooltip} jiveTT-hover-user{/if}{sp}
+                   {/if}
+                   {if not $enabled} jive-user-disabled{/if} {if $extraCss} {$extraCss}{/if}"{sp}
+                   {if $renderInvisible}style="display:none;"{/if}>
+                        {if $displayNameOverride}
+                            {$displayNameOverride}
+                        {else}
+                            {$displayName}
+                        {/if}
+                </a>
+            {else}
+                <span class="jive-username-span jive-username-link {if not $enabled} jive-user-disabled{/if} {if $extraCss} {$extraCss}{/if}"{sp}
+                {if $renderInvisible}style="display:none;"{/if}>
+                    {if $displayNameOverride}
+                        {$displayNameOverride}
+                    {else}
+                        {$displayName}
+                    {/if}
+                </span>
+            {/if}
+        {else}
+            <em class="guest">{$displayName}</em>
+        {/if}
+    {/if}
+{/template}
+
+/**
+* display username link of coreApi entity
+ * @param jive
+*/
+{template .coreApiUserDisplayNameLink}
+    {call .userDisplayNameLink data="all"}
+        {param anonymous: false /}
+        {param enabled: $jive.enabled/}
+        {param username: $jive.username/}
+        {param visible: $jive.visible/}
+    {/call}
+{/template}
+
+
+/**
+ * @param  avatarUrl
+ * @param  profileUrl
+ * @param  userDisplayName
+ * @param  userStatus
+ * @param? userEmail
+ * @param? userPhone
+ * @param? extraParams query parameters to include in the user link
+ */
+{template .remoteUserDisplayNameLink}
+    <span><img src="{$avatarUrl}" width="48" height="48" alt="" class="jive-avatar" /></span>
+    <h5>{$userDisplayName}</h5>
+    <span class="jive-note-user-status">{$userStatus}</span>
+
+    <ul class="jive-profile-tt-fields">
+        {if $userPhone}
+            <li><strong>Phone Number:</strong> {$userPhone}</li>
+        {/if}
+
+        {if $userEmail}
+            <li><strong>Email:</strong> <a href="mailto:{$userEmail}">{$userEmail}</a></li>
+        {/if}
+    </ul>
+
+    {let $extraParams_: $extraParams ?: [:] /}
+    <p><a href="{buildUrl($profileUrl, $extraParams_)}">View {$userDisplayName}'s profile</a></p>
+{/template}
+
+
+
+/**
+* display username
+* @param anonymous Whether or not the user is anonymous.
+* @param? displayName The user's display name.
+*/
+{template .userDisplayName}
+    {if $displayName}
+        {if not $anonymous}
+            {$displayName}
+        {else}
+            <em class="guest">{$displayName}</em>
+        {/if}
+    {/if}
+{/template}
+
+/**
+ * Display username of coreApi person entity
+ * @param jive
+ */
+{template .coreApiUserDisplayName}
+    {call .userDisplayName data="all"}
+        {param anonymous: $jive.anonymous/}
+    {/call}
+{/template}
+
+
+/**
+ * render guest display name
+ *
+ * @param message
+ */
+{template .renderGuestDisplayName}
+    {if $message.displayName}
+        {$message.displayName}
+    {elseif $message.username}
+        {$message.username}
+    {elseif $message.userEmail}
+        {$message.userEmail}
+    {else}
+        {i18nText('global.guest')}
+    {/if}
+{/template}
+
+/**
+ * Display container name link
+ * @param container
+ * @param? hideTooltip
+ */
+{template .containerDisplayNameLink}
+    // TODO do we need showFullIcon?
+
+    <a href="{buildUrl($container.jiveObjectURL)}" class="font-color-meta j-container {if not $hideTooltip} jivecontainerTT-hover-container{/if}"
+        data-objectId="{$container.id}" data-objectType="{$container.type}">
+        {if $container.typeSocialGroup}
+            {$container.name|noAutoescape}
+        {elseif $container.typeUserContainer and $container.typeWallEntry}
+            {i18nText('activity.in_user_container2.we', $container.userDisplayName)|noAutoescape}
+        {elseif $container.typeUserContainer}
+            {$container.userDisplayName|noAutoescape}
+        {else}
+            {$container.name|noAutoescape}
+        {/if}
+    </a>
+{/template}
+
+/**
+ * Renders a social group icon.
+ *
+ * @param typeName The social group type name.
+ * @param? size The icon size.
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=global.group.*
+ */
+{template .groupTypeIcon}
+    {if $size}
+        {if $size == 'med'}
+            <span aria-label='{i18nText(i18nKey('global.group.' + $typeName, true))}' role='img' class="jive-icon-med jive-icon-group-{$typeName}"></span>
+        {elseif $size == 'big' or $size == 'large'}
+            <span aria-label='{i18nText(i18nKey('global.group.' + $typeName, true))}' role='img' class="jive-icon-big jive-icon-group-{$typeName}"></span>
+        {else}
+            <span aria-label='{i18nText(i18nKey('global.group.' + $typeName, true))}' role='img' class="jive-icon-sml jive-icon-group-{$typeName}"></span>
+        {/if}
+    {/if}
+{/template}
+
+/**
+ * @param icon Soy map data from a
+ * @param? extraAttributes more attributes
+ */
+{template .renderIconElement}
+    {switch $icon.tag}
+        {case 'img'}
+            <img {call .renderIconElementAttrs data="$icon"/}/>
+        {case 'span'}
+            <span {call .renderIconElementAttrs}
+            {param attributeNames: $icon.attributeNames/}
+            {param attributes: $icon.attributes/}
+            {param extraAttributes: $extraAttributes/}
+            {/call}></span>
+        {case 'div'}
+            <div {call .renderIconElementAttrs data="$icon"/}></div>
+    {/switch}
+{/template}
+
+/**
+ * @param attributeNames
+ * @param attributes
+ * @param? extraAttributes
+ */
+{template .renderIconElementAttrs private="true"}
+    {foreach $name in $attributeNames}
+        {$name}="{$attributes[$name]}{if $extraAttributes} {$extraAttributes}{/if}"{sp}
+    {/foreach}
+{/template}
+
+/**
+ * @param object
+ */
+{template .renderAttachmentLink}
+    {if $object.meta and length($object.meta) > 0 and $object.meta[0].fullImageUrl}
+        <a href="{$object.meta[0].fullImageUrl}" class="jive-icon-med jive-icon-photo"></a>
+    {/if}
+{/template}
+
+/**
+ * @param style
+ * @param? closeTitle
+ * @param? showClose
+ * @param? showCloseAria
+ */
+{template .messagePopup}
+    <div class="j-alert-container" role="alert" aria-live="polite" aria-atomic="true">
+        <div class="j-alert j-rc5 j-alert-{$style} clearfix {if $showClose}j-alert-withbutton{/if}">
+
+            <span class="j-js-alert-message"></span>
+            {if $showClose}
+                <a href="#" class="j-js-message-popup-close-button j-close-button" {if not $showCloseAria}aria-hidden="true"{/if}><span class="j-508-label">{if $closeTitle}{$closeTitle}{else}{call .close /}{/if}</span><span class="jive-icon-med jive-glyph-delete-white"></span></a>
+            {/if}
+        </div>
+    </div>
+{/template}
+
+
+/**
+ * info box
+ *
+ * @param message
+ */
+{template .infoBox}
+    <div class="jive-info-box">
+        <div>
+            <span class="jive-icon-med jive-icon-info"></span>
+            <strong>{$message}</strong>
+        </div>
+    </div>
+{/template}
+
+
+/**
+ * commonly used "Close" text
+ */
+{template .close}
+    {i18nText('global.close')}
+{/template}
+
+/**
+ * Common popup boundary indicators, for accessibility.
+ * @param type
+ * @param? isEnd
+ * @depends i18nKey=a11y.boundary.menu.start
+ * @depends i18nKey=a11y.boundary.menu.end
+ * @depends i18nKey=a11y.boundary.dialog.start
+ * @depends i18nKey=a11y.boundary.dialog.end
+ */
+{template .a11yBoundary}
+    <span class="j-508-label a11y-boundary">
+        {if $type == 'menu'}
+            {if $isEnd}
+                {i18nText('a11y.boundary.menu.end')}
+            {else}
+                {i18nText('a11y.boundary.menu.start')}
+            {/if}
+        {else}
+            {if $isEnd}
+                {i18nText('a11y.boundary.dialog.start')}
+            {else}
+                {i18nText('a11y.boundary.dialog.end')}
+            {/if}
+        {/if}
+
+    </span>
+{/template}
+
+/**
+ * List of things.  Translation-friendly, collapses large lists.
+ * ["Alice"] -> "Alice"
+ * ["Alice", "Bob"] -> "Alice and Bob"
+ * ["Alice", "Bob", "Carol"] -> "Alice, Bob, and Carol"
+ * ["Alice", "Bob", "Carol", "Dave"] -> "Alice, Bob, Carol, and Dave"
+ * ["Alice", "Bob", "Carol", "Dave", "Erin", "Frank"] -> "Alice, Bob, Carol, and <a>3 others</a>"
+ * @param items The list of items.
+ * @param? useTitle Whether the "more link" should have a title attribute
+ * @param? expandable Whether the "more link" integrate with itemList.js
+ * @param? classNames Extra classnames for the outer span
+ * @param? moreClassNames Extra classnames for the "more link"
+ * @param? tagName Alternative tagname for the "more link", making it a "more {$tagname}".
+ */
+{template .itemList}
+    <span class="j-item-list js-item-list{if $classNames} {$classNames}{/if}" data-items='{buildJson($items)}'>
+    {if not $items or length($items) == 0}
+    {elseif length($items) < 4}
+        {call .plainItemList data="all" /}
+    {elseif length($items) == 4}
+        {i18nText('itemList.4', $items[0], $items[1], $items[2], $items[3])}
+    {else}
+        //length > 4; truncate
+        {i18nText('itemList.more', $items[0], $items[1], $items[2])}{sp}
+        <{$tagName ? $tagName : 'a'}{sp}
+            {if $useTitle}
+                title="
+                {call .plainItemList}
+                    {param items: slice($items, 3) /}
+                {/call}
+                "{sp}
+            {/if}
+            class="j-item-list-more js-item-list-more
+            {if $moreClassNames} {$moreClassNames}{/if}
+            {if $expandable} js-item-list-showMore{/if}
+            "
+            {if not $tagName} href="#"{/if}
+        >{i18nText('itemList.others', length($items)-3)}</{$tagName ? $tagName : 'a'}>
+    {/if}
+    </span>
+{/template}
+
+/**
+ * Expanded list of things with a "Show Fewer" button.  No container.
+ * @param items
+ */
+{template .itemListMore}
+    {call .plainItemList data="all" /}{sp}
+    <a href="#" class="j-item-list-showFewer js-item-list-showFewer">
+        {i18nText('itemList.showFewer')}
+    </a>
+{/template}
+
+/**
+ * A list of things.  Plain text, no frills.  Provides a terminal "and" and commas in the right places.  Translatable.
+ * @param items
+ */
+{template .plainItemList}
+    {if not $items or length($items) == 0}
+    {elseif length($items) == 1}
+        {$items[0]}
+    {elseif length($items) == 2}
+        {i18nText('itemList.2', $items[0], $items[1])}
+    {elseif length($items) == 3}
+        {i18nText('itemList.3', $items[0], $items[1], $items[2])}
+    {else} //length > 3
+        {call .commaItemList}
+            {param items: slice($items, 0, -3) /}
+        {/call}
+        {i18nText('itemList.delim')}{sp}
+        {call .plainItemList}
+            {param items: slice($items, -3) /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * A comma-delimited list with no terminal "and".
+ * @param items
+ */
+{template .commaItemList}
+    {foreach $item in $items}
+        {if isFirst($item)}
+            {$item}
+        {else}
+            {i18nText('itemList.delim')} {$item}
+        {/if}
+    {/foreach}
+{/template}
+
+/**
+ * Display user role badge if present
+ * @param? groupBadgeUri
+ * @param? groupBadgeRoleName
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=rolebadge.*
+ */
+{template .userRoleBadgeImage}
+    {if $groupBadgeUri and $groupBadgeRoleName}
+        <img src="{$groupBadgeUri}"
+             title="{i18nText(i18nKey('rolebadge.' + lowercase($groupBadgeRoleName), true))}"
+             alt="{i18nText(i18nKey('rolebadge.' + lowercase($groupBadgeRoleName), true))}"
+             height="16" width="16"
+             class="j-role-badge">
+    {/if}
+{/template}

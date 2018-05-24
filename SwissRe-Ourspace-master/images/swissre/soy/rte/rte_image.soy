@@ -1,0 +1,111 @@
+{namespace jive.rte.image}
+
+/**
+ * Image modal
+ * @param tokenName
+ * @param tokenValue
+ * @param maxImageSize
+ * @param maxImageWidth
+ * @param maxImageHeight
+ * @param webOnly
+ * @param fromWidget
+ * @param? alt
+ * @param? img
+ */
+{template .modal}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{i18nText('tinymce.jiveimage.modal.title')}</title>
+        <script type="text/javascript" src="{resourceUrl('/resources/scripts/vendor/html5shiv.js')|noAutoescape}"></script>
+        <script type="text/javascript" src="{resourceUrl('/resources/scripts/tiny_mce3/tiny_mce_popup.js') |noAutoescape}"></script>
+        <script type="text/javascript" src="{resourceUrl('/resources/scripts/jquery/jquery.js') |noAutoescape}"></script>
+        <script type="text/javascript" src="{resourceUrl('/resources/scripts/jquery/jquery.form.js') |noAutoescape}"></script>
+        <script type="text/javascript" src="{resourceUrl('/resources/scripts/tiny_mce3/plugins/jiveimage/js/jiveimage.js') |noAutoescape}"></script>
+
+        <!--[if IE]>
+            <link rel="stylesheet" href="{resourceUrl('/styles/jive.ie.css') |noAutoescape}" type="text/css" media="all" />
+        <![endif]-->
+        <!--[if !IE]> -->
+            <link rel="stylesheet" href="{resourceUrl('/styles/jive.css') |noAutoescape}" type="text/css" media="all" />
+        <!-- <![endif]-->
+        <link rel="stylesheet" href="{resourceUrl('/styles/jive-popup.css') |noAutoescape}" type="text/css" media="all" />
+    </head>
+    <body class="jive-body-popup">
+        <form   id="imageUploadForm" name="imageUpload" class="j-form j-rte-insert-form"
+                action="{buildUrl('/__services/v2/rest/rteImages')}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="dummyValue" value="dummy" /> //Necessary to work around an issue with CXF
+            <input type="hidden" name="jive.token.name" value="{$tokenName}" />
+            <input type="hidden" name="{$tokenName}" value="{$tokenValue}" />
+            <input type="hidden" id="objectId" name="objectId" value="-1" />
+            <input type="hidden" id="objectType" name="objectType" value="-1" />
+            <nav class="jive-body-tabbar j-tab-nav">
+                <ul class="j-tabbar">
+                    {if not $webOnly}
+                        <li class="jive-body-tab{if not $fromWidget} active{/if}" data-for="jive-image"><a href="#"><span class="jive-icon-sml jive-icon-computer"></span>{i18nText('imgpicker.uploaded_images.link')}</a></li>
+                        <li class="jive-body-tab{if $fromWidget} active{/if}" data-for="jive-web"><a href="#"><span class="jive-icon-sml jive-icon-web"></span>{i18nText('imgpicker.web_image.link')}</a></li>
+                    {else}
+                        <li class="jive-body-tab active" data-for="jive-web"><a href="#"><span class="jive-icon-sml jive-icon-web"></span>{i18nText('imgpicker.web_image.link')}</a></li>
+                    {/if}
+                </ul>
+            </nav>
+            {if not $webOnly}
+                <div id="jive-image" class="jive-tab-content" {if $fromWidget} style="display:none;"{/if}>
+                    <div id="jive-image-upload-buttons" class="jive-tab-content-padding">
+                        <label for="imageFile">{i18nText('imgpicker.upload_image.label')}</label>
+                        <input type="file" name="imageFile" id="imageFile" />
+                        <span id="jive-image-maxsize">
+			    {i18nText('imgpicker.max_image_size.label', $maxImageSize/1024)}{sp}
+                            {i18nText('imgpicker.imgSizeWarning.text', $maxImageWidth, $maxImageHeight)}
+                        </span>
+                        <label for="uploadAltText">{i18nText('imgpicker.alt.label')}</label>
+                        <div class="j-imgpicker-description">
+                            {i18nText('imgpicker.imgDescription.text', $maxImageWidth, $maxImageHeight)}
+                        </div>
+                        <input type="text" name="uploadAltText" id="uploadAltText" value="{$alt ?: ''}" />
+                    </div>
+                </div>
+            {/if}
+            <div id="jive-web" class="jive-tab-content" {if not $fromWidget} style="display:none;"{/if}>
+                <div id="jive-web-urlfield" class="jive-tab-content-padding">
+                    <div>
+                        <label for="imageUrl">{i18nText('imgpicker.url.label')}</label>
+                        <div class="jive-form-example">{i18nText('imgpicker.example_url.text')}</div>
+                        <input type="text" name="imageUrl" id="imageUrl" value="{$img ?: ''}"/>
+                        {if $fromWidget}
+                            <p class="jive-from-widget-desc">{i18nText('imgpicker.url.from.widget.desc')}</p>
+                        {/if}
+                    </div>
+                    <div style="float: left;">
+                        <label for="webAltText">{i18nText('imgpicker.alt.label')}</label>
+                        <div class="j-imgpicker-description">
+                            {i18nText('imgpicker.imgDescription.text', $maxImageWidth, $maxImageHeight)}
+                        </div>
+                        <input type="text" name="webAltText" id="webAltText" value="{$alt ?: ''}" />
+                    </div>
+                </div>
+            </div>
+            <div class="jive-selection-error jive-error-box clearfix" id="generalError" style="position: absolute; width: 540px; left: 20px; bottom: 60px;">
+                <div class="jive-selection-bar-padding">
+                    {i18nText('imgpicker.error.label', $maxImageSize/1024)}
+                </div>
+            </div>
+            // Swissre Theme migration
+            /*<div class="jive-selection-error jive-error-box clearfix" id="invalidImageType" style="position: absolute; width: 540px; left: 20px; bottom: 60px;">
+                <div class="jive-selection-bar-padding">
+                    {i18nText('imgpicker.err.forbidden_type')}
+                </div>
+            </div>*/
+            <div class="jive-selection-bar clearfix" style="position: absolute; width: 540px; left: 20px; bottom: 6px;">
+                <div class="jive-selection-bar-padding">
+                    <div class="jive-selection-buttons">
+                        <input type="submit" name="submitButton" value="{i18nText('imgpicker.insert.button')}" />
+                    </div>
+                    //Swissre Theme migration
+                    <div style="font-size:12px">Do not upload copyrighted information</div>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>
+{/template}

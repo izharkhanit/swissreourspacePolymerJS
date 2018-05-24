@@ -1,0 +1,76 @@
+{namespace jive.people.profile}
+
+
+/**
+ * Displays an individual profile field.
+ * @param type The ProfileField.Type.name of this profile field.
+ * @param? value A single object value for this profile field, if any.
+ * @param? values Multiple object values for this profile field, if any.
+ * @param? filterable
+ */
+{template .value}
+    {if ($type == 'url')}
+        {if $values}
+            {foreach $val in $values}
+                {call .url}{param url: $val/}{/call}
+                {if not isLast($val)},{/if}
+            {/foreach}
+        {elseif ($value)}
+            {call .url}{param url: $value/}{/call}
+        {/if}
+    {elseif ($type == 'phone')}
+        {if $values}
+        	//Upgrade - Profile page change
+            {foreach $val in $values}
+                {call .phone}
+                	{param phoneNumber: $val/}                       
+                {/call}
+                {if not isLast($val)},{/if}
+            {/foreach}
+        {elseif ($value)}
+            {call .phone}
+            	{param phoneNumber: $value/}                       
+            {/call}
+        {/if}
+    {elseif ($type == 'email')}
+        {if $values}
+            {foreach $val in $values}
+                {call .email data="$val"/}
+                {if not isLast($val)},{/if}
+            {/foreach}
+        {elseif ($value)}
+            {call .email data="$value"/}
+        {/if}
+    {elseif ($type == 'address')}
+        {if $values}
+            {foreach $val in $values}
+                {call .address data="$val"/}
+                {if not isLast($val)},{/if}
+            {/foreach}
+        {elseif ($value)}
+            {call .address data="$value"/}
+        {/if}
+    {elseif ($type == 'date')}
+        {if $values}
+            {foreach $val in $values}
+                {call .date}{param date: $val/}{/call}
+                {if not isLast($val)},{/if}
+            {/foreach}
+        {elseif ($value)}
+            {call .date}{param date: $value/}{/call}
+        {/if}
+    {elseif $filterable and $value}
+       {call .browseValue data="all"/}
+    {else}
+       {if $value}
+            {$value|changeNewlineToBr}
+       {elseif $values}
+            {foreach $val in $values}
+               {$val}
+                {if not isLast($val)},&nbsp;{/if}
+            {/foreach}
+        {else}
+            {i18nText('profile.na.text')}
+        {/if}
+    {/if}
+{/template}

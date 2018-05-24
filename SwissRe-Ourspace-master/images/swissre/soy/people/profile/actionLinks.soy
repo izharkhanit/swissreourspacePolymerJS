@@ -1,0 +1,33 @@
+{namespace jive.people.profile}
+
+//Upgrade - Profile page change
+/**
+ * Renders the actions menu for a user.
+ *
+ * @param profileActionLinks the action menu items
+ * @param viewingSelf 
+ * @param profileImage
+ */
+{template .actionLinks}
+    <div id="j-place-actions-container" class="j-menu j-quick-menu j-pop-main" style="display: none">
+        <ul class="j-place-action-links">
+        {foreach $item in $profileActionLinks}
+        {if ($item.visible)}
+            <li>{call jive.shared.soy.actionLink data="$item"}
+                    {param hideIcon: true/}
+                {/call}
+            </li>
+        {/if}
+        {/foreach}
+        //Upgrade - Profile page change
+        {if ($viewingSelf)}
+              <li>
+                 <a onclick="window.open('http://srk-photos.swissre.com/web/auth/update_photo.html?image=http://ourspace.swissre.com{call .imageProfileUrl}{param profileImage: $profileImage /}{param size: 350 /}{/call}', '', 'width=920,height=580,toolbar=0,resizable=0');" rel='nofollow' href='#' id="jive-profile-link-action-whoswho">
+                     Upload photo to Who's Who
+                 </a>
+             </li>
+        {/if}       
+
+        </ul>
+    </div>
+{/template}

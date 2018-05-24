@@ -1,0 +1,523 @@
+{namespace jive.people.profile}
+
+
+/**
+ * The profile page header
+ *
+ * @param targetUser
+ * @param user
+ * @param viewingSelf
+ * @param awaitingModeration
+ * @param canModerate
+ * @param approvalEntryId
+ * @param tabs
+ * @param profileActionsLink
+ * @param profileActionLinks
+ * @param profileImageEnabled
+ * @param profileImages
+ * @param statusLevelScenarios
+ * @param statusLevelsEnabled
+ * @param? tabView
+ * @param? accountCreationEnabled
+ * @param? validationEnabled
+ * @param? canCreateDirectMessage
+ * @param? canCreateContentByEmail
+ * @param? needsNewProfileImageEducation
+ * @param previewProfileUserDisplayName
+ * @param? profileAppActionLinks
+ * @param? templateView
+ *
+ * @depends path=/resources/scripts/breadcrumb.js
+ * @depends path=/resources/scripts/apps/shared/views/menu_view.js
+ * @depends path=/resources/scripts/apps/direct_messaging/factory.js lazy=true
+ * @depends path=/resources/scripts/apps/activity_stream/models/action_queue_action_result.js
+ * @depends path=/resources/scripts/apps/activity_stream/models/action_queue_source.js
+ * @depends path=/resources/scripts/jive/author-by-email.js
+ * @depends template=jive.people.profile.newImageNotification
+ * @depends i18nKeys=profile.guesttip.text
+ * @depends i18nKeys=browse.guesttip.joinnow
+ */
+{template .header}
+
+
+    {if $awaitingModeration and $canModerate}
+        <div class="j-profile-header-approval">
+            <div id="j-profile-approval-container" class="jive-table-approval-note j-rc5">
+                <div>
+                    <div id="jive-approval-note-container">
+                        <div class="jive-table-approval-noteheader"><span class="jive-icon-med jive-icon-note-add"></span>{i18nText('profile.approval.notes.text')}
+                            <span class="jive-approval-note-info font-color-meta">{i18nText('profile.approval.note.info.text')}</span>
+                        </div>
+                        <div class="jive-table-approval-noteedit">
+                            <label for="jive-approval-note-input" class="j-508-label">{i18nText('doc.apprvl.enterApprvlRsn.text')}</label>
+                            <input id="jive-approval-note-input" type="text" name="approvalnote" size="" rows="3" maxlength="350">
+                        </div>
+                    </div>
+
+                    <div class="j-approval-actions clearfix">
+                        <a href="#" id="j-action-button-accept" class="j-button">{i18nText('eae.inbox.accept')}</a>
+                        {sp}{i18nText('global.or')}{sp}
+                        <a href="#" id="j-action-button-reject" class="j-button">{i18nText('eae.inbox.reject')}</a>
+                        {sp}{i18nText('profile.approval.membership.text')}{sp}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {call jive.shared.soy.resourceInlineJs}
+            {param code}
+                // user account moderation
+                require(['apps/activity_stream/models/action_queue_action_result', 'apps/activity_stream/models/action_queue_source'],
+                    function(ActionResult, ListSource) {lb}
+                        var actionQueueService = new ListSource();
+                        var spinner = new jive.loader.LoaderView({lb}size: 'big'{rb});
+
+                        $j('#j-action-button-accept').on("click", function(e) {lb}
+                            spinner.prependTo($j('#j-profile-approval-container'));
+
+                            var postData = new ActionResult({$user.id}, {$approvalEntryId}, 1, $j('#jive-approval-note-input').val());
+                            actionQueueService.performAction(postData).addCallback(function(data) {lb}
+                                spinner.getContent().remove();
+                                spinner.destroy();
+                                $j('#j-profile-approval-container').remove();
+                                $j('<p>{i18nText('profile.approval.membership.approved', $targetUser.displayName)}</p>').message({lb}style: 'success'{rb});
+                            {rb}).addErrback(function(message, status) {lb}
+                                spinner.getContent().remove();
+                                spinner.destroy();
+                            {rb});
+
+                            e.preventDefault();
+                        {rb});
+                        $j('#j-action-button-reject').on("click", function(e) {lb}
+                            spinner.prependTo($j('#j-profile-approval-container'));
+
+                            var postData = new ActionResult({$user.id}, {$approvalEntryId}, 2, $j('#jive-approval-note-input').val());
+                            actionQueueService.performAction(postData).addCallback(function(data) {lb}
+                                spinner.getContent().remove();
+                                spinner.destroy();
+                                $j('#j-profile-approval-container').remove();
+                                $j('<p>{i18nText('profile.approval.membership.rejected', $targetUser.displayName)}</p>').message({lb}style: 'success'{rb});
+                            {rb}).addErrback(function(message, status) {lb}
+                                spinner.getContent().remove();
+                                spinner.destroy();
+                            {rb});
+
+                            e.preventDefault();
+                        {rb});
+                    {rb}
+                );
+            {/param}
+        {/call}
+    {/if}
+
+    <header class="page-header{if not $profileImageEnabled} simple-view{/if} font-color-white">
+
+        {if $profileImageEnabled}
+            <div id="j-profile-header-details" class="vcard font-color-white">
+                <h1 class="fn n font-color-white">
+                    // Handle case of JIVE-46218 where a user's display name visibility was determined by the viewing
+                    // user which was always true
+                    {if $previewProfileUserDisplayName}
+                        {$previewProfileUserDisplayName}
+                    {else}
+                        {$targetUser.displayName}
+                        {sp}
+                        {if $targetUser.prop.roleBadgeInfo}
+                            {call jive.shared.displayutil.userRoleBadgeImage data="$targetUser.prop.roleBadgeInfo" /}
+                        {/if}
+                    {/if}
+
+                    {if not $targetUser.enabled}
+                        <span>&nbsp;{i18nText('global.user.deactivated.parens')}</span>
+                    {/if}
+                </h1>
+                {call .headerProfileFields data="all" /}
+            </div>
+            {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    $j(function(){lb}
+                        require(['apps/profile/profile_view'], function(ProfileView) {lb}
+                            var profileView = new ProfileView({lb}
+                                selector: '#j-main'
+                            {rb});
+                            if ({$statusLevelsEnabled}) {lb}
+                                profileView.postRender();
+                            {rb}
+                        {rb});
+                    {rb});
+                {/param}
+            {/call}
+            <div id="j-profile-header-avatar-stats">
+                    <div class="j-profile-headshot">
+		    // Swissre Theme changes
+                    {if length($profileImages) > 0}
+					<a class="js-slide" style="float:left" href="#" data-index="0" data-src="{call .imageProfileUrl}{param profileImage: $profileImages[0] /}{param size: 1000 /}{/call}">
+				{/if}
+                <img width="200" src="{call .imageProfileUrl}{param profileImage: $profileImages[0] /}{param size: 200 /}{/call}" alt="{i18nText('profile.image.primary')}" />
+		        {if length($profileImages) > 0}
+		            </a>
+		        {/if}
+				{if (length($profileImages) > 1) }
+					{foreach $image in $profileImages}
+						{if not isFirst($image)}
+							<a style="float:left;display:none;" id="otherimage-{$image.index}" class="js-slide" href="#" data-index="0" data-src="{call .imageProfileUrl}{param profileImage: $image /}{param size: 1000 /}{/call}">
+							<img width="200" src="{call .imageProfileUrl}{param profileImage: $image /}{param size: 200 /}{/call}" alt="{i18nText('profile.image.primary')}" />
+							</a>
+						{/if}
+					{/foreach}
+				{/if}
+                </div>
+                {if $statusLevelsEnabled}
+                    <div id="j-profile-points-outer">
+                        <div id="j-profile-points-inner" class="j-short">
+                            <div id="j-profile-points" class="j-profile-points">
+                                {if ($targetUser.prop.statuslevel and $targetUser.prop.statuslevel.enabled)}
+                                    {call .profileStatusLevel}
+                                        {param points: $targetUser.prop.statuslevel.pointLevel /}
+                                        {param levelName: $targetUser.prop.statuslevel.name /}
+                                        {param levelPercentComplete: $targetUser.prop.statuslevel.levelPercentComplete /}
+                                    {/call}
+                                    {call jive.eae.latestAcclaim.statusLevelLegend}
+                                        {param scenarios: $statusLevelScenarios /}
+                                    {/call}
+                                {/if}
+                            </div>
+                            <div class="j-profile-points-rollover">
+                                {i18nText('stslvl.points.details')}
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+	    //Swissre theme changes
+            <script>
+
+
+
+
+
+            	function loadOtherPhotos(){lb}
+            		for(index=2; document.getElementById("otherimage-"+index); index++){lb}
+            			document.getElementById("otherimage-"+index).style.display="none";
+            		{rb}
+                        var screenWidth= ($j(window).width());
+            		var availWidth= screenWidth - 920;
+            		var containerWidth = screenWidth - 704;
+            		if(containerWidth > 320){lb}
+            			var widthtxt = containerWidth + "px";
+            			document.getElementById("j-profile-header-avatar-stats").style.width= widthtxt;
+					{rb}else{lb}
+    	if(screenWidth && screenWidth > 550){lb}				document.getElementById("j-profile-header-avatar-stats").style.width= "320px";
+{rb}
+					{rb}
+					for(index=2; document.getElementById("otherimage-"+index); index++){lb}
+					availWidth = availWidth - 135;
+   					if(availWidth > 135){lb}
+      					document.getElementById("otherimage-"+index).style.display="block";
+					{rb}else{lb}
+						break;
+					{rb}
+				{rb}
+			{rb}
+			loadOtherPhotos();
+$j(window).resize(loadOtherPhotos);
+
+
+      	</script>
+
+           //Jive 7.0.2 - Profile page changes
+           // {call .profileImageViewer data="all" /}
+        {else}
+            {call jive.shared.displayutil.avatar data="$targetUser"}
+                {param size: 46 /}
+            {/call}
+            <span class="j-simple-name font-color-normal">
+                // Handle case of JIVE-46218 where a user's display name visibility was determined by the viewing
+                // user which was always true
+                {if $previewProfileUserDisplayName}
+                    {$previewProfileUserDisplayName}
+                {else}
+                    {$targetUser.displayName}
+                {/if}
+            </span>
+
+            {call .skinnyStatusLevel data="all" /}
+        {/if}
+
+        <nav class="j-profile-nav" role="navigation" aria-label="{i18nText('profile.navigation.label')}">
+            <div id="j-profile-header-actions">
+                //PLACEHOLDER FOR ADD-ON COMMUNICATION OPTIONS
+                {if $templateView and $profileAppActionLinks}
+                    {call jive.place.appProfileActionLinks}
+                        {param appActionLinks: $profileAppActionLinks/}
+                        {param templateView : $templateView/}
+                        {param targetUserID: $targetUser.id/}
+                        {param presencePrefix: 'profile'/}
+                    {/call}
+                {/if}
+
+                // message button
+                {if ($targetUser.id != $user.id) and $targetUser.username and $targetUser.enabled and $canCreateDirectMessage}
+                    <div class="j-card-button j-profile-sendmessage">
+                        <a class="j-js-send-direct-message j-btn-global j-btn-small" href="#" data-userid="{$targetUser.id}" aria-haspopup="true">
+                                <span class="jive-icon-glyph icon-envelope"></span>{sp}
+                                {i18nText('nav.bar.create.content.directmessage')}
+                            </span>
+                        </a>
+                        <script>
+                            {literal}
+                            $j(function() {
+                                $j('a.j-js-send-direct-message').click(function(e) {
+                                    e.preventDefault();
+                                    var userId = $j(this).attr('data-userid')
+                                    require(['apps/direct_messaging/factory'], function(DirectMessaging) {
+                                        DirectMessaging.sendMessageToUserIds([userId]);
+                                    });
+                                });
+                            });
+                            {/literal}
+                        </script>
+                    </div>
+                {/if}
+
+                // follow button
+                {if not $awaitingModeration and not ($user.anonymous or not $targetUser.enabled)}
+                    {call jive.people.profile.followLink data="$targetUser.prop.connections"}
+                        {param targetUserID: $targetUser.id/}
+                        {param targetUserDisplayName: $targetUser.displayName/}
+                        {param hideFollowingCount: true/}
+                        {param renderLocation: 'profile' /}
+                        {param streamsAssociatedCount: ($targetUser.prop.connections.streamsAssociatedBean ? length($targetUser.prop.connections.streamsAssociatedBean.streamIDs) : 0) /}
+                    {/call}
+                {/if}
+
+
+            </div>
+
+            <ul class="j-tabbar j-rc5">
+                {foreach $tab in $tabs}
+                    {if $tab.id == 'jive-profile-link-profile' or $tab.id == 'jive-profile-link-activity' or $tab.id == 'jive-profile-link-content'}
+                        <li id="{$tab.id}" class="{if $tabView == $tab.id}j-tab-selected active j-ui-elem{/if}">
+                            <a title="{$tab.description}" href="{buildUrl($tab.url)}"
+                                class="font-color-normal{if $tabView == $tab.id} j-ui-elem{/if}">
+                                <span class="lnk">{$tab.name}</span>
+                            </a>
+                        </li>
+                    {/if}
+                {/foreach}
+                <li>
+                    <a href="#" id="profile-nav-menu-more"  aria-haspopup="true" class="font-color-normal">
+                        {i18nText('global.more')}
+                        <span class="j-ui-elem j-action-down-arrow"></span>
+                    </a>
+                </li>
+                {if $profileActionsLink and $profileActionsLink.visible}
+                <li>
+                    <a id="{$profileActionsLink.id}" href="{buildUrl($profileActionsLink.url, $profileActionsLink.urlParams)}" aria-haspopup="true" class="font-color-normal">
+                        <span class="lnk">{i18nText($profileActionsLink.nameKey)}</span>
+                        <span class="j-ui-elem j-action-down-arrow"></span>
+                    </a>
+                </li>
+                {/if}
+            </ul>
+            <div id="j-overflow-nav-menu" class="j-pop-main j-menu j-quick-menu" style="display:none">
+                <ul>
+                {foreach $tab in $tabs}
+                    {if $tab.id != 'jive-profile-link-profile' and $tab.id != 'jive-profile-link-activity' and $tab.id != 'jive-profile-link-content' and $tab.visible}
+                        <li id="{$tab.id}" class="{if $tabView == $tab.id}j-tab-selected active j-ui-elem{/if}">
+                             {if ($tab.appActionLink != true)}
+                                <a title="{$tab.description}" href="{buildUrl($tab.url)}"
+                                    {if $tabView == $tab.id} class="j-ui-elem"{/if}>
+                                    <span class="lnk">
+                                        {$tab.name}
+                                    </span>
+                                </a>
+                             {else}
+                                 <a title="{$tab.label}" href="{buildUrl($tab.url, $tab.urlParams)}"
+                                    {if $tabView == $tab.id} class="j-ui-elem"{/if}>
+                                    <span class="lnk">
+                                        {$tab.label}
+                                    </span>
+                                </a>
+                             {/if}
+                        </li>
+                    {/if}
+                {/foreach}
+                </ul>
+            </div>
+            {call .actionLinks}
+                {param profileActionLinks: $profileActionLinks /}
+		/**swiss re theme changes **/
+                {param viewingSelf: $viewingSelf /}
+                {param profileImage: $profileImages[0] /}
+            {/call}
+            <script>
+                var renderFullBio = function(event) {lb}
+                    $j('#j-profile-full-bio').lightbox_me({lb}
+                        destroyOnClose: false,
+                        closeClick: false,
+                        centered: true
+                    {rb});
+                {rb};
+
+
+                {literal}
+                    $j(function() {
+                        var overflowMenuShowing = false,
+                            $overflowMenu = $j('#j-overflow-nav-menu');
+                        $j('#profile-nav-menu-more').click(function(e) {
+                            e.preventDefault();
+                            if (!overflowMenuShowing) {
+                                $overflowMenu.popover({
+                                    context: $j(this),
+                                    destroyOnClose: false,
+                                    putBack: true,
+                                    hoverSelection: true,
+                                    onClose: function() {
+                                        overflowMenuShowing = false;
+                                    }
+                                });
+                                overflowMenuShowing = true;
+                            }
+                            else {
+                                $overflowMenu.trigger('close');
+                            }
+                        });
+                    });
+
+                   // actions menu
+                   $j(function() {
+                        var view = new jive.MenuView(
+                            $j("#j-place-actions-container"),
+                            '#jive-profile-link-actions',
+                            {
+                                darkPopover: true,
+                                hoverSelection: true,
+                                destroyOnClose: false
+                            }
+                        );
+
+                        var main = {menuView: view};
+
+                        $j('#j-place-actions-container').click(function(event) {
+                            main.menuView.close();
+                        }).on('close', function() {
+                            $j(this).find('.j-selected').removeClass('j-selected');
+                        });
+
+
+                        // full bio modal
+                        $j('#j-profile-full-bio-button').click(renderFullBio);
+                    });
+                {/literal}
+
+                // Author by email modal
+                {if $canCreateContentByEmail}
+                $j(function() {lb}
+                    $j('#jive-profile-link-action-create-by-email').click(function(event) {lb}
+                         $j('#vcard-modal').html('<p class="font-color-meta-light"><img src="{buildUrl('/images/jive-image-loading.gif')}" alt=""/>{i18nText('customize.loading')}</p>');
+
+                         $j('#vcard-modal').load("{buildUrl('/author-by-email.jspa')}", function() {lb}
+                            $j('#jive-author-by-email-modal').trigger('resize');
+                            $j(":checkbox[name ='vCardObjectTypes']").click(function() {lb}
+                                toggleVCardActionButtons();
+                            {rb});
+                         {rb});
+
+                         $j("#jive-author-by-email-modal").lightbox_me({lb}closeSelector: ".jive-close, .close"{rb});
+                    {rb});
+                {rb});
+                {/if}
+
+                {if $needsNewProfileImageEducation}
+                    $j(function() {lb}
+                        var educationalContent = jive.people.profile.newImageNotification({lb}userId: {$user.id}{rb});
+                        $j(educationalContent).lightbox_me({lb}
+                            destroyOnClose: true,
+                            onClose: function() {lb}
+                                var endpoint = jive.rest.url('/users/current/prop/needs.new.profile.image.education');
+                                $j.ajax({lb}
+                                    type: "DELETE",
+                                    url: endpoint,
+                                    timeout: 30000
+                                {rb});
+                            {rb},
+                            closeClick: false,
+                            centered: true
+                        {rb});
+                    {rb});
+                {/if}
+            </script>
+        </nav>
+    </header>
+
+
+    {if ($user.anonymous)}
+        <div class="j-guest-tip jive-info-box j-rc5" aria-live="polite" aria-atomic="true">
+            {call jive.shared.soy.i18nHelper}
+                {param i18nKey}
+                    {i18nKey('profile.guesttip.text')}
+                {/param}
+                {param arg0}<a href="{buildUrl('/login.jspa?referer=' + $targetUser.link)}">{/param}
+                {param arg1}</a>{/param}
+                {param arg2}{$targetUser.username}{/param}
+                {param noAutoEscape}true{/param}
+            {/call}
+            {if $accountCreationEnabled}
+                &nbsp; &nbsp;
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('browse.guesttip.joinnow')}
+                    {/param}
+                    {param arg0}
+                        {if $validationEnabled}
+                            <a href="{buildUrl('/login!input.jspa?registerOnly=true')}"> {i18nText('browse.guesttip.join')} </a>
+                        {else}
+                            <a href="{buildUrl('/create-account.jspa')}"> {i18nText('browse.guesttip.join')} </a>
+                        {/if}
+                    {/param}
+                    {param noAutoEscape}true{/param}
+                {/call}
+            {/if}
+        </div>
+    {/if}
+
+    <div id="info-box" class="jive-info-box" style="display:none" aria-live="polite" aria-atomic="true"></div>
+    <div id="jive-error-box" class="jive-error-box" style="display:none" aria-live="polite" aria-atomic="true"></div>
+    <div id="thread.watch.notify" class="jive-info-box" style="display:none" aria-live="polite" aria-atomic="true"></div>
+    <div class="jive-modal jive-modal-medium jive-author-by-email-modal" id="jive-author-by-email-modal">
+         <header><h2>{i18nText('author.by.email.modal.title')}</h2></header>
+         <a href="#" class="j-modal-close-top close">{i18nText('author.by.email.modal.close')} <span class="j-close-icon  j-ui-elem"></span></a>
+         <div class="jive-modal-content" id="vcard-modal">
+         </div>
+    </div>
+// Upgrade - Swiss re theme -  Bee level changes
+	/*<script>
+	{literal}	
+window.onload = function productivityBee() {
+  var userId = window.location.href;
+ 
+  var userIdIndex = userId.indexOf("/people");
+ 
+  if (userIdIndex > 1) {
+    var nitroHeader = document.getElementsByClassName("j-profile-status-update");
+    if (nitroHeader && nitroHeader.length > 0) {
+      var titleDiv = document.createElement("DIV");
+
+      nitroHeader[0].appendChild(titleDiv);      
+         
+      titleDiv.innerHTML = "<h3 class='font-color-meta'>myProductivity and Ourspace status</h3>";
+         
+      var descriptionDiv = document.createElement("DIV");
+       nitroHeader[0].appendChild(descriptionDiv);         
+      descriptionDiv.innerHTML = "Bee level:";      
+      userId = userId.substring(userIdIndex + 8, userIdIndex + 14);
+      descriptionDiv.innerHTML = "<a href='http://www.myproductivity.ch/' target='_blank'><img src='http://www.myproductivity.ch/Ourspace/Avatar/" + userId + "'></a><br/><br/><a href='http://www.myproductivity.ch/'>Go to myProductivity</a><br/><br/><a href='http://ourspace.swissre.com/community/communities/myproductivity'>Go to myProductivity Ourspace community</a>";
+    } else { 
+      window.setTimeout(productivityBee, 500);
+    }
+  }
+}
+{/literal}
+	</script> */
+{/template}

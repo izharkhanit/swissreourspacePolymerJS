@@ -1,0 +1,86 @@
+{namespace jive.polls.option.soy autoescape="contextual"}
+
+/**
+ * Renders out a poll option for editing, uploading images.
+ *
+ * @param option
+ */
+{template .renderEdit}
+<li id="poll-choice-{$option.id}" class="jive-voting-option bg-color-normal clearfix" aria-grabbed="false">
+    <label class="j-label-opt" for="opt-{$option.id}">{i18nText('global.choice')}{sp}<span class="jive-poll-option-count js-poll-option-count">{$option.displayIndex}</span></label>
+    <input type="text" name="options[{$option.index}].text" size="75" maxlength="2000" id="opt-{$option.id}" class="jive-form-textinput-variable j-choice" value="{$option.text |noAutoescape}" aria-required="true" required />
+    <input type="hidden" name="options[{$option.index}].ID" size="75" maxlength="255" id="optID-{$option.id}" value="{$option.id}"/>
+    <input type="hidden" name="options[{$option.index}].index" size="75" maxlength="255" id="optIndex-{$option.id}" class="jive-opt-index" value="{$option.index}"/>
+
+    <p class="j-sort-options">
+        <a href="javascript:void(0);" class="poll-option-move-up">{i18nText('polls.choices.drag_to_reorder')}</a>
+        <a href="javascript:void(0);" class="poll-option-delete">{i18nText('global.delete')}</a>
+    </p>
+
+    <div class="jive-js-image-container j-attachment-container clearfix" style="display:none"></div>
+    <div class="j-attach-action-container clearfix">
+        <a id="j-polloption-meta-image-{$option.id}" class="j-wall-meta-image" href="#" title="{i18nText('we.form.addimage')}">
+            <span class="jive-icon-glyph icon-image"></span>
+            {sp}
+            {i18nText('we.form.addimage')}
+        </a>
+    </div>
+
+    <div id="j-polloption-meta-image-container-{$option.id}" class="j-attach-tab" style="display: none; -moz-border-radius-topleft: 0pt;">
+        <form method="post" enctype="multipart/form-data">
+        <input type="file" name="image" aria-label="{i18nText('post.attach_files.gtitle')}"/>
+        <input type="submit" value="{i18nText('imgpicker.insert.button')}" tabindex="-1" class="j-508-label"/>
+        //Swissre Theme migration
+        <div style="font-size:12px">Do not attach / upload copyrighted information or business records. When in doubt consult the Ourspace Policy or contact somebody from Intellectual Property, Legal, Knowledge & Records or Compliance.</div>
+       </form>
+    </div>
+</li>
+
+{/template}
+
+/**
+ * Renders an error message div.
+ * @param message
+ */
+{template .error}
+
+    <div id="jive-error-box-options" class="jive-error-box" aria-live="polite" aria-atomic="true">
+        <div>
+            <span class="jive-icon-med jive-icon-redalert"></span>
+            <p>{$message}</p>
+        </div>
+    </div>
+
+{/template}
+
+/**
+ * Renders a delete modal for deleting a poll option.
+ *
+ * @param optionID
+ * @param optionText
+ */
+{template .deletePrompt}
+
+    <div class="jive-modal" id="jive-modal-delete-poll-option-{$optionID}">
+        <header><h2 class="jive-modal-title jive-modal-title-delete-poll-option">{i18nText('polls.delete_option.title')}</h2></header>
+
+        <div class="jive-modal-content jive-modal-delete-poll-option clearfix">
+                    <p>
+                    {call jive.i18n.soy}
+                        {param string: i18nText('polls.delete_option.conf.title') /}
+                        {param zero}{$optionText}{/param}
+                    {/call}
+                    </p>
+
+            <div class="jive-warn-box" aria-live="polite" aria-atomic="true">
+                <div role="alert"><span class="jive-icon-med jive-icon-warn"></span>{i18nText('polls.delete_option.desc.text')}</div>
+            </div>
+
+            <div class="jive-form-buttons">
+                <input id="poll-option-delete-submit-button-{$optionID}" type="button" name="delete" value="{i18nText('polls.delete_option.button')}" class="j-btn-callout">
+                <input type="button" class="jive-modal-close close" value="{i18nText('global.cancel')}" id='poll-option-delete-close-button-{$optionID}'>
+            </div>
+        </div>
+    </div>
+
+{/template}

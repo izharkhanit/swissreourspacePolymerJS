@@ -1,0 +1,56 @@
+{namespace jive.people.profile}
+
+
+/**
+ * @param targetUser
+ * @param user
+ * @param headerProfileFields
+ *
+ * @depends i18nKeys=profile.guesttip.text
+ */
+{template .headerProfileFields}
+        {if $targetUser.partner and not $user.partner and not $user.anonymous}
+            <span class="font-color-meta-light j-browse-external-access"><em>{i18nText('partner.browse.external.contributor')}</em></span>
+        {/if}
+
+        {if $user.anonymous and length($headerProfileFields) == 0}
+            <section class="j-empty-message font-color-meta-light">
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('profile.guesttip.text')}
+                    {/param}
+                    {param arg0}<a href="{buildUrl('/login.jspa?referer=' + $targetUser.link)}" class="font-color-normal">{/param}
+                    {param arg1}</a>{/param}
+                    {param arg2}{$targetUser.username}{/param}
+                    {param noAutoEscape}true{/param}
+                {/call}
+            </section>
+        {elseif length($headerProfileFields) == 0}
+            <section class="j-empty-message font-color-meta-light">
+                <p>{i18nText('profile.engage')}<br>
+                {i18nText('profile.complete')}</p>
+            </section>
+        {else}
+            <ul>
+                	{call .displayField data="all"}
+                        	{param field: $headerProfileFields[0] /}
+                    	{/call}
+                      {if length($headerProfileFields) > 1}
+                    	{call .displayField data="all"}
+                        	{param field:  $headerProfileFields[length($headerProfileFields)-1] /}
+                    	{/call}
+                    	{/if}
+                       {if length($headerProfileFields) > 2} 
+                         </ul><ul class="rightHeaderFields">
+                         {call .displayField data="all"}
+                        	{param field:  $headerProfileFields[length($headerProfileFields)-2] /}
+                    	{/call}
+                    	{/if}
+                        {if length($headerProfileFields) > 3}  
+                        {call .displayField data="all"}
+                        	{param field:  $headerProfileFields[length($headerProfileFields)-3] /}
+                    	{/call}
+                    	{/if}
+            </ul>
+        {/if}
+{/template}

@@ -1,0 +1,87 @@
+{namespace jive.bulkmanage.modal.contentSelected}
+
+/**
+ * @depends i18nKeys=browse.heading.content
+ * @depends i18nKeys=browse.heading.author
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.viewing 
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.of
+ */
+{template .main}
+          <div id="bulkmanage-content-selected-container">
+               <div class="j-browse-details">
+                    <table class="j-browse-list" cellspacing="0" cellpadding="0">
+                         <thead class="j-rc4">
+                              <tr>
+                                   <th colspan="3"><strong class="font-color-meta-light">{i18nText('browse.heading.content')}</strong></th>
+                                   <th><strong class="font-color-meta-light">{i18nText('browse.heading.author')}</strong></th>
+                                   <th><strong class="j-508-label">{i18nText('browse.heading.actions')}</strong></th>
+                              </tr>
+                         </thead>
+                         <tbody id="content-selected-list" class="j-browse-details-tbody j-bulk-content-selection-table">
+                          </tbody>
+                    </table>
+               </div>
+          </div> 
+//Swiss RE theme change during jive 9.0.1 upgrade and adding the i18nKeys=bulkmanage.content.selected.pagination.viewing  and i18nKeys=bulkmanage.content.selected.pagination.of
+          <div id="pagination-container" class="clearfix">
+               <div id="content-selected-pagination"></div>
+               <div id="content-selected-totals">
+                    {i18nText('bulkmanage.content.selected.pagination.viewing')} <span id="content-selected-begin"></span> - <span id="content-selected-end"></span> {i18nText('bulkmanage.content.selected.pagination.of')} <span id="content-selected-total"></span>
+               </div>
+          </div>
+//Swiss RE theme change ends here.
+{/template}
+
+/**
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.viewing
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.of
+ */
+{template .pagination}
+<div id="pagination-container" class="clearfix">
+     <div id="content-selected-pagination"></div>
+     <div id="content-selected-totals">
+          {i18nText('bulkmanage.content.selected.pagination.viewing')} <span id="content-selected-begin"></span> - <span id="content-selected-end"></span> {i18nText('bulkmanage.content.selected.pagination.of')} <span id="content-selected-total"></span>
+     </div>
+</div>
+{/template}
+
+/**
+ * @param rowIndex
+ * @param objectType
+ * @param objectID
+ * @param objectIcon
+ * @param title
+ * @param author
+ */
+{template .row}
+    <tr class="js-browse-item">
+        <td>
+            <strong>{$rowIndex + 1}.</strong>
+        </td>
+        <td class="j-td-icon">
+            <img src="{buildUrl('/images/transparent.png')}" class="{$objectIcon}" alt="" role="img">
+        </td>
+        <td class="j-td-title">
+            <span class="j-content-title">
+                {$title}
+            </span>
+        </td>
+        <td class="j-td-author">
+            <span class="jive-username-link">{$author}</span>
+        </td>
+        <td class="j-td-actions">
+            <a href="#" class="remove-content-selected-link j-remove" data-row-index="{$rowIndex}" data-object-id="{$objectID}" data-object-type="{$objectType}">
+                {i18nText('bulkmanage.content.selected.remove')}
+            </a>
+        </td>
+    </tr>
+{/template}
+
+/**
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.no.content
+ */
+{template .emptyRow}
+     <tr>
+          <td colspan="5" class="center">{i18nText('bulkmanage.content.selected.pagination.no.content')}</td>
+     </tr>
+{/template}

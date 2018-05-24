@@ -1,0 +1,384 @@
+{namespace jive.onboarding}
+
+
+/**
+ *
+ * @param instanceInfoView
+ * @param trialBean
+ * @depends path=/resources/scripts/apps/onboarding/onboarding_main.js
+ */
+{template .jsInit}
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+            require(['apps/onboarding/onboarding_main'], function(OnboardingMain) {lb}
+                $j(function(){lb}
+                    jive.Onboarding.Controller = new OnboardingMain({lb}
+                        trialBean: {buildJson($trialBean)|noAutoescape},
+                        instanceInfoView: {buildJson($instanceInfoView)|noAutoescape}
+                    {rb});
+                {rb});
+            {rb});
+        {/param}
+    {/call}
+{/template}
+
+/**
+ * @param homeNavHelper
+ * @param viewData
+ * @param templateView The model to render the page template.
+ * @depends template=jive.welcome.homeSideNav
+ */
+{template .page}
+    {call jive.skin.template.main data="$templateView"}
+            {param title}
+                {i18nText('onboarding.page.title')}
+            {/param}
+            {param selectedLinkID: 'jive-nav-link-get-started'/}
+            {param bodyClass: 'j-body-home j-body-onboarding'/}
+            {param bodyContent}
+                <!-- BEGIN layout -->
+                    <div class="j-layout j-layout-sl clearfix">
+                        // Sidebar layout
+                        <div class="j-column-wrap-s">
+                            <nav class="j-column j-column-s" role="navigation" aria-label="{i18nText('eae.stream.nav')}">
+                                {call jive.welcome.homeSideNav}
+                                    {param homeNavHelper: $homeNavHelper/}
+                                    {param selectedLinkID: 'jive-nav-link-get-started' /}
+                                {/call}
+                            </nav>
+                        </div>
+
+                        <!-- BEGIN large column -->
+                        <div class="j-column-wrap-l">
+                            <div id="j-dynamic-pane" class="j-column j-column-l">
+                                {call .dynamicPaneContents}
+                                    {param viewData: $viewData /}
+                                {/call}
+                            </div>
+                        </div>
+                    </div>
+            {/param}
+        {/call}
+{/template}
+
+/**
+ * @param viewData
+ *
+ * @allowDependsWildcard
+ *
+ * @depends template=jive.trial.quests.*
+ */
+{template .dynamicPaneContents}
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+            $j(function() {lb}
+                jive.conc.nextTick(function() {lb}
+                    if (jive.Onboarding && jive.Onboarding.Controller) {lb}
+                        jive.Onboarding.Controller.postPageRender({lb}
+                            valueCaseName: '{$viewData.valueCaseName}',
+                            instanceName: '{$viewData.instanceName}'
+                            {if $viewData.valueCaseName != 'trial'},
+                            videoID: '{$viewData.valueCase.i18nData.video}'
+                            {/if}
+                        {rb});
+                    {rb}
+                {rb});
+            {rb});
+        {/param}
+    {/call}
+    <div id="j-onboarding" role="main" aria-label="{i18nText('eae.header.text.onboarding')}" class="j-contained j-rc5">
+        <div class="j-onb-quests {if $viewData.valueCaseName == 'trial'}j-onb-quests-trial{/if} {if $viewData.valueCaseName != 'ob'} j-onb-quests-vc{/if}">
+            <div class="j-onb-quest-header j-onb-deco-header">
+                <h1 class="font-face-deco">
+                    //Upgrade - Swissre Theme migration
+                    {i18nText('onboarding.getstarted.title')}
+                </h1>
+                <div class="j-onb-intro">
+                    {if $viewData.valueCaseName == 'trial'}
+                        {i18nText('onboarding.trialvc.getstarted_desc')}
+                    {else}
+                        {msgFormat($viewData.valueCase.i18nData.getstarted_desc, $viewData.instanceName)}
+                    {/if}
+                </div>
+            </div>
+            {if $viewData.valueCaseName == 'ob'}
+                
+		    //Upgrade - Swissre Theme migration
+                    <div class="Swiss-hdicon Swiss-hdicon-logo" role="img" title="{i18nText('onboarding.getstarted.title')}"></div>                
+                
+            {elseif $viewData.valueCaseName != 'trial' and $viewData.valueCase.i18nData.video != 'video'}
+                <div id="wistia_{msgFormat($viewData.valueCase.i18nData.video)}" class="j-qvideo-hd" style="width:325px;height:208px;" data-video-width="328" data-video-height="208">&nbsp;</div>
+            {/if}
+            <div id="j-onboarding-quests-container" class="j-onb-qlist">
+                {if $viewData.valueCaseName == 'trial'}
+                    // for default vc "trial" only
+                    <nav class="clearfix j-rc4 j-rc-none-bottom">
+                        {foreach $quest in $viewData.quests}
+                            {call jive.shared.soy.render}
+                                {param templateName: $quest.soyNamespace+'.panelTitle' /}
+                                {param data: Map(
+                                    p('panelData', $viewData),
+                                    p('questData', $quest)
+                                ) /}
+                                {param failGracefully: true /}
+                            {/call}
+                        {/foreach}
+                    </nav>
+                    {foreach $quest in $viewData.quests}
+                        {call jive.shared.soy.render}
+                            {param templateName: $quest.soyNamespace+'.panelContent' /}
+                            {param data: Map(
+                                p('panelData', $viewData),
+                                p('questData', $quest)
+                            ) /}
+                            {param failGracefully: true /}
+                        {/call}
+                    {/foreach}
+                {else}
+                    {foreach $quest in $viewData.quests}
+                        {call .questSection}
+                            {param viewData: $viewData /}
+                            {param questData: $quest /}
+                        {/call}
+                    {/foreach}
+                {/if}
+            </div>
+            <p class="j-onb-post">
+                <a href="#" class="js-onb-show-welcome-modal font-color-meta">
+                    {i18nText('onboarding.showwelcome.text')}
+                </a>
+            </p>
+            <p class="j-onb-post">
+                <a href="#" class="js-hide-onb font-color-meta">
+                    {i18nText('onboarding.dontshow.text')}
+                </a>
+            </p>
+            //upgrade - Swissre Theme migration 
+            <h4 style="text-align: center">
+<span style="color:#3778C7;align:center">Need Help or Advice?</span>
+</h4>
+<br>
+<div class="jive-rendered-content">
+
+ <p style="text-align: center">
+<a class="jive-link-community-small" href="http://ourspace.swissre.com/community/support">Support Space</a>
+<br>
+Self-service training material including the discussion forum "Ask Your Colleagues". Please post your questions there.
+</p>
+
+<p style="min-height: 8pt; height: 8pt; padding: 0px;">&nbsp;</p>
+ <p style="text-align: center">
+<a target="_blank" href="https://swissre.service-now.com/My_IT_Service_Portal/report_problem.do">My IT Service Portal</a>
+<br>
+Contact the IT Service Desk if you encounter technical problems.
+//Jive 7.0.2 upgrade - Swissre Theme migration - Ends
+        </div>
+    </div>
+{/template}
+
+/**
+ * @param viewData
+ * @param questData
+ *
+ * @allowDependsWildcard
+ *
+ * @depends template=jive.onbStep.startStep.*
+ */
+{template .questSection}
+    <div id="{$questData.name}" data-id="{$questData.name}" class="j-quest-block j-rc5">
+        <div class="j-quest-header js-quest-header">
+            <h2>
+                // if no overrides, use old default
+                {msgFormat($questData.i18nData.title)}
+            </h2>
+            <p class="j-quest-text">
+                {msgFormat($questData.i18nData.desc)}
+            </p>
+        </div>
+        <div class="js-quest-body j-quest-body">
+            {foreach $step in $questData.steps}
+                {call jive.shared.soy.render}
+                    {param templateName: $questData.soyNamespace+'.startStep.'+$step.type /}
+                    {param data: Map(
+                        p('stepData', $step),
+                        p('viewData', $viewData)
+                    ) /}
+                    {param failGracefully: true /}
+                {/call}
+            {/foreach}
+        </div>
+    </div>
+{/template}
+
+/**
+ * @depends i18nKeys=onboarding.percent.complete
+ * @param percentComplete
+ */
+{template .onboardingProgress}
+    <div id="j-onboarding-progress" class="j-onb-progress j-rc5">
+        <div class="j-complete font-face-deco">
+            {call jive.shared.soy.i18nHelper}
+                  {param i18nKey}
+                      {i18nKey('onboarding.percent.complete')}
+                  {/param}
+                  {param arg0}
+                      {$percentComplete}
+                  {/param}
+                  {param noAutoEscape:true/}
+            {/call}
+        </div>
+    </div>
+{/template}
+
+/**
+ *
+ */
+{template .postHideViewTip}
+    <div class="j-tips j-pop-main">
+        <h4 class="font-face-deco">
+            {i18nText('onboarding.getstarted.removed.title')}
+        </h4>
+        <p>
+            {i18nText('onboarding.getstarted.removed.body')}
+        </p>
+    </div>
+{/template}
+/**
+ *
+ * @depends i18nKeys=onboarding.welcome.tip.learnmore.text
+ * @param instanceName
+ */
+{template .postExploreOnMyOwnTip}
+    <div class="js-onboarding-tip j-tips j-pop-main">
+        <h4 class="font-face-deco">
+            {i18nText('onboarding.welcome.tip.learnmore.title')}
+        </h4>
+        <p>
+            {call jive.shared.soy.i18nHelper}
+                  {param i18nKey}
+                      {i18nKey('onboarding.welcome.tip.learnmore.text')}
+                  {/param}
+                  {param arg0}
+                      {$instanceName}
+                  {/param}
+                  {param noAutoEscape:true/}
+            {/call}
+        </p>
+    </div>
+{/template}
+
+/**
+ * @depends i18nKeys=global.ok
+ * @depends i18nKeys=global.close.modal
+ * @depends i18nKeys=onboarding.welcome.colleagues.already.usingX
+ * @param currentVC
+ * @param redisplay
+ * @param type
+ * @param displayData
+ */
+{template .introModal}
+    {if not $redisplay}
+        <div class="jive-modal j-modal j-modal-notitle j-onb-intro-modal j-vc-modal" id="onboarding-welcome" data-curvcid="{$currentVC.name}">
+            <header>
+                <a href="#" class="j-modal-close-top close" title="{i18nText('global.close.modal')}" aria-label="{i18nText('global.close.modal')}"><span class="j-close-icon j-ui-elem"></span></a>
+            </header>
+            <section class="jive-modal-content clearfix j-onboarding-modal">
+                // background style should show the designated value case image
+                <div class="j-vc-img {if $type == 'invited' and $displayData and $displayData.inviter}j-vc-invited{/if}"
+                    style="background: transparent url({if $currentVC.name == 'trial'}/images/trial/vc-JiveForTeams715x255.jpg{else}{msgFormat($currentVC.i18nData.intro_image)}{/if}) no-repeat; background-size:100%">
+                    <p>
+                        {if $type == 'invited' and $displayData and $displayData.inviter}
+                            {call jive.shared.displayutil.avatar data="$displayData.inviter"}
+                                {param hideLink: true /}
+                                {param size: 46 /}
+                            {/call}
+                            <span class="j-inviter">
+                                {i18nText('onboarding.welcome.Xinvitedyou', $displayData.inviter.displayName)}
+                            </span>
+                        {else}
+                            <span class="j-inviter">
+                                {i18nText('onboarding.welcome.general')}
+                            </span>
+                        {/if}
+                        <strong class="font-color-white">
+                            {if $currentVC.name == 'trial'}
+                                {i18nText('onboarding.trialvc.intro_name')}
+                            {else}
+                                {msgFormat($currentVC.i18nData.intro_name)}
+                            {/if}
+                        </strong>
+                    </p>
+                </div>
+                <div class="j-vc-intro-bottom clearfix">
+                    <div class="j-vc-intro-text" {if length($currentVC.otherUsers) == 0}style="width:auto;"{/if}>
+                        {if $currentVC.name == 'trial'}
+                            {i18nText('onboarding.trialvc.intro_desc')}
+                        {else}
+                            {msgFormat($currentVC.i18nData.intro_desc)}
+                        {/if}
+                    </div>
+                    {if length($currentVC.otherUsers)}
+                        <div class="j-vc-other-colleagues">
+                            <h4 class="font-color-meta">
+                            {call jive.shared.soy.i18nHelper}
+                                {param i18nKey}
+                                    {i18nKey('onboarding.welcome.colleagues.already.usingX')}
+                                {/param}
+                                {param arg0}
+                                    {if $currentVC.name == 'trial'}
+                                        {i18nText('onboarding.trialvc.intro_name')}
+                                    {else}
+                                        {msgFormat($currentVC.i18nData.intro_name)}
+                                    {/if}
+                                {/param}
+                                {param noAutoEscape:true/}
+                            {/call}
+                            </h4>
+                            // up to 2 people
+                            <ul>
+                                {foreach $user in $currentVC.otherUsers}
+                                    <li>
+                                        {call jive.shared.displayutil.avatar data="$user"}
+                                            {param hideLink: true /}
+                                            {param size: 46 /}
+                                        {/call}
+                                        <strong>{$user.displayName}</strong>
+                                    </li>
+                                {/foreach}
+                            </ul>
+                        </div>
+                    {/if}
+                </div>
+                <div class="j-vc-intro-buttons">
+                    <a href="#" class="js-onb-accept j-btn-global j-btn-callout" data-id="{$currentVC.name}" data-context="welcome">
+                        {i18nText('onboarding.welcome.get.started.btn.text')}
+                    </a>
+                </div>
+            </section>
+        </div>
+    {/if}
+{/template}
+
+/**
+* Helper to get around issues with msgFormatHelper function, allows us to pass calls to other templates to the function
+*
+* @param i18nKey
+* @param arg0
+* @param? arg1
+* @param? arg2
+* @param? arg3
+* @param? arg4
+* @param? arg5
+* @param? arg6
+* @param? arg7
+* @param? arg8
+* @param? arg9
+* @param? noAutoEscape if true, given parameter values will not be escaped
+*/
+{template .msgFormatHelper}
+    {if $noAutoEscape}
+        {msgFormat($i18nKey, SanitizedHtml($arg0), SanitizedHtml($arg1), SanitizedHtml($arg2), SanitizedHtml($arg3), SanitizedHtml($arg4), SanitizedHtml($arg5), SanitizedHtml($arg6), SanitizedHtml($arg7), SanitizedHtml($arg8), SanitizedHtml($arg9))}
+    {else}
+        {msgFormat($i18nKey, $arg0, $arg1, $arg2, $arg3, $arg4, $arg5, $arg6, $arg7, $arg8, $arg9)}
+    {/if}
+{/template}

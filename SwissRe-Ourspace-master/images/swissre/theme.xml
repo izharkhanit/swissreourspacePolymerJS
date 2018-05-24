@@ -1,0 +1,474 @@
+<theme>
+  <name>swissre</name>
+  <description>Swiss Re theme</description>
+  <version>1.0</version>
+  <properties/>
+  <createDate>1448469467455</createDate>
+  <resource-bundle-rules>
+    <entry>
+      <locale>en_US</locale>
+      <list>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>error.not_found.description</pattern>
+          <replace-value>Sorry, the content which you requested could not be found...&lt;/br&gt;  This may be because the link you are using is incorrect or maybe the content has been moved or deleted. Please check your link and try again or if you find that the content has been moved or deleted, please update or remove links to the content.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>sgroup.form.chooseimg.label</pattern>
+          <replace-value>Choose an image that will display on your group home page and in listings.&lt;br/&gt;&lt;font style=&quot;color:black&quot;&gt;Do not upload copyrighted images.&lt;/font&gt;</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>tinymce.jiveattachment.button_label</pattern>
+          <replace-value>Attach1</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>photoavatar.upload.desc.photo</pattern>
+          <replace-value>Select an image from your computer and upload it. (JPG, PNG, GIF, or BMP only, maximum file size of {0}).&lt;br/&gt;&lt;font style=&quot;color:black&quot;&gt;Do not upload copyrighted images.&lt;/font&gt;</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>photoavatar.upload.desc.avatar</pattern>
+          <replace-value>Select an image from your computer and upload it. (JPG, PNG, GIF, or BMP only, maximum file size of {0}).&lt;br/&gt;&lt;font style=&quot;color:black&quot;&gt;Do not upload copyrighted images.&lt;/font&gt;</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>file_input.drop_file_here</pattern>
+          <replace-value>or drag &amp; drop your file here&lt;br/&gt;&lt;p&gt;&lt;font style=&quot;color: black; font-weight:normal; font-size:8pt; &quot; &gt;Do not attach / upload copyrighted information or business records. When in doubt consult the Ourspace Policy or contact somebody from Intellectual Property, Legal, Knowledge &amp; Records or Compliance.&lt;/font&gt;&lt;/p&gt;</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Username</pattern>
+          <replace-value>User ID</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>sgroup.create.info</pattern>
+          <replace-value>&lt;br/&gt;&lt;em class=&quot;srhighlighted&quot;&gt;Ready to open a new group? The group owner&apos;s tasks include the following: managing memberships, introducing the platform/group to the members, actively managing the content, ensuring compliance of group activities with the etiquette and deleting the group, if no longer needed. You need to budget some time for these tasks.&lt;/em&gt;</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Inbox</pattern>
+          <replace-value>Notifications</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>place.places.link.space</pattern>
+          <replace-value>Subspaces</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>browse.filter.jiveGenius</pattern>
+          <replace-value>Recommended</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Banned</pattern>
+          <replace-value>Deactivated</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Ban</pattern>
+          <replace-value>Deactivate</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+      </list>
+    </entry>
+    <entry>
+      <locale>en_GB</locale>
+      <list>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Follow {0}</pattern>
+          <replace-value>Associate yourself with</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Follow this project</pattern>
+          <replace-value>Track this project</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>You have stopped following this project. To view this project in your projects, click &quot;Follow this project&quot; below.</pattern>
+          <replace-value>You have stopped tracking this project. To view this project in your projects, click &amp;#34;Track this project&amp;#34; below.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Stop following {0}</pattern>
+          <replace-value>Stop being associated with</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>is following</pattern>
+          <replace-value>is associated with</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Jive SBS</pattern>
+          <replace-value>Ourspace</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>If this is incorrect, please update your email address on the </pattern>
+          <replace-value></replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Private Group</pattern>
+          <replace-value>Restricted Group</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>private group</pattern>
+          <replace-value>restricted group</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Primary Address</pattern>
+          <replace-value>Address</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Private</pattern>
+          <replace-value>Restricted</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Username</pattern>
+          <replace-value>User ID</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Private Discussion</pattern>
+          <replace-value>Closed Discussion</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>private discussion</pattern>
+          <replace-value>closed discussion</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Disabled</pattern>
+          <replace-value>Deactivated</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Inbox</pattern>
+          <replace-value>Notifications</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>error.not_found.description</pattern>
+          <replace-value>Sorry, the content which you requested could not be found...  This may be because the link you are using is incorrect or maybe the content has been moved or deleted. Please check your link and try again or if you find that the content has been moved or deleted, please update or remove links to the content.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>browse.filter.jiveGenius</pattern>
+          <replace-value>Recommended</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>place.places.link.space</pattern>
+          <replace-value>Subspaces</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Jive</pattern>
+          <replace-value>Ourspace</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Tag your content to make it easier to find</pattern>
+          <replace-value>Tag your content to make it easier to find (use spaces to separate multiple tags, use an underscore to combine two words), do not enter confidential information.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>banned from group</pattern>
+          <replace-value>deactivated from group</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>eae.liking.photoAlbum</pattern>
+          <replace-value>Photo Album</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Banned</pattern>
+          <replace-value>Deactivated</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Ban</pattern>
+          <replace-value>Deactivate</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Disable</pattern>
+          <replace-value>Deactivate</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>photo.rcw.display.name</pattern>
+          <replace-value>Photo Names</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>event.location.label</pattern>
+          <replace-value>Venue</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.welcomeback.text</pattern>
+          <replace-value>There&amp;#39;&amp;#39;s been an upgrade to Ourspace since your last visit.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.basics.whatsbasics.text</pattern>
+          <replace-value>Learn how things are organised, how to follow groups and colleagues, and tell   us a bit about yourself.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.explore.explore.text</pattern>
+          <replace-value>Take a guided tour of Ourspace. Learn more about groups, how to find things,   and how to perform common social interactions.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.basics.howitworks.title</pattern>
+          <replace-value>How this Ourspace works (basically)  </replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>tips.onboarding.tip0.title</pattern>
+          <replace-value>Take a tour of Ourspace interface.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>tips.onboarding.tip1.body1</pattern>
+          <replace-value>Home is your main view, where you can find out what&amp;#39;&amp;#39;s happening across Ourspace.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>tips.onboarding.tip7.body</pattern>
+          <replace-value>You finished the Interface tour.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>trial.quest.work_better.tip.findgroup.text1</pattern>
+          <replace-value>In Ourspace, information is organised in groups and spaces.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>tips.onboarding.tip3.title</pattern>
+          <replace-value>Activity (All Swiss Re)</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.contribute.tip.document.created.text2</pattern>
+          <replace-value>When you need to collaborate on something with people, consider   using a document.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>publishbar.option.all</pattern>
+          <replace-value>The Ourspace Community</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>onboarding.getstarted.text</pattern>
+          <replace-value>Here are some quick guides to get you familiar with how things work in Ourspace.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>send.invite.nonusers.noimport.label</pattern>
+          <replace-value>Type to find people</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Email Watches</pattern>
+          <replace-value>Email Subscription</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>search.view.default.header</pattern>
+          <replace-value>Type to search all of Ourspace</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>Jive Genius</pattern>
+          <replace-value>Recommended</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>photo.add.file.types.message</pattern>
+          <replace-value>Allowed file types: {0}Maximum Allowed Size :10 MB</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>photo.add.error</pattern>
+          <replace-value>Unable to add new photos at this time.Please check the size of the image you are trying to upload</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>STARTS_WITH</operator>
+          <pattern>content.root.events.create</pattern>
+          <replace-value>Create Event</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>widget.customize.reset.button</pattern>
+          <replace-value>Restore Defaults (Delete all Widgets)</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>widget.customize.reset.text</pattern>
+          <replace-value>Are you sure you want to restore the default settings? This will delete the settings for all the widgets on this page and there is no ability to recover your layout (even for Ourspace system administrators).</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>EQUALS</operator>
+          <pattern>You are not allowed to create or update this content</pattern>
+          <replace-value>You are not allowed to create or update this content, in other words you either did not select a place in which to create the content or that you do not have access to publish / update content in the selected place. Please scroll down this page, and in the &amp;#34;In a Place&amp;#34; section select the place (Ourspace group or space) in which you wish to publish your content.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>VALUE</search-target>
+          <operator>CONTAINS</operator>
+          <pattern>Avatars personalize your activity by showing up in lists, activity streams and comments. Select the avatar you want to use, or {0}add your own avatar{1}.</pattern>
+          <replace-value>Avatars personalize your activity by showing up in lists, activity streams and comments. Select the avatar you want to use, or {0}add your own avatar{1}.&lt;br /&gt;&lt;br /&gt;&lt;b&gt;Please note:&lt;/b&gt; Do not use any image from an external source that could be subject to copyright as your avatar. Also, do not use the Swiss Re logo or power symbol image, or any variations of those, as your avatar image.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+        <resource-bundle-rule>
+          <search-target>KEY</search-target>
+          <operator>EQUALS</operator>
+          <pattern>avatar.select.instruc</pattern>
+          <replace-value>Avatars personalize your activity by showing up in lists, activity streams and comments. Select the avatar you want to use.&lt;br /&gt;&lt;br /&gt;&lt;b&gt;Please note:&lt;/b&gt; Do not use any image from an external source that could be subject to copyright as your avatar. Also, do not use the Swiss Re logo or power symbol image, or any variations of those, as your avatar image.</replace-value>
+          <exclude-rules/>
+        </resource-bundle-rule>
+      </list>
+    </entry>
+  </resource-bundle-rules>
+</theme>

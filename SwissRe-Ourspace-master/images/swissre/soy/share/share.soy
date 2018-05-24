@@ -1,0 +1,315 @@
+{namespace jive.soy.share autoescape="contextual"}
+
+/**
+ * The Share button
+ *
+ * @depends path=/resources/scripts/jive/share.js
+ *
+ * @param  objectId
+ * @param  objectType
+ * @param  type text|smallButton|largeButton
+ * @param? icon
+ * @param? classes
+ * @param? contentPlaceRelInfo
+ */
+{template .control}
+    <a href="#" class="{if $type == 'text'}share-link j-meta-control lnk {elseif $type == 'largeButton'}j-social-action {/if}{if $classes}{$classes}{/if}" title="{i18nText('share.link.title')}"
+        data-command="share"
+        data-object-type="{$objectType}"
+        data-object-id="{$objectId}"
+        {if $contentPlaceRelInfo}data-relationship-id="{$contentPlaceRelInfo.relationshipID}"{/if}>
+            {if $icon}
+                <span{if $type == 'smallButton'} class="j-ui-elem"{/if}><span class="jive-icon-glyph icon-share2"></span>{i18nText('share.link')}</span>
+            {else}
+                {i18nText('share.link')}
+            {/if}
+    </a>
+{/template}
+
+
+/**
+ * Displays a modal for sharing content
+ * @param objectType
+ * @param message
+ * @param private
+ 
+ * @param externalCommunity
+ * @param placeSharesEnabled
+ * @depends template=jive.UserPicker.soy.inputPlaceholder
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=share.*
+
+ */
+{template .share}
+<div class="jive-modal j-modal j-pop" id="jive-modal-share">
+    <header>
+        <h2>
+            {let $shareKey}share.{$objectType}{/let}
+            {if $shareKey == i18nText($shareKey)}
+                {i18nText('share.unknown')}
+            {else}
+                {i18nText($shareKey)}
+            {/if}
+        </h2>
+    </header>
+    <label class="j-508-label" id="close-share-508">{i18nText('global.close.modal')}</label>
+    <a href="#" class="j-modal-close-top close" aria-labelledby="close-share-508" title="{i18nText('global.close.modal')}">{i18nText('global.close')}  <span class="jive-icon-glyph icon-close-med" role="img"></span></a>
+
+    <section class="jive-modal-content j-pop-main j-invite-modal clearfix">
+
+            <div id="share-error" class="jive-error-box" style="display:none" aria-live="polite" aria-atomic="true" ></div>
+
+            <form class="j-form">
+                {if $private}
+                    <p class="j-info">
+                        <span class="j-info-icon j-ui-elem"></span>
+                        {i18nText('share.private.access')}
+                    </p>
+                {/if}
+
+                <label for="share-users">
+                    {i18nText('share.people.label')}{sp}(
+                    {if $placeSharesEnabled}
+                        {i18nText('send.invite.nonusers.withplaceshares.label')}
+                    {elseif $externalCommunity}
+                        {i18nText('send.invite.nonusers.external.label')}
+                    {else}
+                        {i18nText('send.invite.nonusers.noimport.label')}
+                    {/if})
+                </label>
+
+                <div class="j-user-input-typeahead">
+                    <input type="text" name="share-users" id="share-users" class="j-autocomplete-input j-user-autocomplete j-autocomplete-jive-chooser-input jive-form-element-text j-ui-elem" autocomplete="on" role="combobox"/>
+                </div>
+                <div class="ie-zindex-fix j-form-exp font-color-meta-light">
+                //upgrade - Swissre Theme migration
+                    /*<strong>
+                        {i18nText('send.invite.examples')}{sp}
+                    </strong>
+                        {call jive.UserPicker.soy.inputPlaceholder}
+                            {param userAllowed:true/}
+                            {param emailAllowed:$externallyShareable/}
+                            {param placeAllowed:$placeSharesEnabled/}
+                            {param domains: $domains/}
+                            {param multiple:true/}
+                        {/call}*/
+                         <p>{i18nText('send.invite.nonusers.noimport.explanation')}</p>
+                </div>
+                <p>
+                    <label for="jive-send-content-not-message">
+                        {i18nText('share.message.label')} <span>{i18nText('share.message.include.optional')}</span>
+                    </label>
+                    <textarea name="message" class="jive-form-element-textarea font-color-normal" id="jive-send-content-not-message">{$message|noAutoescape}</textarea>
+                </p>             
+                <div class="j-pop-row j-last">
+                    <button type="submit" id="share-content-submit" name="share-content-submit" class="j-btn-callout">{i18nText('share.submit.button')}</button>
+                    <button type="button" class="close">{i18nText('global.cancel')}</button>
+                </div>
+            </form>
+    </section>
+</div>
+{/template}
+
+/**
+ * Renders a confirmation message for successfully sharing content.
+ */
+{template .shareConfirmation}
+    <p>{i18nText('share.confirm')}</p>
+{/template}
+
+/**
+* Renders message indicating cannot share secret group
+*/
+{template .secretGroupMessage}
+    <p>{i18nText('share.secretgroup')}</p>
+{/template}
+
+/** 
+* Renders message to indicate access grants for private content
+* @param objectName name of the object type
+*/
+{template .send_private_msg}
+{i18nText('send.private.autoaccess',$objectName)}
+{/template}
+
+/**
+ * renders a message saying that users don't have permission
+ * @param private true if the item being shared is private to the user
+ * @param editor true if the user is an editor of the content
+ * @param attachmentAvailable true if the item being shared has an attachment
+ * @param invitationsEnabled true if users can invite external users
+ * @param user The user for whom to show this message.
+ * @param externallyInviteable true if extended invitations enabled for this content
+ */
+{template .userWithoutPermission}
+    <div class="js-share-msg j-tips {if not($user.anonymous or $user.external) and $externallyInviteable} wide{/if}">
+        {if $user.anonymous or $user.external}
+            {if not $invitationsEnabled}
+                {if $attachmentAvailable}
+                    <p class="j-warn">{i18nText('share.guest.nopermission.attachment')}<p>
+                {else}
+                    <p class="j-warn">{i18nText('share.guest.nopermission.noattachment')}<p>
+                {/if}
+            {else}
+                {if $private and $editor}
+                    <p class="j-warn">{i18nText('share.guest.nopermission.invite.private')}<p>
+                    {call .attachmentLinks data="$user"/}
+                {elseif $attachmentAvailable}
+                    <p class="j-warn">{i18nText('share.guest.nopermission.invite.attachment')}<p>
+                    {call .attachmentLinks data="$user"/}
+                {else}
+                    <p class="j-warn">{i18nText('share.guest.nopermission.invite.noattachment')}<p>
+                    {call .emailLinks data="$user"/}
+                {/if}
+            {/if}
+        {else}
+            {if $private and $editor}
+                 {i18nText('share.user.nopermission.private')}
+            {elseif $editor and $externallyInviteable and not $user.partner}
+                 <p class="j-warn">{i18nText('share.user.nopermission.extended_share')}</p>
+                 {call .extendedShare data="$user" /}
+            {elseif $attachmentAvailable}
+                 {i18nText('share.user.nopermission.attachment')}
+            {else}
+                 {i18nText('share.user.nopermission.noattachment')}
+            {/if}
+        {/if}
+    </div>
+{/template}
+
+/**
+ * renders links to send an attachment
+ *
+ * @param notified Whether or not the user has been sent an email with an attachment
+ * @param email The user's email address
+ */
+{template .attachmentLinks}
+    <p><a href="#" class="js-notify-user" data-user-identifier="{$email}" {if ($notified)}style="display:none"{/if} >{i18nText('share.attachment.send.link')}</a>
+       <a href="#" class="js-unnotify-user" data-user-identifier="{$email}" {if not ($notified)}style="display:none"{/if} >{i18nText('share.attachment.remove.link')}</a><p>
+{/template}
+
+/**
+ * renders links to send an email
+ *
+ * @param notified Whether or not the user has been sent an email
+ * @param email The user's email addres
+ */
+{template .emailLinks}
+    <p><a href="#" class="js-notify-user" data-user-identifier="{$email}" {if ($notified)}style="display:none"{/if}>{i18nText('share.email.send.link')}</a>
+       <a href="#" class="js-unnotify-user" data-user-identifier="{$email}" {if not ($notified)}style="display:none"{/if}>{i18nText('share.email.remove.link')}</a><p>
+{/template}
+
+/**
+ * renders links to extend a share
+ * @param email The user's email address
+ * @param notified
+ * @param extendedShare
+ */
+{template .extendedShare}
+    <div class="j-extended-share js-extended-share">
+        <label for="extend-share">
+            <input id="extend-share" type="radio" name="extendShare" value="share" data-user-identifier="{$email}" {if $extendedShare or not $notified}checked{/if}/>
+            {i18nText('share.user.nopermission.extended_share.share')}
+        </label>
+        <label for="send-pdf">
+            <input id="send-pdf" type="radio" name="extendShare" value="no-share" data-user-identifier="{$email}" {if $notified}checked{/if}/>
+            {i18nText('share.user.nopermission.extended_share.attach')}
+        </label>
+
+        <input type="button" value="{i18nText('share.user.nopermission.extended_share.ok')}" class="close">
+    </div>
+{/template}
+
+
+/**
+ * renders a message saying that members of a connections list don't have permission
+ *
+ * @param private true if the item being shared is private to the user
+ * @param editor true if the user is an editor of the content
+ * @param attachmentAvailable true if the item being shared has an attachment
+ */
+{template .listWithoutPermission}
+    <div class="js-share-msg j-tips">
+         {if $private and $editor}
+            {i18nText('share.list.nopermission.private')}
+        {else}
+            {if $attachmentAvailable}
+                {i18nText('share.list.nopermission.attachment')}
+            {else}
+                {i18nText('share.list.nopermission.noattachment')}
+            {/if}
+        {/if}
+    </div>
+{/template}
+
+/**
+ * renders a message saying that users can't be shared to because they're not related
+ */
+{template .usersNotRelated}
+    <p class="j-warn">
+        <span class="jive-icon-sml jive-icon-redalert"></span>
+        {i18nText('share.notrelated')}
+    </p>
+{/template}
+
+/**
+ * Renders a message indicating this user can't be shared to
+ */
+{template .notAbleToShare}
+    <div class="js-share-msg j-tips">
+           <p class="j-warn">{i18nText('share.user.no_access')}<p>
+    </div>
+{/template}
+
+/**
+ * Renders a message indicating what will happen when content is shared to a place
+ */
+{template .shareToPlaceAccessInfo}
+    <div class="js-share-msg j-tips">
+           <p class="j-info">{i18nText('share.place.access.warning')}<p>
+    </div>
+{/template}
+
+/**
+ * Renders a message indicating this content has already been shared with a selected group
+ * @param place destination place
+ */
+{template .alreadySharedToPlace}
+    <div class="js-share-msg j-tips">
+           <p class="j-warn">
+               {if $place and $place.objectTypeName}
+                    {i18nText('share.place.type.already.exists', $place.objectTypeName)}
+               {else}
+                    {i18nText('share.place.already.exists')}
+               {/if}
+           <p>
+    </div>
+{/template}
+
+/**
+ * Renders the control that will delete a content-place relationship.
+ * @param contentPlaceRelationship
+ * @depends path=/resources/scripts/jive/contentplace_relationship.js
+ */
+{template .removeContentPlaceLinkControl}
+    <a href="#" class="js-delete-content-place-rel button lnk"
+    data-command="deleteContentPlaceRel"
+    data-relationship-id="{$contentPlaceRelationship.relationshipID}">{i18nText('share.place.remove_link')}</a>
+{/template}
+
+/**
+ * Success message when removing a content-place relationship.
+ */
+{template .removeContentPlaceLinkSuccess}
+    <span>{i18nText('share.place.remove_link.success')}</span>
+{/template}
+
+
+/**
+ * Failure message when removing a content-place relationship.
+ */
+{template .removeContentPlaceLinkFailure}
+    <span>{i18nText('share.place.remove_link.failure')}</span>
+{/template}

@@ -1,0 +1,1105 @@
+{namespace jive.browse.filter autoescape="contextual"}
+
+/**
+ * Renders a list of filter links.
+ * @param appliedFilterIDs The currently applied filter IDs.
+ * @param filters a collection of filters to display
+ * @param urlPath path for the last request
+ */
+{template .filterGroup}
+    {if ($filters)}
+        <nav class="j-second-nav" role="navigation" aria-label="{i18nText('browse.filter.tabnav')}">
+        <a href="#" id="mobile-sidenav-btn"></a>
+        <ul>
+        {foreach $filter in $filters}
+            {call .filterGroupItem data="$filter"}
+                {param descriptionIsKey: true/}
+                {param appliedFilterIDs: $appliedFilterIDs /}
+                {param selected: indexOf($appliedFilterIDs, $filter.id) > -1 /}
+                {param urlPath: $urlPath /}
+            {/call}
+        {/foreach}
+        </ul>
+        </nav>
+    {/if}
+{/template}
+
+/**
+* Renders a single link, and optionally nested filters underneath.
+*
+* @param id The id of the filter.
+* @param description The filter description.
+* @param descriptionIsKey If the filter description is an i18n key
+* @param descriptionArgs String arguments to the filter description.
+* @param selected Whether or not the filter is "selected".
+* @param parentOfNested Whether or not the filter has nested children
+* @param nested whether the filter itself is nested
+* @param appliedFilterIDs The currently applied filter IDs.
+* @param urlPath path for the last request
+* @param? template An optional template to use for sidebar child filters.
+* @param? children Child filters of the current filter group item.
+* @param? childIDPattern A regex to match IDs of children (for Dynamic filters).
+* @param? iconClass A CSS class for an icon span element, if any.
+*
+* @allowDependsWildcard
+*
+* @depends i18nKeys=browse.filter.*
+* @depends template=jive.shared.soy.render
+*/
+{template .filterGroupItem}
+    <li class="j-browse-filter-group-item js-browse-filter-group-item{if $selected and not $nested} active_item{elseif $selected and $nested} active_nested_item{/if}" data-filter-id="{$id}">
+        <a class="js-select-link" href="{buildUrl($urlPath, Map(p('filterID', $id)))}">
+            {if $selected and not $nested}
+                <strong>
+            {/if}
+            {if $iconClass}
+                <span class="{$iconClass}"></span>
+            {/if}
+            {if $descriptionIsKey}
+                <span class="nav-label lnk">{i18nText($description, $descriptionArgs)}</span>
+            {else}
+                <span class="nav-label lnk">{$description}</span>
+            {/if}
+            {if $selected and not $nested}
+                </strong>
+            {/if}
+        </a>
+        {if $parentOfNested}
+            {call jive.shared.soy.render}
+                {param templateName: $template /}
+                {param data: Map(
+                    p('childIDPattern', $childIDPattern),
+                    p('filters', $children),
+                    p('appliedFilterIDs', $appliedFilterIDs),
+                    p('hidden', not $selected)
+                ) /}
+                {param failGracefully: false /}
+            {/call}
+        {/if}
+    </li>
+{/template}
+
+/**
+* Used for the filter group item active state.
+*
+* @depends i18nKeys=browse.filter.pinlabel
+*/
+{template .activeFilterGroupItem}
+    <li class="active">
+        <a class="js-pin-link j-browse-filter-pin" title="{i18nText('browse.filter.pinlabel')}" style="display:none">
+            <span class="jive-icon-sml jive-glyph-pin"></span> {i18nText('browse.filter.pinlabel')}
+        </a>
+    </li>
+{/template}
+
+/**
+* A simple confirmation text to display when the user has pinned a filter group item.
+*
+* @param filterName
+*/
+{template .pinConfirmation}
+{i18nText('browse.filter.setdefault',$filterName)}
+{/template}
+
+/**
+* Renders an select list option for a sort.
+*
+* @param key The sort key (corresponds to the field or property of the item)
+* @param order The sort directionality (ascending, descending)
+* @param label The sort label to display to the user
+* @param selected Whether or not the sort is currently selected
+*
+* @allowDependsWildcard
+*
+* @depends i18nKeys=browse.sorts.*
+*/
+{template .sortOption}
+    <option value="{$key}" data-sort-order="{$order}" {if $selected}selected="selected"{/if}>{i18nText($label)}</option>
+{/template}
+
+/**
+ * Renders filters for a browse view.  This template acts as an entry point and
+ * prepares filters by separating tier-two filters into three lists:
+ * appliedFilters, unappliedFilters, and objectTypeFilters where object type
+ * filters are treated as a special case.
+ *
+ * Top-level filters are filters that are represented as sidebar links - for
+ * example, Authored Content or Followed Content.  Tier-two filters are the
+ * immediate children of top-level filters.  This template identifies the
+ * applied top-level filter and processes its children.
+ *
+ * The exception here is that object type filters are actually tier-three
+ * filters.  They are all of the immediate children of the tier-two object type
+ * parent filter.
+ *
+ * @param appliedFilterIDs The currently applied filter IDs ordered by rank in filter hierarchy
+ * @param? filters A set of top-level filters
+ * @param? appliedFilters list of non-object-type filters that are applied - for internal use
+ * @param? unappliedFilters list of non-object-type filters that are not applied - for internal use
+ * @param? objectTypeFilters list of object type filters - for internal use
+ * @param? childFilters children of the topmost applied filter - for internal use
+ * @param? childIndex references a different index of childFilters on each recursive call - for internal use
+ * @param? appliedIndex index of the ID of the filter referenced by childIndex in appliedFilterIDs - for internal use
+ */
+{template .filters}
+    {if $childFilters}
+        {if length($childFilters) > $childIndex}
+
+            /* If this is a nested filter or is a placeholder then skip it. */
+            {if $childFilters[$childIndex].nested or length(match($childFilters[$childIndex].id, '~choose|~showall')) > 0}
+                {call .filters data="all"}
+                    {param childIndex: $childIndex + 1 /}
+                    {param appliedIndex: length($childFilters) > $childIndex + 1 ?
+                        indexOf($appliedFilterIDs, $childFilters[$childIndex + 1].id) : -1 /}
+                {/call}
+
+            /* If this is the object type filter parent then pass its children
+             * as objectTypeFilters. */
+            {elseif length(match($childFilters[$childIndex].id, '~objecttype')) > 0}
+                {call .filters data="all"}
+                    {param objectTypeFilters: $childFilters[$childIndex].children /}
+                    {param childIndex: $childIndex + 1 /}
+                    {param appliedIndex: length($childFilters) > $childIndex + 1 ?
+                        indexOf($appliedFilterIDs, $childFilters[$childIndex + 1].id) : -1 /}
+                {/call}
+
+            /* If this filter is applied then replace the appropriate index of
+             * appliedFilters with this filter. */
+            {elseif $appliedIndex > -1}
+                {call .filters data="all"}
+                    {param appliedFilters: concat(concat(slice($appliedFilters, 0, $appliedIndex),
+                        $childFilters[$childIndex]),
+                        slice($appliedFilters, $appliedIndex + 1)) /}
+                    {param childIndex: $childIndex + 1 /}
+                    {param appliedIndex: length($childFilters) > $childIndex + 1 ?
+                        indexOf($appliedFilterIDs, $childFilters[$childIndex + 1].id) : -1 /}
+                {/call}
+                
+            /* If this filter is not applied then simply append it to
+             * unappliedFilters. */
+            {else}
+                {call .filters data="all"}
+                    {param unappliedFilters: concat($unappliedFilters, $childFilters[$childIndex]) /}
+                    {param childIndex: $childIndex + 1 /}
+                    {param appliedIndex: length($childFilters) > $childIndex + 1 ?
+                        indexOf($appliedFilterIDs, $childFilters[$childIndex + 1].id) : -1 /}
+                {/call}
+            {/if}
+
+        {else}
+            {call .compactAppliedFilters data="all"}
+                {param appliedIndex: 0 /}
+            {/call}
+        {/if}
+
+    {elseif $filters and length($filters) > 0}
+        {foreach $filter in $filters}
+            {if indexOf($appliedFilterIDs, $filter.id) > -1 and not $filter.nested}
+                {if $filter.children and length($filter.children) > 0}
+                    {call .filters data="all"}
+                        {param appliedFilters: $appliedFilterIDs /}
+                        {param unappliedFilters: List() /}
+                        {param parentFilter: $filter /}
+                        {param childFilters: $filter.children /}
+                        {param childIndex: 0 /}
+                        {param appliedIndex: indexOf($appliedFilterIDs, $filter.children[0].id) /}
+                    {/call}
+
+                {else}
+                    {call .filtersDispatch data="all"}
+                        {param filters: List() /}
+                        {param appliedFilters: List() /}
+                        {param unappliedFilters: List() /}
+                    {/call}
+                {/if}
+            {/if}
+        {/foreach}
+
+    {else}
+        {call .filtersDispatch data="all"}
+            {param filters: List() /}
+            {param appliedFilters: List() /}
+            {param unappliedFilters: List() /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * The built-up appliedFilters list may still include IDs that were not
+ * replaced with filters.  This template filters out those values.
+ *
+ * @param appliedFilters list of second-tier filters that are applied
+ * @param appliedIndex references a different index of appliedFilters on each recursive call
+ */
+{template .compactAppliedFilters}
+    {if length($appliedFilters) > $appliedIndex}
+        {if typeof($appliedFilters[$appliedIndex]) != 'object'}
+            {call .compactAppliedFilters data="all"}
+                {param appliedFilters: concat(slice($appliedFilters, 0, $appliedIndex),
+                                              slice($appliedFilters, $appliedIndex + 1)) /}
+                /* There is no need to increment appliedIndex since we just
+                 * decreased the size of the list. */
+            {/call}
+
+        {else}
+            {call .compactAppliedFilters data="all"}
+                {param appliedIndex: $appliedIndex + 1 /}
+            {/call}
+        {/if}
+
+    {else}
+        /* move on to next filter */
+        {call .compactUnappliedFilters data="all"}
+            {param unappliedIndex: 0 /}
+            {param unappliedFilterIDs: List() /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * The unapplied filters list should not include any exclusive filters if there
+ * are applied second-tier filters.  This template removes exclusive filters
+ * from unappliedFilters if necessary.  It also builds a list of unapplied
+ * filter IDs.
+ *
+ * @param appliedFilters list of second-tier filters that are applied
+ * @param unappliedFilters list of second-tier filters that are not applied
+ * @param unappliedFilterIDs list of IDs of second-tier filters that are not applied
+ * @param unappliedIndex references a different index of unappliedFilters on each recursive call
+ */
+{template .compactUnappliedFilters}
+    {if length($unappliedFilters) > $unappliedIndex}
+
+        {if length($appliedFilters) > 0 and $unappliedFilters[$unappliedIndex].exclusive}
+            {call .compactUnappliedFilters data="all"}
+                {param unappliedFilters: concat(slice($unappliedFilters, 0, $unappliedIndex),
+                                                slice($unappliedFilters, $unappliedIndex + 1)) /}
+            {/call}
+
+        {else}
+            {call .compactUnappliedFilters data="all"}
+                {param unappliedFilterIDs: concat($unappliedFilterIDs, $unappliedFilters[$unappliedIndex].id) /}
+                {param unappliedIndex: $unappliedIndex + 1 /}
+            {/call}
+        {/if}
+
+    {else}
+        /* move on to next filter */
+        {call .buildAppliedObjectTypeFilters data="all"}
+            {param objectTypeIndex: 0 /}
+            {param appliedObjectTypeFilters: List() /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * This template builds up the appliedObjectTypeFilters parameter.
+ *
+ * @param objectTypeFilters list of filters that specifically filter by object type
+ * @param appliedObjectTypeFilters list of object type filters that are applied
+ * @param objectTypeIndex references a different index of objectTypeFilters on each recursive call
+ * @param appliedFilterIDs The currently applied filter ID.
+ */
+{template .buildAppliedObjectTypeFilters}
+    {if $objectTypeFilters and length($objectTypeFilters) > $objectTypeIndex}
+        {if indexOf($appliedFilterIDs, $objectTypeFilters[$objectTypeIndex].id) > -1}
+            {call .buildAppliedObjectTypeFilters data="all"}
+                {param appliedObjectTypeFilters: concat($appliedObjectTypeFilters, $objectTypeFilters[$objectTypeIndex]) /}
+                {param objectTypeIndex: $objectTypeIndex + 1 /}
+            {/call}
+        {else}
+            {call .buildAppliedObjectTypeFilters data="all"}
+                {param objectTypeIndex: $objectTypeIndex + 1 /}
+            {/call}
+        {/if}
+    {else}
+        /* done filtering - proceed to rendering */
+        {call .filtersDispatch data="all" /}
+    {/if}
+{/template}
+
+/**
+ * Determines which specific template to use to render browse controls based on
+ * the filters that are given.  If the given filters include object type
+ * filters this template also pulls those into a separate list called
+ * objectTypeFilters.
+ *
+ * @param? objectTypeFilters list of tier-three filters that specifically
+ * filter by object type
+ */
+{template .filtersDispatch}
+    {if $objectTypeFilters and length($objectTypeFilters) > 0}
+        {call .filtersWithContentTypes data="all" /}
+    {else}
+        {call .genericFilters data="all" /}
+    {/if}
+{/template}
+
+/**
+ * Renders controls for a browse view with generic filters.  That is, there is
+ * no special layout for specific filters.
+ *
+ * @param appliedFilters second-tier filters that are applied
+ * @param unappliedFilters second-tier filters that are not applied
+ * @param appliedFilterIDs The currently applied filter ID.
+ * @param sorts A set of sorts.
+ * @param appliedSortKey The applied sort key for the filter group.
+ * @param showSearchBox Whether or not the search box should be displayed.
+ * @param showSorts Whether or not the sort options should be displayed.
+ * @param? hideFilterGroup Hide the whole filter group.
+ * @param? itemsView A collection of {@link ContentObjectViewBean}s.
+ * @param query search query in typeahead filter
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=browse.sorts.*
+ */
+{template .genericFilters}
+  <form id="js-browse-controls" {if ($hideFilterGroup)}style="display:none"{/if} class="j-form j-browse-controls j-generic-controls">
+     <div id="j-browse-filters" class="j-browse-filters j-rc5" role="toolbar" aria-label="{i18nText('browse.filter.form.label')}">
+
+         <div class="j-browse-sorts j-browse-filter-row">
+
+             {call .sortControls}
+                {param sorts: $sorts/}
+                {param showSorts: $showSorts /}
+                {param appliedSortKey: $appliedSortKey/}
+             {/call}
+
+             {call .searchBox}
+                {param query: $query /}
+                {param showSearchBox: $showSearchBox /}
+                {param placeholder: not $itemsView /}
+             {/call}
+
+             {call .itemViewToggle data="$itemsView"}
+                 {param urlParams: $urlParams /}
+                 {param urlPath: $urlPath /}
+             {/call}
+
+        </div>
+
+        {call .filterStack data="all"}
+            {param showAddRow: true /}
+        {/call}
+
+     </div>
+     {if length($appliedFilters) > 0 and length($unappliedFilters) > 0}
+            <a href="#" class="j-add-filter-link js-browse-filter j-filter-btn" data-filter-id="{$unappliedFilters[0].id}" role="button">
+                <span class="j-filter-btn-inner">
+                    <span class="jive-icon-sml jive-glyph-plus"></span>{i18nText('browse.filter.add_filter')}
+                </span>
+            </a>
+        {/if}
+ </form>
+{/template}
+
+/**
+ * Renders the filter and sort controls for a browse view that has content type
+ * filters.
+ *
+ * @param appliedFilters second-tier filters that are applied
+ * @param unappliedFilters second-tier filters that are not applied
+ * @param objectTypeFilters list of filters that specifically filter by object type
+ * @param appliedObjectTypeFilters list of object type filters that are applied
+ * @param appliedFilterIDs The currently applied filter ID.
+ * @param sorts A set of sorts.
+ * @param appliedSortKey The applied sort key for the filter group.
+ * @param showSearchBox Whether or not the search box should be displayed.
+ * @param showSorts Whether or not the sort options should be displayed.
+ * @param? hideFilterGroup Hide the whole filter group.
+ * @param? itemsView A collection of {@link ContentObjectViewBean}s.
+ * @param query search query in typeahead filter
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=browse.sorts.*
+ */
+{template .filtersWithContentTypes}
+    <form id="js-browse-controls" {if ($hideFilterGroup)}style="display:none"{/if}>
+        <div id="j-browse-filters" class="j-browse-filters  j-rc5" role="toolbar" aria-label="{i18nText('browse.filter.form.label')}">
+            <div class="j-browse-filter-row j-type-row clearfix">
+                <ul class="j-content-types js-browse-filter-toggle-set" aria-label="{i18nText('browse.filter.type.label')}">
+                    {foreach $filter in $objectTypeFilters}
+                        {call .objectTypeFilter data="$filter"}
+                            {param active: indexOf($appliedFilterIDs, $filter.id) > -1 or
+                                (isFirst($filter) and length($appliedObjectTypeFilters) < 1) /}
+                            {param urlParams: $urlParams /}
+                            {param urlPath: $urlPath /}
+                        {/call}
+                    {/foreach}
+
+                </ul>
+                {call .itemViewToggle data="$itemsView"}
+                    {param urlParams: $urlParams /}
+                    {param urlPath: $urlPath /}
+                {/call}
+            </div>
+
+            {foreach $filter in $objectTypeFilters}
+                {if (indexOf($appliedFilterIDs, $filter.id) > -1 or
+                    (length(match($filter.id, '~objecttype~showall')) > 0) and
+                     (length(match(join($appliedFilterIDs,','), '~objecttype')) == 0 or
+                      length(match(join($appliedFilterIDs,','), '~objecttype~showall')) > 0)) and
+                    $filter.type == 'composite' and $filter.children and length($filter.children)}
+                    <div class="j-browse-filter-row j-content-filter">
+                        {call .filter data="$filter"}
+                            {param appliedFilterIDs: $appliedFilterIDs /}
+                        {/call}
+                    </div>
+                {/if}
+            {/foreach}
+
+            <div class="j-browse-sorts j-browse-filter-row last-child">
+
+                {call .searchBox}
+                    {param query: $query /}
+                    {param showSearchBox: $showSearchBox /}
+                    {param placeholder: not $itemsView /}
+                {/call}
+
+                {if length($unappliedFilters) > 0}
+                        <a href="#" class="j-add-filter-link js-browse-filter j-filter-btn" data-filter-id="{$unappliedFilters[0].id}" role="button">
+                            <span class="j-filter-btn-inner">
+                                {if length($unappliedFilters) == 1}
+                                    {i18nText($unappliedFilters[0].description)}
+                                {else}
+                                 <span class="jive-icon-sml jive-glyph-plus"></span>{i18nText('browse.filter.add_filter')}
+                                {/if}
+                            </span>
+                        </a>
+                {/if}
+
+                {call .sortControls}
+                    {param sorts: $sorts/}
+                    {param showSorts: $showSorts /}
+                    {param appliedSortKey: $appliedSortKey/}
+                {/call}
+
+                {if length($appliedFilters) < 1}
+                    {call .paginationLinks data="$itemsView"}
+                         {param urlParams: $urlParams /}
+                         {param urlPath: $urlPath /}
+                    {/call}
+                {/if}
+
+            </div>
+
+            {if length($appliedFilters) > 0}
+                {call .filterStack data="all"}
+                    {param showAddRow: false /}
+                {/call}
+            {/if}
+
+        </div>
+    </form>
+    // To hide videos from jive 9 upgrade . Swiss re Theme customization.
+    <script>
+    console.log("inside browse");
+   var videoElem = document.querySelectorAll('[title=Videos]');
+   if(videoElem!=null) {
+   	videoElem[0].style.display = "none";
+   } 
+    </script>
+{/template}
+
+/**
+* Render the sort controls.
+*
+* @param sorts The sort options.
+* @param showSorts Whether or not the sort options should be displayed.
+* @param appliedSortKey The selected sort key.
+*/
+{template .sortControls}
+    <span>
+    {if $sorts and length($sorts) > 0 and ($showSorts or typeof($showSorts) == 'undefined')}
+        <label for="j-sort" class="j-508-label">{i18nText('browse.filter.sort.label')}</label>
+        <select id="j-sort">
+            {foreach $sort in $sorts}
+                {call .sortOption data="$sort"}
+                    {param selected: $appliedSortKey == $sort.key/}
+                {/call}
+            {/foreach}
+        </select>
+    {/if}
+    </span>
+{/template}
+
+/**
+ * Renders a search box, or a placeholder
+ *
+ * @param? query entered in the search box
+ * @param? showSearchBox will be hidden unless true
+ * @param? placeholder if true a placeholder will be rendered instead of a searchbox
+ */
+{template .searchBox}
+    {if not $placeholder}
+        <span class="j-browse-search" {if not $showSearchBox}style="display:none"{/if}>
+            <input type="search" name="query" {if $query}value="{$query}"{/if} placeholder="{i18nText('browse.typeahead_placeholder')}" />
+        </span>
+    {else}
+        <span class="js-placeholder" data-selector=".j-browse-search"></span>
+    {/if}
+{/template}
+
+/**
+* Renders the thumbnail/detail view toggle
+*
+* @param itemViewID Individual view being rendered for (content/connections/etc)
+* @param thumbVisible Whether the thumbnail view option is visible
+* @param urlParams map of query parameters for the last request
+* @param urlPath path for the last request
+* @param hierarchyViewSupported is the Hierarchy view supported for this data set.
+ */
+{template .itemViewToggle}
+    {if $itemViewID}
+        <ul id="j-item-view-toggle" aria-label="{i18nText('browse.viewtoggle')}" class="j-view-controls">
+            <li {if not $thumbVisible}style="display:none"{/if}>
+                <a href="{buildUrl($urlPath, extend($urlParams, Map(p('itemView', 'thumbnail'))))}"
+                title="{i18nText('browse.thumbnails')}"
+                aria-label="{i18nText('browse.thumbnails')}"
+                data-url-params='{lb} "itemView": "thumbnail" {rb}'
+                data-item-view-id="thumbnail"
+                class="j-link-thumbnails js-link-thumbnails j-view-toggle js-updatable-link {if $itemViewID == 'thumbnail'}j-active{/if}" title="{i18nText('browse.thumbnails')}">
+                    <span class="jive-icon-glyph icon-grid2"></span>
+                </a>
+            </li>
+            <li>
+                <a href="{buildUrl($urlPath, extend($urlParams, Map(p('itemView', 'detail'))))}"
+                title="{i18nText('browse.details')}"
+                aria-label="{i18nText('browse.details')}"
+                data-url-params='{lb} "itemView": "detail" {rb}'
+                data-item-view-id="detail"
+                class="j-link-details  j-view-toggle {if $hierarchyViewSupported}j-link-details-middle{/if} js-link-details js-updatable-link {if $itemViewID == 'detail'}j-active{/if}" title="{i18nText('browse.details')}">
+                    <span class="jive-icon-glyph icon-list"></span>
+                </a>
+            </li>
+
+            <li {if not $hierarchyViewSupported}style="display:none"{/if}>
+                <a href="{buildUrl($urlPath, extend($urlParams, Map(p('itemView', 'hierarchy'))))}"
+                title="{i18nText('browse.hierarchy')}"
+                aria-label="{i18nText('browse.hierarchy')}"
+                data-url-params='{lb} "itemView": "hierarchy" {rb}'
+                data-item-view-id="hierarchy"
+                class="j-link-hierarchy  j-view-toggle js-link-hierarchy js-updatable-link {if $itemViewID == 'hierarchy'}j-active{/if}" title="{i18nText('browse.hierarchy')}">
+                    <span class="jive-icon-glyph icon-tree"></span>
+                </a>
+            </li>
+
+        </ul>
+    {else}
+        <div class="js-placeholder" data-selector="#j-item-view-toggle"></div>
+    {/if}
+{/template}
+
+/**
+ * Delegates to jive.shared.soy.paginationLinks
+ *
+ * @param pageNumber of the current page
+ * @param hasNext true if there are more pages
+ * @param pageSize number of items to display per page
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ *
+ * @depends template=jive.shared.soy.paginationLinks
+ */
+{template .paginationLinks}
+    {if $pageNumber and $pageSize}
+        {call jive.shared.soy.paginationLinks data="all"}
+             {param current: $pageNumber /}
+             {param max: $pageNumber + ($hasNext ? 1 : 0) /}
+             {param pageSize: $pageSize /}
+             {param urlParams: $urlParams /}
+             {param urlPath: $urlPath /}
+        {/call}
+    {else}
+        <div class="js-placeholder" data-selector=".j-pagination"></div>
+    {/if}
+{/template}
+
+/**
+ * Renders a set of applied filters with any applied values.
+ *
+ * @param parentFilter the parent of the given filters
+ * @param appliedFilters list of second-tier filters that are applied
+ * @param unappliedFilters list of second-tier filters that are not applied
+ * @param appliedFilterIDs list of active filter ids
+ * @param? unappliedFilterIDs list of IDs of second-tier filters that are not applied
+ * @param? itemsView A collection of {@link ContentObjectViewBean}s.
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ */
+{template .filterStack}
+        {foreach $appliedFilter in $appliedFilters}
+            <div class="j-browse-filter-row {if isLast($appliedFilter)} last-child{/if}">
+                {call .compositeFilter data="$parentFilter"}
+                    {param appliedFilter: $appliedFilter /}
+                    {param appliedFilterIDs: $appliedFilterIDs /}
+                    {param unappliedFilterIDs: $unappliedFilterIDs /}
+                {/call}
+
+                {sp}
+                <a href="#" class="js-remove-filter j-filter-btn" data-filter-id="{$appliedFilter.id}">
+                    <span class="j-filter-btn-inner">{i18nText('global.clear')}</span>
+                </a>
+
+                {if isLast($appliedFilter)}
+                    {call .paginationLinks data="$itemsView"}
+                        {param urlParams: $urlParams /}
+                        {param urlPath: $urlPath /}
+                    {/call}
+                {/if}
+            </div>
+
+        {ifempty}
+            <div class="j-browse-filter-row last-child">
+                /* If no second-tier filters are applied and there is
+                 * exactly one unapplied filter then display that filter. */
+
+                /* TODO This doesn't work for certain people views now (Following/Followers) where the only
+                 * unapplied filter can be "Include deactivated users".  This filter cannot then be de-selected.
+                 * Either have to somehow make all cases work correctly separately, or do what the commenting does here
+                 * and simply hide any unapplied filters behind the Add Filter button */
+
+//                {if length ($unappliedFilters) == 1}
+//                    {call .compositeFilter data="$parentFilter"}
+//                        {param appliedFilter: $unappliedFilters[0] /}
+//                        {param appliedFilterIDs: $appliedFilterIDs /}
+//                        {param unappliedFilterIDs: $unappliedFilterIDs /}
+//                    {/call}
+
+                /* If no filters are applied yet but there are multiple
+                 * unapplied filters then display a button to apply the next
+                 * unapplied filter. */
+//                {elseif length ($unappliedFilters) > 1}
+                {if length($unappliedFilters) > 0}
+                    <a href="#" class="j-add-filter-link js-browse-filter j-filter-btn" data-filter-id="{$unappliedFilters[0].id}" role="button">
+                        <span class="j-filter-btn-inner">
+                            <span class="jive-icon-sml jive-glyph-plus"></span>{i18nText('browse.filter.add_filter')}
+                        </span>
+                    </a>
+                {/if}
+
+                {call .paginationLinks data="$itemsView"}
+                    {param urlParams: $urlParams /}
+                    {param urlPath: $urlPath /}
+                {/call}
+            </div>
+        {/foreach}
+
+
+{/template}
+
+/**
+ * Renders a link that, when clicked, filters results by object type.
+ *
+ * @param id of the filter to render
+ * @param resultCountRequired
+ * @param resultCount
+ * @param description i18n key of the filter description
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ * @param? active boolean that indicates whether this filter is selected
+ * @param? iconCss class name to indicate icon to display
+ */
+{template .objectTypeFilter}
+    <li><a data-filter-id="{$id}"
+       class="js-browse-filter{if $active} j-active{/if}"
+       title="{i18nText($description)}"
+       href="{buildUrl($urlPath, extend($urlParams, Map(p('filterID', $id))))}">
+        {if $iconCss}
+            <span class="{$iconCss} jive-icon-med"></span>
+            <span class="js-shrinkable">
+                {i18nText($description)}{if $resultCountRequired and $resultCount > -1} ({$resultCount}){/if}
+            </span>
+        {else}
+            {i18nText($description)}{if $resultCountRequired and $resultCount > -1} ({$resultCount}){/if}
+        {/if}
+    </a></li>{sp}
+{/template}
+
+/**
+ * Determines the type of a filter and renders its value input accordingly.
+ * This may mean rendering a select for the filter's children if it is a
+ * composite filter or rendering a text field for a simple text filter.
+ *
+ * @param id The id of the filter
+ * @param type of the filter
+ * @param children The filter's children (which are filters)
+ * @param appliedFilterIDs list of active filter ids
+ * @param? options An optional set of profile field options.
+ * @param? childIndex only to be used for recursive calls
+ * @param? filterLabel the label to apply to the select filter
+ */
+{template .filter}
+    {if $type == 'composite' and $children and length($children) > 0}
+        {if length($children) == 1 and $children[0].type != 'simple'}
+            {call .filter data="$children[0]"}
+                {param appliedFilterIDs: $appliedFilterIDs /}
+            {/call}
+
+        {elseif typeof($childIndex) != 'number'}
+            {call .filter data="all"}
+                {param childIndex: 0 /}
+            {/call}
+
+        {elseif indexOf($appliedFilterIDs, $children[$childIndex].id) > -1}
+            {call .compositeFilter data="all"}
+                {param appliedFilter: $children[$childIndex] /}
+            {/call}
+
+        {elseif $childIndex < length($children) - 1}
+            {call .filter data="all"}
+                {param childIndex: $childIndex + 1 /}
+            {/call}
+
+        {else}
+            /* Base case: render a composite filter with no child filters
+             * displayed. */
+            {call .compositeFilter data="all"}
+                {param appliedFilter: $children[0] /}
+            {/call}
+        {/if}
+
+    {elseif $type != 'simple' and $type != 'composite'}
+        {call .dynamicFilter data="all" /}
+    {/if}
+{/template}
+
+/**
+ * Helper template that determines the value applied to a dynamic filter and
+ * renders the appropriate template for the type of the given filter.
+ *
+ * @param id The id of the filter
+ * @param type of the filter
+ * @param valueExpression regular expression that matches the dynamic value portion of the filter ID
+ * @param appliedFilterIDs list of active filter ids
+ * @param? options An optional set of profile field options.
+ * @param? index of appliedFilterIDs to be examined on each recursive call
+ */
+{template .dynamicFilter}
+    {if typeof($index) != 'number'}
+        {call .dynamicFilter data="all"}
+            {param index: 0 /}
+        {/call}
+
+    {elseif $index < length($appliedFilterIDs)}
+        {if length(match($appliedFilterIDs[$index], $valueExpression)) > 0}
+            {call .dynamicFilterDispatch data="all"}
+                {param matches: match($appliedFilterIDs[$index], $valueExpression) /}
+            {/call}
+
+        {else}
+            /* recursive call */
+            {call .dynamicFilter data="all"}
+                {param index: $index + 1 /}
+            {/call}
+        {/if}
+
+    {else}
+        /* render a filter with no applied value */
+        {call .dynamicFilterDispatch data="all" /}
+    {/if}
+{/template}
+
+/**
+ * Determines the correct template to render for the given dynamic filter.
+ *
+ * @param id of the filter
+ * @param type of the filter
+ * @param? options An optional set of profile field options.
+ * @param? template An optional template to render a custom filter.
+ * @param? instance An optional nested FilterBean instance for custom filters.
+ *
+ * @depends template=jive.shared.soy.render
+ */
+{template .dynamicFilterDispatch}
+    {if $type == 'toggle'}
+        {call .toggleFilter data="all"}
+            {param token: randomString() /}
+        {/call}
+    {elseif $type == 'boolean'}
+        {call .booleanFilter data="all"}
+            {param token: randomString() /}
+        {/call}
+    {elseif $type == 'daterange'}
+        {call .dateRangeFilter data="all" /}
+    {elseif $type == 'tag'}
+        {call .tagFilter data="all" /}
+    {elseif $type == 'custom' and $instance}
+        {call jive.shared.soy.render}
+            {param templateName: $template /}
+            {param data: $instance /}
+            {param failGracefully: false /}
+        {/call}
+    {else}
+        <p>{i18nText('browse.filter.no_template', $type, $id)}</p>
+    {/if}
+{/template}
+
+/**
+ * Renders a composite browse filter.
+ *
+ * @param id The id of the filter.
+ * @param appliedFilter the currently selected child filter
+ * @param appliedFilterIDs list of active filter ids
+ * @param? filterLabel the label to be associated with the filter select
+ * @param nativeStyle whether to use native styling
+ */
+{template .compositeFilter}
+    {if $filterLabel}<label for="{$id}">{i18nText($filterLabel)}</label>{sp}{/if}
+
+    {if $nativeStyle}
+        {call .nativeCompositeControl data="all"/}
+    {else}
+        {call .jiveCompositeControl data="all"/}
+    {/if}
+
+    /* Render any child filters or input controls for the applied filter. */
+    {call .filter data="$appliedFilter"}
+        {param appliedFilterIDs: $appliedFilterIDs /}
+    {/call}
+{/template}
+
+/**
+ * Renders a composite filter use a browser native select box
+ *
+ * @param id The id of the filter.
+ * @param children The filter's children (which are filters)
+ * @param appliedFilter the currently selected child filter
+ * @param? unappliedFilterIDs list of IDs of second-tier filters that are not applied
+ *
+ */
+{template .nativeCompositeControl}
+    <select id="{$id}" class="j-browse-filter js-browse-filter" data-filter-id="{$id}">
+        {foreach $child in $children}
+            {if not $child.nested}
+                {call .compositeFilterOption data="$child"}
+                    {param applied: $child.id == $appliedFilter.id /}
+                    {param unappliedFilterIDs: $unappliedFilterIDs /}
+                {/call}
+            {/if}
+        {/foreach}
+    </select>
+{/template}
+
+/**
+ * Renders a single option tag for a composite filter.
+ *
+ * @param id of the filter to render
+ * @param applied true if this filter is applied
+ * @param description of the filter to render
+ * @param descriptionArgs of the filter to render
+ * @param resultCountRequired
+ * @param resultCount
+ * @param? unappliedFilterIDs list of IDs of second-tier filters that are not applied
+ * @param? keyMinified
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=browse.filter.*
+ */
+{template .compositeFilterOption}
+    {batchI18nLookup('browse.filter.*')}
+    {if $applied}
+        <option value="{$id}" selected>
+        {call jive.shared.soy.i18nHelper}
+            {param i18nKey}
+                {if $keyMinified}
+                    {i18nKey($description, true)}
+                {else}
+                    {SanitizedHtml($description)}
+                {/if}
+            {/param}
+            {param arg0: $descriptionArgs /}
+        {/call}
+            {if $resultCountRequired and $resultCount > -1} ({$resultCount}){/if}
+        </option>
+    {elseif not $unappliedFilterIDs or indexOf($unappliedFilterIDs, $id) > -1}
+        <option value="{$id}">
+        {call jive.shared.soy.i18nHelper}
+            {param i18nKey}
+                {if $keyMinified}
+                    {i18nKey($description, true)}
+                {else}
+                    {SanitizedHtml($description)}
+                {/if}
+            {/param}
+            {param arg0: $descriptionArgs /}
+        {/call}
+            {if $resultCountRequired and $resultCount > -1} ({$resultCount}){/if}
+        </option>
+    {/if}
+
+{/template}
+
+/**
+ *
+ * @param children
+ * @param appliedFilter
+ */
+{template .jiveCompositeControl}
+    <span id="j-browse-composite-filter">
+        {call .compositeFilterLink data="$appliedFilter"}
+            {param applied: true /}
+        {/call}
+
+        <div id="js-browse-composite-popover" class="j-browse-pop j-menu" style="display:none">
+            <ul>
+            {foreach $child in $children}
+                 {if not $child.nested}
+                     <li>{call .compositeFilterLink data="$child"/}</li>
+                 {/if}
+            {/foreach}
+            </ul>
+        </div>
+    </span>
+{/template}
+
+/**
+ * Renders a single link for a composite Filter
+ *
+ * @param id
+ * @param? applied
+ * @param description
+ * @param descriptionArgs
+ * @param resultCountRequired
+ * @param resultCount
+ */
+{template .compositeFilterLink}
+    <a href="#" class="j-category-filter j-filter-select lnk {if not $applied}js-browse-pop-option{else}js-browse-composite-applied{/if}" data-filter-id="{$id}">
+        {call jive.shared.soy.i18nHelper}
+            {param i18nKey}
+                {i18nKey($description, true)}
+            {/param}
+            {param arg0   : $descriptionArgs /}
+        {/call}
+        {if $resultCountRequired and $resultCount > -1} ({$resultCount}){/if}
+        {if $applied}<span class="j-nav-more jive-icon-glyph icon-arrow-down2 j-filter-icon"></span>{/if}
+    </a>
+{/template}
+
+
+
+/**
+ * Renders inputs for one or more tags.
+ *
+ * @param id The id of the filter
+ * @param? matches result of the valueExpression of this filter matched against an applied child filter
+ */
+{template .tagFilter}
+    <span class="js-browse-filter-tags" data-filter-id="{$id|id}">
+        <label for="tag-filter-input" class="j-508-label">{i18nText('browse.filter.tagFilterInput.label')}</label>
+        <input id="tag-filter-input" name="tags" role="combobox" type="text" {if $matches}value="{join(split($matches[1], '\\|'), ', ')},"{/if} autocomplete="off" />
+        {sp}<a href="#" class="js-open-tag-cloud j-open-tag-cloud">
+            {if length(match($id, '~skill')) > 0}
+                  {i18nText('browse.filter.tag.more_skills')}
+            {else}
+                  {i18nText('browse.filter.tag.more_tags')}
+            {/if}
+        </a>
+    </span>
+{/template}
+
+
+/**
+ * Renders inputs for a start date and an end date.
+ *
+ * @param id The id of the filter
+ * @param? matches result of the valueExpression of this filter matched against an applied child filter
+ *
+ * @depends template=jive.shared.form.datepicker
+ */
+{template .dateRangeFilter}
+    <span class="js-browse-filter-datepicker" data-filter-id="{$id|id}">
+        <label for="min" class="font-color-meta-light">{i18nText('browse.filter.daterange.start')}</label>
+        {call jive.shared.form.datepicker}
+            {param name: 'min' /}
+            {param value}{call .filterMinVal}{param matches: $matches /}{/call}{/param}
+            {param initialize: false /}
+        {/call}
+        {sp}
+        <label for="max" class="font-color-meta-light">{i18nText('browse.filter.daterange.end')}</label>
+        {call jive.shared.form.datepicker}
+            {param name: 'max' /}
+            {param value}{call .filterMaxVal}{param matches: $matches /}{/call}{/param}
+            {param initialize: false /}
+        {/call}
+    </span>
+{/template}
+
+/**
+ * Given a filter ID returns the dynamic value associated with that filter.
+ *
+ * @param? matches capture groups of a regular expression applied to a filter ID
+ */
+{template .filterMinVal}
+    {if $matches and length($matches) >= 2}
+        {call .atIndex}
+            {param list: split($matches[1], '\\|') /}
+            {param index: 0 /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * Given a filter ID returns the dynamic value associated with that filter.
+ *
+ * @param? matches capture groups of a regular expression applied to a filter ID
+ */
+{template .filterMaxVal}
+    {if $matches and length($matches) >= 2}
+        {call .atIndex}
+            {param list: split($matches[1], '\\|') /}
+            {param index: 1 /}
+        {/call}
+    {/if}
+{/template}
+
+/**
+ * Returns the value at the given position in a list.
+ *
+ * @param list
+ * @param index
+ */
+{template .atIndex}
+    {$list[$index] ? $list[$index] : ''}
+{/template}
+
+/**
+ * Renders input for a checkbox to turn a filter on or off.
+ *
+ * @param id of the filter
+ * @param description i18n key for an explanatory description
+ * @param token randomly generated string
+ * @param? matches result of the valueExpression of this filter matched against an applied child filter
+ */
+{template .toggleFilter}
+    <span class="js-browse-filter-toggle" data-filter-id="{$id|id}">
+        <input type="checkbox" name="toggle-{$token}" id="toggle-{$token}" value="true"
+            {if $matches and $matches[1] == 'true'}checked{/if} />
+        <label for="toggle-{$token}">{i18nText($description)}</label>
+    </span>
+{/template}
+
+/**
+ * Renders input for a yes/no radio button.
+ *
+ * @param id of the filter
+ * @param token randomly generated string
+ * @param options A required set of profile field options.
+ * @param? matches result of the valueExpression of this filter matched against an applied child filter
+ */
+{template .booleanFilter}
+    <span class="js-browse-filter-boolean" data-filter-id="{$id|id}">
+        {foreach $option in $options}
+        <input type="radio" name="boolean-{$token}" value="{$option.value}" id="js-boolean-{$option.index}-{$token}"
+            {if $matches and $matches[1] == $option.value}checked{/if} />
+        <label for="js-boolean-{$option.index}-{$token}" class="font-color-meta-light">{$option.value}</label>
+        {/foreach}
+    </span>
+{/template}

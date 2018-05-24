@@ -1,0 +1,28 @@
+{namespace jive.people.profile}
+
+
+/**
+ * Display a phone number.
+ * @param phoneNumber
+ */
+{template .phone }
+  <a onclick="void" onmouseover="this.style.textDecoration='none';">
+  //Upgrade - Profile page change 
+  {$phoneNumber.phoneNumber}</a>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="tel:{$phoneNumber.phoneNumber}">
+  	<img src="/themes/swissre/resources/images/lync.png" width="15" height="15" title="Call with Skype for Business">
+  </a>
+  &nbsp;&nbsp;
+  /*<a href="tel:{$phoneNumber.phoneNumber}" onclick="">
+  	<img src="/themes/swissre/resources/images/ico_cisco.png" width="15" height="15" title="Call with Cisco Click2Dial">
+  </a>*/
+  /*SMS feature is not supported in ourspace since Lotus notes migration*/
+  /*{if ($phoneNumber.type== 'MOBILE')}
+   &nbsp;&nbsp;|&nbsp;&nbsp;
+   <a onclick='return sendSms("",escape("{$phoneNumber.phoneNumber}"))' rel='nofollow' href='#'>
+   	sms
+   </a>
+  {/if}*/
+
+{/template}

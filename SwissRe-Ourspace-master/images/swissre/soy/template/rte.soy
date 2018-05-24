@@ -1,0 +1,186 @@
+{namespace jive.skin.template.javascript}
+
+/**
+ * Handle RTE initialization
+ * @param translationLanguage
+ * @param rteResourceBundles
+ * @param macroJavaScript
+ * @param asyncLoadRTE
+ * @param imageEnabled
+ */
+{template .rte}
+
+      <script>
+        window._jive_images_enabled = {$imageEnabled};
+        window._jive_video_module_enabled = true;
+      </script>
+
+      {scriptResource('/resources/scripts/jquery/jquery.spinbox.js',true,'rte')}
+      {scriptResource('/resources/scripts/jquery/jquery.json.js',true,'rte')}
+      {scriptResource('/resources/scripts/jquery/jquery.quickSilverFilter.js',true,'rte')}
+      {scriptResource('/resources/scripts/jquery/jquery.autosize.js',true,'rte')}
+      {scriptResource('/resources/scripts/jive/ext/y/y_slide.js',true,'rte')}
+      {scriptResource('/resources/scripts/quicksilver/quicksilver.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/tiny_mce_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/langs/' + $translationLanguage +'.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_core_i18n_custom.js', true, 'rte', false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivelists/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivelists_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivestyle/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivestyle_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivemacros/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivemacros_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivemacros_i18n_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveattachment/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jiveattachment_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveemoticons/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivemention/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jiveapps_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveapps/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivemention_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivetable_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivetable/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivetablecontrols/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivetablecontrols_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivescroll/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveblackout/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivecontextmenu/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveresize/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jiveemoticons_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivebuttons/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivekeyboard/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivelink/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivelink_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveimage/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jiveimage_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivequote/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivequote_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveutil/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jiveselection/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivemouse/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivevideo/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivevideo_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivevideo_i18n_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/jivetablebutton/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_jivetablebutton_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_tabletoolbar_i18n.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/style/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/table/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/table/langs/' + $translationLanguage +'_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_table_i18n_dlg_custom.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/html/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_html_i18n_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/save/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/advimage/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/advimage/langs/' + $translationLanguage +'_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_advimage_i18n_dlg_custom.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/advlink/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/advlink/langs/' + $translationLanguage +'_dlg.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/inlinepopups/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/paste/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/plugins/spellchecker/editor_plugin_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/themes/advanced/editor_template_src.js',true,'rte')}
+      {scriptResource('/resources/scripts/tiny_mce3/themes/advanced/langs/' + $translationLanguage +'.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tinymce/i18n/' + $translationLanguage +'_advanced_i18n_custom.js',true,'rte',false)}
+      {scriptResource('/resources/scripts/tiny_mce3/themes/advanced/langs/' + $translationLanguage +'_dlg.js',true,'rte',false)}
+
+      {scriptResource('/resources/scripts/jive/rte/syntax/syntaxhighlightmacro.js',true,'rte')}
+
+      {scriptResource('/resources/scripts/post.js', true, 'rte')}
+      {scriptResource('/resources/scripts/posteditor.js', true, 'rte')}
+
+      {call jive.shared.soy.resourceInlineJs}
+        {param code}
+            window.errorHandlerMessage = "An error occurred:";
+            {literal}
+            window.editorErrorHandler = function(message, exception) {
+              // if the message is something other than a timeout, show the message plus the error code
+              if (message.indexOf('Timeout') == -1) {
+                  $j('#dwr-error-text').text(errorHandlerMessage + ' Error Code: ' + message);
+                  $j('#dwr-error-table').fadeIn();
+                  setTimeout(function() {
+                      $j('#dwr-error-table').fadeOut();
+                  }, 10000);
+              }
+            };
+            {/literal}
+
+          {foreach $bundle in $rteResourceBundles}
+              if(typeof(tinyMCE) != "undefined"){lb} // could be Safari 2, which dies with tinyMCE
+                  tinyMCE.addI18n('{$translationLanguage}.jivemacros',{lb}
+                      {foreach $key in keys($bundle)}
+                          "{$key}": "{$bundle[$key]|escapeJs}",
+                      {/foreach}
+                          "unused.jive.key" : "nothing."
+                  {rb});
+              {rb}
+          {/foreach}
+  
+          {literal}
+          window.RawHTMLSaveFunction = function(element_id, html, body){
+              var text = $j('#'+element_id);
+              if (text.is(':not(:visible)')) {
+                  return html;
+              }else{
+                  return text.val();
+              }
+          }
+          jive.rte.multiRTE = new Array();
+  
+          //Not used by RTEWrap, but we need this for backward compatibility; see CS-23883
+          window.refreshLinks = function() {
+              jive.rte.multiRTE.forEach(function(rteID) {
+                  if ($j('#' + rteID + '_parent').length < 1) {
+                      // safari 2, text only
+                      $j('#' + rteID + '_toggle_html').hide();
+                      $j('#jivePreferredEditorModeLinkHREF').hide();
+                      return;
+                  }
+  
+                  if(currentMode == 'rawhtml') {
+                      $j('#' + rteID + '_toggle_html').css('display', 'block');
+                  }else{
+                      $j('#' + rteID + '_toggle_html').hide();
+                  }
+  
+                  if (preferredMode == currentMode) {
+                      $j('#jivePreferredEditorModeLinkHREF').hide();
+                  } else {
+                      $j('#jivePreferredEditorModeLinkHREF').css('display', 'block');
+                  }
+              });
+          }
+  
+          window.editor = new jive.ext.y.HashTable();
+          {/literal}
+          {/param}
+        {param id}rte{/param}
+        {param header}true{/param}
+    {/call}
+
+     //--<link rel="stylesheet" type="text/css" href="<@resource.url value="/styles/tiny_mce3/plugins/inlinepopups/skins/clearlooks2/window.css" />" />-->
+
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+        {if $macroJavaScript}{$macroJavaScript|noAutoescape}{/if}
+         define('jive.rte', jive.rte);
+        {/param}
+        {param id}rte{/param}
+        {param header}true{/param}
+    {/call}
+
+    {if typeof($asyncLoadRTE) == 'undefined' or $asyncLoadRTE}
+      //-- When loading the RTE asynchronously set a flag to indicate that the DOM is already ready. --
+      {call jive.shared.soy.resourceInlineJs}
+          {param code}
+           window.tinyMCE_GZ = {lb} loaded: true {rb};
+          {/param}
+      {/call}
+      {outputResources('script','rte',false, false, true,'','jive.rte')|noAutoescape}
+    {else}
+      {outputResources('script','rte',false, false)|noAutoescape}
+    {/if}
+     /*
+  </#if>*/
+
+{/template}

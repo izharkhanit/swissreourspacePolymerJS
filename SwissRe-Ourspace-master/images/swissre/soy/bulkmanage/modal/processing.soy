@@ -1,0 +1,112 @@
+{namespace jive.bulkmanage.modal.processing}
+
+/**
+ * @depends template=jive.bulkmanage.modal.contentSelected.pagination
+ * @depends i18nKeys=bulkmanage.processing
+ * @depends i18nKeys=bulkmanage.processing.processed
+ * @depends i18nKeys=bulkmanage.processing.all.content
+ * @depends i18nKeys=bulkmanage.processing.status
+ * @depends i18nKeys=bulkmanage.processing.message
+ * @depends i18nKeys=bulkmanage.processing.success
+ * @depends i18nKeys=bulkmanage.processing.failure
+ * @depends i18nKeys=browse.heading.content
+ * @depends i18nKeys=browse.heading.author
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.viewing
+ * @depends i18nKeys=bulkmanage.content.selected.pagination.of
+ */
+{template .main}
+<div id="progress-container" class="jive-tab-content">
+     <div id="progressbar-container" class="container j-bulkmanage-progress-container">
+          <p>{i18nText('bulkmanage.processing.processed')} <span id="total-processed">0</span> of <span id="total-content">0</span></p>
+          <div id="bulkmanage-progressbar">
+               <div id="bulkmanage-progressbar-text">{i18nText('bulkmanage.processing')}...</div>
+          </div>
+     </div>
+</div>
+
+<div id="processing-content-container" class="j-browse-details">
+     <div id="proccessing-tabs-container" class="j-browse-filters" role="toolbar">
+          <div class="j-browse-filter-row j-type-row clearfix">
+               <ul class="j-content-types js-browse-filter-toggle-set">
+                    <li><a class="js-browse-filter j-active disabled" href="#" data-filterid="0">{i18nText('bulkmanage.processing.all.content')} (<span id="bulkmanage-processing-tab-total">0</span>)</a></li>
+                    <li><a class="js-browse-filter disabled" href="#" data-filterid="1"><span class="jive-icon-glyph icon-checkmark success"></span> {i18nText('bulkmanage.processing.success')} (<span id="bulkmanage-processing-tab-success">0</span>)</a></li>
+                    <li><a class="js-browse-filter disabled" href="#" data-filterid="2"><span class="jive-icon-glyph icon-notification2 error"></span> {i18nText('bulkmanage.processing.failure')} (<span id="bulkmanage-processing-tab-failure">0</span>)</a></li>
+               </ul>
+          </div>
+     </div>
+
+     <div id="bulkmanage-processing-container">
+          <table id="bulkmanage-processing-table" class="j-browse-list" cellspacing="0" cellpadding="0">
+               <thead>
+                    <tr>
+                         <th colspan="3"><strong class="font-color-meta-light">{i18nText('browse.heading.content')}</strong></th>
+                         <th><strong class="font-color-meta-light">{i18nText('browse.heading.author')}</strong></th>
+                         <th><strong class="font-color-meta-light">{i18nText('bulkmanage.processing.status')}</strong></th>
+                         <th><strong class="font-color-meta-light">{i18nText('bulkmanage.processing.message')}</strong></th>
+                    </tr>
+               </thead>
+               <tbody id="bulkmanage-processing-content-list" class="j-browse-details-tbody">
+               </tbody>
+          </table>
+     </div>
+// Swiss RE theme change during jive 9.0.1 upgrade adding i18nKeys=bulkmanage.content.selected.pagination.viewing and i18nKeys=bulkmanage.content.selected.pagination.of
+     <div id="pagination-container" class="clearfix">
+          <div id="content-selected-pagination"></div>
+          <div id="content-selected-totals">
+               {i18nText('bulkmanage.content.selected.pagination.viewing')} <span id="content-selected-begin"></span> - <span id="content-selected-end"></span> {i18nText('bulkmanage.content.selected.pagination.of')} <span id="content-selected-total"></span>
+          </div>
+     </div>
+// Swiss RE theme change ends here
+</div>
+{/template}
+
+/**
+ * @depends i18nKeys=bulkmanage.processing.no.results
+ */
+{template .emptyRow}
+<tr>
+     <td colspan="6" class="processing-empty-row">{i18nText('bulkmanage.processing.no.results')}</td>
+</tr>
+{/template}
+
+/**
+ * @param rowIndex
+ * @param objectIcon
+ * @param title
+ * @param author
+ * @param? statusIcon
+ * @param? statusMsg
+ * @param success
+ * 
+ * @depends i18nKeys=bulkmanage.processing
+ */
+{template .row}
+    <tr id="processing-row-{$rowIndex}" data-row-index="{$rowIndex}" style="display: none;"
+        {if $success != null}
+            class="processing-row-{if $success}success{else}failure{/if}"
+        {/if}
+        >
+        <td>
+            <strong>{$rowIndex + 1}.</strong>
+        </td>
+        <td class="j-td-icon">
+            <img src="{buildUrl('/images/transparent.png')}" class="{$objectIcon}" alt="" role="img">
+        </td>
+        <td class="j-td-title">
+            <span class="j-content-title">
+                {$title}
+            </span>
+        </td>
+        <td class="j-td-author">
+            <span class="jive-username-link">
+                {$author}
+            </span>
+        </td>
+        <td id="processing-row-{$rowIndex}-status-class" class="j-td-likes center">
+            {if $statusIcon}<span class="{$statusIcon} jive-icon-glyph"></span>{else}<span class="jive-working"></span>{/if}
+        </td>
+        <td id="processing-row-{$rowIndex}-status-msg" class="j-td-processing">
+        {if $statusMsg}{$statusMsg}{else}{i18nText('bulkmanage.processing')}{/if}
+        </td>
+    </tr>
+{/template}

@@ -1,0 +1,36 @@
+{namespace jive.nav autoescape="contextual"}
+
+
+/**
+ * @param  mode
+ * @param  path
+ * @param  type
+ * @param? alt
+ * @param? companyName
+ * @param? title TODO needed? broken?
+ */
+{template .logo}
+    {if $mode == 'basic'}
+        {if $type == 'text' and $title}
+            <h1 id="jive-global-header-title" class="js-logo"><a href="{buildUrl('/')}" class="j-header-logo">{$title}</a></h1>
+        {elseif $type == 'image' and $path}
+            <a href="{buildUrl('/')}" class="j-header-logo js-logo" role="img">
+                <img id="basicImage" src="{buildUrl($path)}"{if $alt} alt="{$alt}" {else} alt=" " {/if} />
+            </a>
+        {else}
+            <h1 id="logo" class="js-logo{if $companyName} clearfix{/if}">
+                <a role="img" title="{i18nText('global.logoText.descr')}" href="{buildUrl('/')}" class="j-header-logo{if $companyName} j-header-logo-companyname{/if}">{i18nText('global.logoText')}</a>
+                {if $companyName}
+                    <span class="j-header-forCompanyName font-color-white">{i18nText('global.for')} {$companyName}</span>
+                {/if}
+            </h1>
+        {/if}
+
+    {elseif $mode == 'simple' or ($type == 'default' or $type == 'image')}
+        //Upgrade - Swissre Theme migration 
+        <div class="js-logo" style="display: none;"></div>
+    {else}
+        // Placeholder
+        <div class="js-logo" style="display: none;"></div>
+    {/if}
+{/template}

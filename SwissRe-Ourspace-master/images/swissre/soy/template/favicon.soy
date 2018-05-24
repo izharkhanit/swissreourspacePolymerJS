@@ -1,0 +1,11 @@
+{namespace jive.skin.template.header}
+
+/**
+ * Favicon link.
+ *
+ * @param faviconPath
+*/
+{template .favicon}
+<link rel="shortcut icon" type="image/x-icon"
+href="{if $faviconPath}{buildUrl($faviconPath)}{else}{buildUrl('/favicon_swiss-re.ico')}{/if}" />
+{/template}

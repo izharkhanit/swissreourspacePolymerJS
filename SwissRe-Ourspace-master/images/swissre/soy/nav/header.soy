@@ -1,0 +1,126 @@
+{namespace jive.nav}
+
+
+/**
+ * @param headerInfo
+ * @param hideUserBar
+ * @param nav
+ * @param selectedLinkID
+ * @param? customizeSite
+ * @param communityName
+ * @param user
+ * @param? useJiveViews
+ * @param? showSatelliteMenu
+ *
+ * the "mode" variable here corresponds to headerAndNavigationType in the palette
+ */
+{template .header}
+    {let $mode:$headerInfo.headerType /}
+    {let $showCustomHeader:$mode == 'custom' and $headerInfo.customHeader and $headerInfo.customHeaderVisibility == 'visible' /}
+
+
+    <header id="{$mode == 'basic' ? 'j-header' : 'j-compact-header'}" class="clearfix">
+<!-- SwissRe Custom Header -->
+<div class="l-outdent-full">
+	<div class="mod mod-navigation">
+		<div class="navigation-line">
+			<div class="navigation-logo">
+				<a href="/" class="g-logo" id="swissreLogo">
+					<img class="logo-img" src="/themes/swissre/resources/images/logo_swiss-re.png" alt="Swiss Re">
+				</a>
+			</div>
+			<span class="navigation-title">Ourspace</span>
+		</div>
+	</div>
+</div>
+        {if $showCustomHeader or $customizeSite}
+            <!-- Customer generated HTML -->
+            <div id="j-cust-head" class="clearfix"{if not $showCustomHeader} style="display: none;"{/if}>{$headerInfo.customHeader|noAutoescape}</div>
+        {/if}
+        // Basic header (formerly the default)
+        {if $mode == 'basic'}
+        <div id="j-basic-wrap">
+            {call .logo}
+                {param mode:$mode /}
+                {param customizeSite:$customizeSite /}
+                {param path:$headerInfo.headerLogoPath /}
+                {param type:$headerInfo.logoType /}
+                {param alt:$headerInfo.headerLogoAltText /}
+                {param companyName:$headerInfo.companyName /}
+                {param title:$headerInfo.headerTitle /}
+            {/call}
+
+
+            {if $hideUserBar != true}
+                /* Satellite nav, basic mode */
+                <ul id="j-satNav-wrap">
+                    <li class="js-satellite-nav-container">
+                        {call .satelliteNav data="$nav"}
+                            {param avatarOnly:$nav.hideSatelliteDisplayName /}
+                            {param customizeSite:$customizeSite /}
+                            {param mode:$mode /}
+                            {param useJiveViews:$useJiveViews /}
+                            {param user:$user /}
+                        {/call}
+                    </li>
+                    {if $showSatelliteMenu}
+                        <li class="j-globalNav-li">
+                            // User Profile Arrow
+                            <a href="#" id="j-satNav" class="j-globalNavLink j-nav-user" aria-label="{i18nText('main.menu.user')}">
+                                <span class="nav-link j-ui-elem">
+                                    // Avatar
+                                    {call jive.shared.displayutil.avatar data="$user"}
+                                        {param hideLink:true /}
+                                        {param hideTooltip:true /}
+                                        {param size:24 /}
+                                    {/call}
+                                    <span class="jive-icon-glyph icon-arrow-down2"></span>
+                                </span>
+                            </a>
+                        </li>
+                    {/if}
+
+                    {if $nav.logoutLink.visible}
+                        {call .logoutLink /}
+                    {/if}
+                </ul>
+            {/if}
+        </div>
+        {/if}
+
+
+        {if $hideUserBar != true}
+            <!-- Navigational buttons/links -->
+            <nav id="j-globalNav-bg" role="navigation" aria-label="{i18nText('global.logoText')}" data-mode="{$mode}">
+
+                {if $customizeSite}
+                    {call jive.theme.controls.logoMenuControl /}
+                {/if}
+
+                {call .navbar data="$nav"}
+                    {param mode:$mode /}
+                    {param customizeSite:$customizeSite /}
+                    {param useJiveViews:$useJiveViews /}
+                    {param user:$user /}
+                    {param communityName:$customizeSite ? '' : $communityName /}
+                    {param selectedLinkID:$selectedLinkID/}
+                {/call}
+
+                {call .searchArea data="$nav"}
+                    {param mode:$mode /}
+                    {param communityName:$customizeSite ? '' : $communityName /}
+                    {param customizeSite:$customizeSite /}
+                    {param useJiveViews:$useJiveViews /}
+                    {param user:$user /}
+                {/call}
+            </nav>
+        {/if}
+    </header>
+    <noscript>
+        <div style="color:red" align="center">
+        Error: You don't have JavaScript enabled. This tool uses JavaScript
+        and much of it will not work correctly without it enabled. Please turn
+        JavaScript back on and reload this page.
+        </div>
+    </noscript>
+{/template}

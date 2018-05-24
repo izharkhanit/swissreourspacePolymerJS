@@ -1,0 +1,1143 @@
+{namespace jive.skin.template.header.css}
+
+/**
+* A template to override to inject custom css.
+*/
+{template .custom}
+    {literal}
+    <style type="text/css">
+    /* custom-css goes here */
+    /* custom-css */
+
+/* Hide license warning messages */
+//Jive 7.0.2 upgrade - Swissre Theme migration 
+#jive-compliance  
+{
+ display:none;}  
+
+#jive-compliance.warn, .compliance-notice.warning
+{
+	display:none;
+}
+
+ /* jive 9 theme changes for wider screen goes here */
+
+body.j-search-visor-open {
+  width: auto !important;
+  padding-right: 0px;
+}
+#j-links {
+  padding-right: 0px !important;
+}
+.j-header-mode-simple #j-header-wrap {
+  background-color: #607b76;
+  background-image: url(/images/bridgeport/headerbg-narrow.png);
+}
+
+.j-body-welcome {
+position: relative;
+max-width: 1848px;
+margin: 0 auto;
+} 
+
+.j-header-mode-simple  {
+position: relative;
+max-width: 1848px;
+margin: 0 auto;
+}
+
+#j-satNav {
+position: absolute;
+    right: 0;
+    top: -60px;
+}
+#j-satNav {
+  
+    z-index: 100;
+
+}
+
+
+.jive-body-content  {
+position: relative;
+max-width: 1848px;
+margin: 0 auto;
+}
+ /* jive 9 theme changes for wider screen ends here */
+
+
+/*Display Calendar Icon in Profile Page*/
+.SRCalendarIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/ico_calendar.png") no-repeat scroll left center transparent;
+  padding-left: 20px;
+}
+/*Display WBC icon in Profile Page*/
+.srMeetingRoomIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/wbc_icon.png") no-repeat scroll left center transparent; 
+}
+
+/*Display Mail Icon in Profile Page*/
+.SREmailIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/mailplus.png") no-repeat  scroll left center transparent;
+}
+
+/*Display DirectPhone Icon in Profile page*/
+.SRtelPhoneIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/phone.png") no-repeat scroll left center transparent;
+  padding-left: 20px;
+}
+
+/*Display MobilePhone Icon in Profile page*/
+.SRMobPhoneIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/mobile.png") no-repeat scroll left center transparent;
+  padding-left: 20px;
+}
+
+.SRFaxIcon {
+ display: block;
+  background: url("/themes/swissre/resources/images/fax.png") no-repeat scroll left center transparent;
+  padding-left: 20px;
+
+}
+
+
+
+/*Display SMS  Icon in Profile page*/
+.SRSmsIcon {
+  display: block;
+  background: url("/themes/swissre/resources/images/swissre-sms-link.png") no-repeat scroll left center transparent;
+  padding-left: 20px;
+}
+
+/*Display Ourspace Image on the Header */
+#j-compact-header {
+  background: linear-gradient(to right, #348737 0%, #C6DA04 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#348737', endColorstr='#C6DA04', GradientType=1);
+  position: relative;
+  padding:0;
+}
+
+#j-compact-header .j-header-logo {
+    margin: 0;
+    position: relative;
+    top: 21px;
+    left: 33px;
+}
+
+#j-compact-header #j-links {
+  margin : 9px 19px 0px 16px;
+}
+
+/* Header Logo Settings */
+#j-compact-header h1#logo .j-header-logo {
+  background-image:url("/themes/swissre/resources/images/sr_logo.png");
+  background-repeat:no-repeat;
+  height: 36px;
+  width: 147px;
+  display: block;
+}
+
+#j-main {
+    display: block;
+    min-height: 300px;
+    padding: 10px 10px 10px 0;
+    position: relative;   
+}
+
+
+#j-satNav-wrap a.j-globalNavLink
+{
+
+    font-size: 15px;
+    font-weight: 500;
+    height: 30px;
+    line-height: 26px;
+    overflow: hidden;
+    list-style: none;  
+    
+}
+
+/*Changing Color of Home Content Create Bar */
+#j-globalNav-bg {
+  background: #E7EDF8;
+  height:38px;
+  top:64px;
+  padding:0;
+  position:absolute;
+  width:100% !important;
+  box-shadow:0 1px 5px rgba(0, 0, 0, 0.15);
+}
+
+/*Color of Navigation links to appear on Hover*/
+.j-globalNavLink:link,.j-globalNavLink:visited,.j-globalNavLink:hover,.j-globalNavLink:active,.j-globalNav .j-nav-create a{color:#07002D}
+
+/*Color Coding for HomeButton*/
+
+
+
+.j-globalNav li.active .j-globalNavLink{color:#07002D;font-weight:400}
+/* Ourspace responsive header migration */
+.j-ui-elem{color:#0f4dbc;}
+.j-ui-elem:hover{color:#07002D;}
+.j-globalNav > li.j-globalNav-li > a.j-globalNavLink:hover, .j-globalNav > li.j-globalNav-li > a.j-globalNavLink:focus{
+color: #07002D !important;
+}
+.j-globalNav li.j-globalNav-li.active .j-globalNavLink{
+color: #0f4dbc !important;
+}
+
+.j-globalNav>li>a.j-globalNavLink:hover,.j-globalNav>li>a.j-globalNavLink:focus{color:blue;background-position:99% -961px}
+
+/*Color Coding for Home Button Ends*/
+
+
+
+/*position the PROFILE VIEW and Links*/
+/* Ourspace responsive header migration */
+#j-satNav-wrap {
+    right:140px;
+    top:23px;
+}
+
+li#jive-link-createVideo {
+display : none;
+visibility:hidden;
+}
+
+li#place-content-type-visible-videos {
+display : none;
+visibility:hidden;
+}
+
+input#jive-form-choose-contenttypes-1100 {
+display : none;
+visibility:hidden;
+}
+
+/*To hide logout link beside username*/
+#j-satNav-menu .j-pop-desc .j-welcome-logout
+{
+visibility:hidden;
+display:none;
+}
+a#jive-nav-link-logout 
+{
+visibility:hidden;
+display:none;
+}
+/*to hide logout link under menus*/
+div#j-pbj-act
+{
+visibility:hidden;
+display:none;
+}
+
+/*To hide Jive help link in pop up */
+a#jive-nav-link-help
+{
+visibility:hidden;
+display:none;
+}
+
+/*Annoucement related changes*/
+/* Announcement background/border color */
+#jive-alert {
+background-color: #F9CFEB;
+border: 1px solid #E0119D;
+}
+
+/* Removed icon from Announcement */
+.jive-alert-announcement-label {
+background:none;
+}
+
+/* Announcement on the welcome page */
+.j-body-home #jive-alert {
+margin: 12px 20px;
+}
+
+.jive-alert-header ul li a {
+color: #4262A1;
+font-size:8pt;
+text-decoration:none;
+}
+
+/* Font color of link "Create another announcement" */
+#jive-another-announcement a.jive-link-announcement {
+color:#1996A0;
+}
+
+/* Color of Announcement main title */
+.jive-alert-header .jive-alert-title .jive-alert-label {
+color:#E0119D;
+}
+
+/* Text color of Announement titles */
+.jive-alert-header .jive-alert-title a {
+color:283E36;
+}
+
+.jive-alert-type {
+padding:6px;
+}
+/*end of annoucement related changes*/
+
+
+.jive-widget-header {
+background: #E5E5E5;
+padding:5px;
+}
+
+<!-- SwissRe Changes --> 
+/*to make widget hearder text color black*/
+.jive-widget-header h4{
+color: #000000;
+}
+
+/*to make widget hearder text color black*/
+h4.jive-widget-handle{
+color: #000000;
+}
+
+/*Adding border for widgets*/
+.jive-widget {
+    background: none repeat scroll 0 0 white;
+    border-color: #E0E5E4 #E0E5E4 #B0BEBB;
+    border-top: medium none #E0E5E4;
+}
+
+
+
+.jive-body-widget-customizing .jive-widget {
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+/*end of border for widgets*/
+
+/*CR00138393- To remove the space create link from create menu*/
+/*hiding sub space creation 
+ul#create-list-1 .js-createmenu-containerchooser{
+visibility:hidden;
+display:none;
+}
+*/
+
+/*hiding sub space creation in actions and overview page for the Global Admin*/
+li#jive-link-createSub{
+visibility:hidden;
+display:none;
+}
+
+
+
+/*copyright alert*/
+/*
+.swissre-jive-selection-copyright {
+position: absolute;
+right: 12px;
+top: 28px;
+font-size: .8889em;
+font-style: normal;
+font-weight: normal;
+}
+
+.jive-selection-bar-padding {
+padding:8px;
+min-height: 29px;
+}
+
+/*Hiding Powered By Jive*/
+/*
+#j-footer-poweredBy  .font-color-meta
+{
+display:none;
+}*/
+#j-footer .j-footer-nav
+{
+  text-align:center;
+}
+
+/**
+ Profile photo cropping
+ */
+
+#jive-profile-photo-crop #photo-preview {
+   width: 160px;
+   height: 200px;
+}
+
+
+/* Changes to make groups appear properly */
+
+  th, td { vertical-align: top; }
+  .jive-widget { margin-bottom: 0px; }
+ 
+  .jive-widget-body { 
+     padding: 3px 7px; 
+     border: 1px solid #e5e5e5; 
+     margin-bottom: 10px; 
+  }
+  .jive-widget-borderless .jive-widget-body {
+     border: none; 
+  }
+  .jive-widget-formatted-body, #jive-widget-content .jive-widget-formatted-body { padding: 0px; 7px; }
+  .jive-tagcloud-list { padding: 0px 7px; }
+  .jive-box-footer { padding: 0px 7px; }
+  #jive-widget-content #jive-body-layout-sss .jive-body-layout-s2, #jive-widget-content #jive-body-layout-sss .jive-body-layout-s3, #jive-widget-content #jive-body-layout-tsss .jive-body-layout-s2, #jive-widget-content #jive-body-layout-tsss .jive-body-layout-s3, #jive-widget-content #jive-body-layout-sssb .jive-body-layout-s2, #jive-widget-content #jive-body-layout-sssb .jive-body-layout-s3, #jive-widget-content #jive-body-layout-tsssb .jive-body-layout-s2, #jive-widget-content #jive-body-layout-tsssb .jive-body-layout-s3 { padding-left: 0px; }
+  #jive-widget-content #jive-body-layout-sss .jive-body-layout-s1, #jive-widget-content #jive-body-layout-sss .jive-body-layout-s2, #jive-widget-content #jive-body-layout-sss .jive-body-layout-s3, #jive-widget-content #jive-body-layout-sss .jive-body-layout-s1, #jive-widget-content #jive-body-layout-tsss .jive-body-layout-s2, #jive-widget-content #jive-body-layout-tsss .jive-body-layout-s3, #jive-widget-content #jive-body-layout-sssb .jive-body-layout-s2, #jive-widget-content #jive-body-layout-sssb .jive-body-layout-s3, #jive-widget-content #jive-body-layout-tsssb .jive-body-layout-s2, #jive-widget-content #jive-body-layout-tsssb .jive-body-layout-s3 { width: 33.3%; }
+  .jive-widget-container-large { padding-left: 13px; padding-right: 13px; }
+  .jive-widget-container-small { padding-left: 5px; padding-right: 5px; }
+  .jive-error-box, .jive-info-box, .jive-success-box, .jive-warn-box { margin-top: 10px }
+  #jive-body .j-page-customizable-message { margin: 3px 15px; padding: 5px; }
+  #jive-widget-content #jive-body-layout-sls .jive-body-layout-s1 { padding-right: 10px; width: 250px; }
+  #jive-widget-content #jive-body-layout-sls .jive-body-layout-l { margin-left: -260px; margin-right: -260px; }
+  #jive-widget-content #jive-body-layout-sls .jive-body-layout-s2 { padding-left: 10px; width: 250px; }
+  #jive-widget-content #jive-body-layout-ls .jive-body-layout-l { margin-left: -10px; }
+  #jive-widget-content #jive-body-layout-ls .jive-body-layout-s { padding-left: 0px; width: 250px; }
+  #jive-widget-content #jive-body-layout-sl .jive-body-layout-s { padding-right: 0px; width: 250px; }
+  #jive-widget-content #jive-body-layout-sl .jive-body-layout-l { margin-right: -10px; }
+
+/* End of changes to make groups appear properly */
+
+
+/*Lables Hiding*/
+.j-label-dot {
+    display: none;
+    height: 10px;
+    margin-right: 6px;
+    width: 10px;
+}
+a#jive-place-link-manage-create-space
+{
+visibility:hidden;
+display:none;
+}
+
+
+
+
+/*Hiding Creation of Space and Group in Search Result*/
+/*To remove the Create Group Event*/
+/*
+
+.j-layout-sl .j-box-actions.j-box, [class*="j-body-your"] .j-box-actions.j-box, [class*="j-body-your"] .j-box-invites.j-box {
+    display: none;
+    margin-right: 12px;
+}*/
+
+/* For hiding Tasks in profile page */
+li#jive-tasks-tab
+{
+visibility:hidden;
+display:none;
+}
+
+/*RSS feed Link Font size fix*/
+.jive-widget .jive-blog-post-subject-header h2, .jive-widget-rssfeed-entry-header a {
+    display: block;
+    font-weight: normal;
+    line-height: 1.1;
+    margin: 0 0 0.2em;
+    font-size: 1em;
+}
+/*Hiding tasks in actions tab*/
+header#j-actions-page-tabs div#j-aq-filters .j-aq-tasks
+{
+visibility:hidden;
+display:none;
+}
+
+/*hiding org.chart from search people*/
+.j-result-content .j-org-chart
+{
+visibility:hidden;
+display:none;
+}
+
+/*hiding of privacy settings tab in edit profile & privacy option*/
+li#edit-profile-security-tab
+{
+visibility:hidden;
+display:none;
+}
+/* start of hiding both login and Registration */ 
+
+a#navLogin
+{
+visibility:hidden;
+display:none;
+}
+a#jive-nav-link-reg
+{
+visibility:hidden;
+display:none;
+}
+/* End of hiding both login and Registration */ 
+
+/**
+Start of get started image 
+*/
+.j-onb-quests .Swiss-hdicon {
+    left: 30px;
+    position: absolute;
+    top: 20px;
+    background: url("../themes/getstarted.png") no-repeat scroll 0 0 transparent;
+    display: inline-block;
+    height: 150px;
+    width: 150px;
+}
+
+.Swiss-hdicon-logo {
+    background-position: 0 0;
+}
+
+.j-onb-quests .j-onb-progress {
+    left: 30px;
+    padding: 5px;
+    position: absolute;
+    text-align: center;
+    top: 150px;
+    width: 120px;
+}
+
+/**
+End of get started image
+*/
+
+/*Hiding connect services*/
+li#connects-preferences{
+visibility:hidden;
+display:none;
+}
+
+/*hiding org chart image in short profile*/
+.jive-glyph-orgchart{
+visibility:hidden;
+display:none;
+}
+
+/* Workaround for PRB000026845 ("Remove formatting" feature) */
+
+.defaultSkin a.mce_removeformat {
+  visibility:hidden !important;
+}
+
+/* End of workaround for PRB000026845 ("Remove formatting" feature) */
+
+/* Making the LargeSmall layout as 6040*/
+
+	/*Overriding the default layouts.png to be pointing to One in the theme*/
+	.jive-layout-sixtyforty{
+	          padding:4px;
+	       }
+	.jive-layout-sixtyforty span
+	{
+		background-image: url("/themes/swissre/resources/images/jive-layouts.png");
+ 		   background-repeat: no-repeat;
+ 		 background-position: -30px -174px;
+   
+   		 cursor: pointer;
+   		 display: block;
+   			 height: 19px;
+   		 width: 27px;
+    		/*padding:4px;*/
+
+    
+	}
+	/* End of Overriding the default layouts.png to be pointing to One in the theme*/
+
+	/*For Fine Adjustment of the Layout page*/
+
+	#jive-body-sixtyforty-layout-ll .jive-body-sixtyforty-layout-l1 {
+    		float: left;
+    		width: 66%;
+		}
+	
+	#jive-body-sixtyforty-layout-ll .jive-body-sixtyforty-layout-l2 {
+    		float: right;
+		    width: 33%;
+		}
+
+#reputation-menu-link .reputation-points-ready {
+    color: #FFFFFF;
+}
+
+/* Ourspace responsive header migration */
+.j-globalNav li.j-globalNav-li.active .j-globalNavLink{
+    color:#0f4dbc;
+    font-weight:400
+    }
+
+.j-header-mode-simple #j-compact-header {
+    position: relative;
+}
+.j-header-mode-simple #top{
+    height:0px;
+}
+.j-header-mode-simple #j-compact-header
+{
+    z-index:auto;
+}
+
+.js-legacy-create a{
+    color: #3778C7;
+}
+.placeImg {
+    vertical-align: baseline;
+}
+.js-satellite-nav-container{
+    list-style: none;
+    float:left;
+}
+.appButton{
+   display:none;
+}
+
+
+
+
+.j-placeHeaderWrap {
+    line-height: 120px;
+
+}
+
+.j-body-place #jive-body .j-page-header {
+   /* background-color:none;*/
+    height: 120px;
+ /* background-image: url("/7.0.2.9fd4c00/images/placeBackgrounds/solid-blue.png");*/
+    padding: 0 0 0 135px;
+}
+.j-page-header .j-placeHdImg {
+    height: 100px;
+    line-height: 100px;
+    width: 100px;
+    box-shadow:none;
+    border:none;
+    background:none;
+}
+.j-placeHdImg .placeImg {
+    max-height: 100px;
+    max-width: 100px;
+}
+.j-place-thumb .j-place-photo{
+    height:131px;
+}
+
+.j-placeHeaderWrap {
+    line-height: 120px;
+
+}
+.j-placeNav {
+     padding: 0 0 0 120px;
+}
+
+
+#j-place-header-actions .j-ui-elem {
+    color: #FFFFFF;
+}
+.j-body-place .j-contained #jive-widget-container {
+    padding: 12px 7px;
+}
+
+.j-contained #jive-widget-container {
+    padding:7px;
+}
+/* Ourspace responsive header migration */
+@media screen and (min-width: 992px) {
+#j-profile-header-avatar-stats .j-profile-headshot {
+    float:right;
+}
+#j-profile-header-avatar-stats .j-profile-headshot img {
+    min-width:120px;
+    width:120px;
+    height:148px;
+}
+#j-profile-points-outer {
+    float:right;
+    height:149px;
+}
+#j-profile-header-avatar-stats {
+    float: right;    
+}
+.page-header {
+   height: 200px;
+}
+
+#j-profile-header-details, #j-profile-header-details.no_status {
+  height:150px;
+  width:500px;
+  float:left;
+  overflow-y: hidden;
+  padding:10px 25px 0;
+}
+
+#j-profile-header-details ul {
+  float:left;
+  overflow: hidden;
+}
+
+#j-profile-header-details ul li{
+
+  width:330px;
+
+} 
+.j-page-header .j-place-header-overlay {
+  background:none;
+}
+
+#j-profile-header-details ul.rightHeaderFields li{
+   width:170px;
+}
+
+
+}
+.j-tile-iframe {
+ 	height:280px;
+}
+.fpw-place {
+   height:65px;
+}
+/* ourspace - powerbar integration starts */
+@media screen and (min-width: 1280px) {
+.mod-power-bar {
+left: 0% !important;
+margin-left: 0px !important;
+}
+}
+
+@media screen and (min-width: 992px) {
+.mod-power-bar .power-bar-list {
+padding-top:64px !important;
+}
+.mod-power-bar .power-bar-wrapper {
+    top: 64px !important;
+}
+body{
+padding-left:64px;
+}
+.j-placeFormButtons{
+padding-left:64px !important;
+}
+}
+/* Ourspace responsive header migration - Starts */
+@media screen and (max-width: 992px) {
+#headerLinks{
+right:135px !important;
+}
+#j-satNav-wrap{
+right:115px;
+}
+.mod-power-bar {
+z-index:10000;
+position:relative;
+}
+.mod-navigation .navigation-title {
+     font-size:17px !important; 
+     padding-left:8px !important;
+     } 
+     
+}
+
+/* ourspace - powerbar integration ends*/
+@media screen and (min-width: 992px) {
+
+.j-body-place #j-main {
+max-width:none;
+}
+.j-body-place #j-main .j-layout {
+max-width:none;
+}
+#j-globalNav-bg {
+max-width:none;
+}
+#j-basic-wrap {
+max-width:none;
+}
+#j-globalNav-bg, #j-main, .j-body-place #j-main #jive-alert, .j-body-place #j-main .j-layout, #j-footer-wrap {
+max-width:none;
+}
+}
+
+.j-header-mode-simple #j-header-wrap {
+position:relative;
+}
+.j-body-home.j-header-mode-simple .j-layout-sl .j-column-s {
+    padding: 0 15px 0 15px;
+    position: absolute;
+}
+
+.j-satNav-user-menu{
+list-style:none;
+float:right;
+}
+#jive-nav-link-apps{
+display:none;
+}
+#j-compact-header .jive-user-salutation, #j-compact-header #navCreate .j-navLabel {
+display:inline;
+}
+#j-satNav-inbox.j-satNav-inbox span {
+color: #fff;
+background-color: #0f4dbc !important;
+}
+
+#j-satNav-inbox.j-satNav-inbox span.j-navbadge-inbox .j-satNav-inbox-icon::before {
+color: #fff;
+}
+
+.j-navbadge-count {
+background-color: #0f4dbc;
+color:#FFF !important;
+}
+a#jive-nav-link-help {
+display:none !important;
+}
+.j-second-nav {
+margin: 10px 14px 50px 15px;
+}
+
+
+.g-logo {
+    display: block;
+    color: #627d77;
+    text-decoration: none;
+    overflow: hidden;
+    line-height: 48px;
+    height: 48px;
+}
+.g-logo:hover,
+.g-logo:focus {
+    outline: none;
+    color: #273532;
+}
+.g-logo .logo-img {
+    display: inline-block;
+    width: auto;
+    vertical-align: top;
+    margin-top: 19px;
+   
+}
+.g-logo .logo-sign {
+    display: inline-block;
+    font-size: 27px;
+    line-height: inherit;
+}
+/*Top Navigation Bar*/
+
+.mod-navigation {
+    height: 64px;
+    position: relative;
+}
+.mod-navigation .navigation-line {
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.9);
+    left: 0;
+    right: 0;
+    height:64px;
+}
+.mod-navigation .navigation-logo {
+    float: left;    
+}
+
+.mod-navigation .navigation-title {
+    display: none;
+}
+
+.mod-navigation .navigation-title {
+    display: block;
+    float: left;
+    font-weight:100 !important;
+    font-size: 20px;
+    padding: 22px 0px 0px 4px;
+    font-family: 'SwissReSansLight', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 20px;
+    color: #627d77;
+}
+@media screen and (min-width: 480px) {
+    /*SwissRe Logo*/
+    
+    .g-logo {
+        line-height: 64px;
+        height: 64px;
+    }
+    .g-logo .logo-sign {
+        display: none;
+    }
+    /*Top Navigation Bar*/
+    
+    .mod-navigation {
+        height: 64px;
+    }
+   
+    .mod-navigation .navigation-service {
+        display: block;
+        width: 64px;
+        height: 64px;
+        line-height: 64px;
+        font-size: 24px;
+    }
+    .mod-navigation .navigation-service .navigation-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    .mod-navigation .navigation-profile {
+        display: block;
+        height: 64px;
+        margin-right: 0;
+    }
+    .mod-navigation .navigation-profile-name {
+        font-family: 'SwissReSansLight', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        float: left;
+        margin-right: 16px;
+        font-size: 20px;       
+    }
+    .mod-navigation .navigation-profile-image {
+        width: 64px;
+        height: 64px;
+    }
+    .mod-navigation .navigation__settings {
+        display: block;
+        width: 64px;
+        height: 64px;
+        background: #d3d3d3;
+        text-align: center;
+        line-height: 64px;
+    }
+}
+@media screen and (min-width: 768px) {
+    
+   
+    .mod-navigation .navigation-title {
+        padding: 22px 32px 0px 24px;        
+    }
+}
+@media screen and (min-width: 992px) {
+    /*SwissRe Logo*/
+    
+    .g-logo {
+        margin-left: 32px;
+        margin-right:16px;
+    }       
+    
+}
+@media screen and (min-width: 992px) {
+    .mod-navigation .navigation-line {
+        left: auto;
+        right: auto;
+        width: 100%;
+    }
+}
+#j-compact-header {
+background:none;
+}
+#j-globalNav-bg {
+border-top:7px solid #0f4dbc;
+}
+
+
+.j-globalNav-li{
+float:left;
+list-style: none;
+}
+
+#j-satNav-inbox{
+padding:0px;
+}
+
+#j-satNav-wrap .j-navLabel, #j-satNav-wrap .login, #j-satNav-wrap .register, #j-satNav-wrap li a.j-globalNavLink {
+    color: #000;
+    padding-left: 10px;
+}
+.icon-search{
+ content: "\e622";
+    font-family: 'swissre' !important;
+    speak: none;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+    
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+#j-links #mobile-search > a::before {
+     content: "\e622";
+    font-family: 'swissre' !important;
+    }
+@font-face {
+    font-family: 'SwissReSansLight';
+    src: url('/images/fonts/swissresansot-light-webfont.eot#v1');
+    src: url('/images/fonts/swissresansot-light-webfont.eot?#iefix-v1') format('embedded-opentype'), url('/images/fonts/swissresansot-light-webfont.woff#v1') format('woff'), url('/images/fonts/swissresansot-light-webfont.ttf#v1') format('truetype'), url('/images/fonts/swissresansot-light-webfont.svg#swissresansot-light-webfont-v1') format('svg');
+    font-weight: 100;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+#j-globalNav #mobile-menu > a {
+background:rgba(0,0,0,0) !important;
+
+}
+#j-globalNav #mobile-menu{
+top:12px !important;
+}
+
+/*This is for mobile resolution*/
+@media screen and (max-width: 40em){
+.mod-navigation .navigation-logo {
+    padding-left:4px !important;
+    }
+body{
+padding-top:112px !important;
+}
+#j-globalNav{
+padding-top:38px !important;
+}
+#j-globalNav > li.j-globalNav-li a.j-globalNavLink{
+color: #0f4dbc !important;
+}
+#j-globalNav > li.j-globalNav-li.mobile-active div.j-pop .j-menu li a{
+color: #0f4dbc !important;
+}
+
+#j-links #j-satNav, #j-links .j-nav-create > a{
+height:38px !important;
+}
+#j-header-wrap header #j-links .j-globalNav{
+margin-top:-5px;
+}
+#j-links .j-globalNav li.j-globalNav-li, #j-links .j-globalNav li.j-globalNav-li.mobile-tool{
+height:38px;
+}
+
+#j-header-wrap header #j-links .j-globalNav{
+height:38px;
+}
+
+.j-pop > .jive-spotlight-search-result
+{
+display:none !important;
+visibility: hidden !important;
+}
+#j-spotlight-search input{
+padding: 6px 0px 6px 23px !important;
+width:100% !important;
+
+}
+}
+#j-globalNav #mobile-menu > a::before{
+content:none;
+}
+@media screen and (min-width: 992px) {
+#j-nav-search{
+background-color: #0f4dbc;
+height: 65px;
+position: fixed;
+right: 0;
+top: 0;
+z-index: 100;
+}
+
+#j-nav-search{
+position: absolute;
+    top: -72px;
+    left: -45px;
+}
+
+#j-nav-search-li #j-nav-search span{
+font-family: 'SwissRe' !important;
+font-size: 30px;
+height: 64px;
+line-height: 64px;
+background: #0f4dbc no-repeat 100% 100% !important;
+padding: 0 0 0 17px !important;
+vertical-align: middle;
+width: 47px;
+}
+.icon-search::before {
+content: "\e622";
+color:white;
+font-family: 'swissre' !important;
+ font-style: normal !important;
+    font-weight: normal !important;
+    font-variant: normal !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+
+}
+ 
+#j-nav-search-li #j-nav-search{
+margin:0px !important;
+}
+
+
+#j-satNav.active, ul .j-nav-create .j-globalNavLink:hover span.nav-link{
+background:rgba(0, 0, 0, 0) none repeat scroll 0 0 !important;
+}
+#j-search-visor{
+    top: 70px !important;
+    border-right: 7px solid #0f4dbc !important;
+    border-top: 1px solid #0f4dbc !important;
+}
+}
+
+@media screen and (min-width: 992px) and (max-width:1920px) {
+#j-search-visor{
+    right: 0px !important;
+}
+}
+.j-globalNavLink:link, .j-globalNavLink:visited, .j-globalNavLink:hover, .j-globalNavLink:active, .j-globalNav .j-globalNav-li.j-nav-create a.j-globalNavLink, #j-compact-header a .j-user-name, #j-compact-header a.login, #j-compact-header a.register {color: #0f4dbc;}
+@font-face {
+    font-family: 'swissre';
+    src: url('/images/fonts/swissre-icon.eot?-6sn52');
+    src: url('/images/fonts/swissre-icon.eot?#iefix-6sn52') format('embedded-opentype'), url('/images/fonts/swissre-icon.woff?-6sn52') format('woff'), url('/images/fonts/swissre-icon.ttf?-6sn52') format('truetype'), url('/images/fonts/swissre-icon.svg?-6sn52#swissre-icon') format('svg');
+    font-weight: 100;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+#j-main-wrapper{
+margin-left:5px;
+margin-top:45px;
+}
+.js-create-direct-message{
+display:none !important;
+}
+.icon-search:before{
+content:"\e622";
+}
+.j-stream-building #j-dynamic-pane > #stream-builder{
+margin-left:0px !important;
+}
+.j-header-mode-simple .affix {
+margin-top:64px;
+}
+/* Ourspace responsive header migration - Ends */
+.j-page-header-parent{
+padding-bottom:10px;
+}
+#mob-spotlight-cancel{
+width:15% !important;
+}
+
+div#countdown_container {
+  display: none;
+visibility:hidden;
+}
+
+
+
+
+    </style>
+    {/literal}
+{/template}

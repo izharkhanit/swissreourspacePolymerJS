@@ -1,0 +1,539 @@
+{namespace jive.skin.template autoescape="contextual"}
+
+/**
+ * A Soy version of the main site template.
+ *
+ * @param authToken
+ * @param? title The page title
+ * @param? titleEscaped Boolean for fixing double escape
+ * @param bodyClass
+ * @param bodyContent  The HTML to be inserted into the body section.
+ * @param browserEventQuery
+ * @param browserEventsPollingDelay
+ * @param canonicalUrl
+ * @param customFooter
+ * @param defaultBaseURL
+ * @param devMode
+ * @param headerInfoView
+ * @param instanceInfoView
+ * @param jsPageController
+ * @param noUserBar
+ * @param customizeSite
+ * @param navBar
+ * @param bodyID
+ * @param? pageConfig
+ * @param realtimeStatsEnabled
+ * @param skinLocale
+ * @param socketEvents
+ * @param spotlightSearchEnabled
+ * @param targetObject
+ * @param timeZoneOffset
+ * @param translationLanguage
+ * @param trialBean
+ * @param websocketEnabled
+ * @param noTrial
+ * @param noHeader
+ * @param communityName
+ * @param noFooter
+ * @param licenseBeaconEnabled
+ * @param timestamp
+ * @param timingView
+ * @param kMetricsView
+ * @param adRollView
+ * @param postFooter
+ * @param onboardingEnabled
+ * @param headContent
+ * @param tipsView
+ * @param complianceMessagingBean
+ * @param systemMessageView
+ * @param pageBreadcrumb
+ * @param pluginJavascriptSrcURLs
+ * @param asyncLoadRTE
+ * @param selectedLinkID
+ * @param appsMarketEnabled
+ * @param anyAppsEnabled
+ * @param appUUIDs
+ * @param jiveLogoFooterEnabled
+ * @param user
+ * @param displayLanguage
+ * @param macroJavaScript
+ * @param realtimeUiEnabled
+ * @param? preHeader
+ * @param? contextObject
+ * @param? socialSharingEnabled
+ * @param showHelpLink
+ * @param uiDebug
+ * @param showSatelliteMenu
+ * @param thirdPartyAnalytics
+ * @param i18nBundleResourcePath
+ * @param externalizeI18n
+ * @param? previousUrl
+ * @param? nextUrl
+ * @param? stylesContent
+ *
+ * @depends template=jive.skin.template.javascript.header scope=server id=aHeader
+ * @depends template=jive.skin.template.javascript.core   scope=server id=core
+ */
+{template .main}
+    <!DOCTYPE html>
+
+    <html lang="{$displayLanguage}">
+
+    <head>
+        {call jive.skin.template.header.meta data="all"/}
+
+        <title>
+            {if $title}
+                {if $titleEscaped}
+                    {$title|truncate:50|noAutoescape} |
+                {else}
+                    {$title|truncate:50} |
+                {/if}
+            {/if}
+            &nbsp; Ourspace
+        </title>
+
+        <meta name="viewport" content="user-scalable=0, initial-scale=1.0">
+
+        {if $canonicalUrl}<link rel="canonical" href="{$canonicalUrl}"/>{/if}
+
+        {call jive.skin.template.header.paginationLinks}
+            {param previousUrl : $previousUrl/}
+            {param nextUrl : $nextUrl/}
+        {/call}
+
+        {if $timingView.header}{$timingView.header|noAutoescape}{/if}
+
+        {if $kMetricsView.enabled}{$kMetricsView.headerScript|noAutoescape}{/if}
+
+        /**-- CSS needs to come before bulk of JS else "flash of style" happens --*/
+        {call jive.skin.template.header.css.main data="all"/}
+
+        {if $stylesContent}{$stylesContent|noAutoescape}{/if}
+
+        {call jive.skin.template.javascript.pluginTemplates data="all"}
+            {param head: true/}
+        {/call}
+
+        {call jive.skin.template.header.opensearch data="all"/}
+
+        {call jive.skin.template.header.favicon data="all"/}
+
+        {call jive.skin.template.javascript.header data="all"/}
+
+        {if $tipsView}
+            {call jive.skin.template.header.tips data="$tipsView"/}
+        {/if}
+
+        {outputResources('script','aHeader', false)}
+
+        {if $headContent}{$headContent|noAutoescape}{/if}
+
+        {call .responsive /}
+
+        /**-- Allow dynamic CSS to override any core CSS as well as page-specific CSS (included in $headContent) --*/
+        {call jive.skin.template.header.css.dynamic data="all"/}
+
+        {call jive.skin.template.javascript.googleAnalyticsCode data="all"/}
+        /* ourspace - powerbar integration */
+        <link rel="stylesheet" type="text/css" href="https://powerbar.swissre.com/powerbar/css/style.css" media="screen" />
+        <script id="ah_powerBar_bootcode" src="https://powerbar.swissre.com/powerbar/boot/bootcode.js" type="text/javascript"></script>
+        <script id="bootlib" src="https://powerbar.swissre.com/apphero/boot/singlepage/bootlib.js" type="text/javascript"></script>
+	      /*ourspace - powerbar integration */
+    	  <nav id="ah_powerBar" class="mod mod-power-bar"></nav>
+
+    </head>
+
+    <body class="
+        {if $bodyClass}{$bodyClass}{/if}
+        {if $headerInfoView.headerType and not $noUserBar} j-header-mode-{$headerInfoView.headerType}{else} j-no-header{/if}
+        {if $trialBean.trialActive and not $customizeSite} j-trial-bar-active{/if} {if $realtimeUiEnabled} j-rtc-active{/if}
+        {if $navBar.homeLink.visible and not $navBar.homeLink.renderIndicator} j-simple-homepage{/if}"
+
+        /*
+         * Repeated in jive.skin.template.javascript.globalParams. Will be removed in the future, but this
+         * is an attempt to move away from global variable references for config.  See the application/config module.
+         */
+        data-auth-token="{$authToken}"
+        data-browser-event-query="{$browserEventQuery}"
+        data-browser-events-polling-delay="{$browserEventsPollingDelay}"
+        data-container-id="{$targetObject.id}"
+        data-container-type="{$targetObject.objectType}"
+        data-current-user="{buildJson($user)}"
+        data-instance-id="{$instanceInfoView.instanceID}"
+        data-locale="{$skinLocale}"
+        data-realtime-communications-enabled="{$websocketEnabled}"
+        data-realtime-push-enabled="{$websocketEnabled}"
+        data-realtime-stats-enabled="{$realtimeStatsEnabled}"
+        data-socket-events="{$socketEvents}"
+        data-timezone-offset="{$timeZoneOffset}"
+        data-translation-language="{$translationLanguage}"
+
+        // if true, all these data attributes are removed from the body tag after being read.
+        data-clean="true"
+
+        // If set, the module indicated by jsPageController is automatically loaded and instantiated. See PageRegionInput.setJsPageController().
+        {if $jsPageController}
+            data-js-page-controller="{$jsPageController}"
+        {/if}
+
+        // Provides a way for individual pages to augment and override configuration values. See application/config module and PageRegionInput.setPageConfig().
+        {if $pageConfig}
+            data-page-config="{buildJson($pageConfig)}"
+        {/if}
+
+        // the following urls are modified in the config module
+        data-base-url="{buildUrl('/')}"
+        data-absolute-base-url="{$defaultBaseURL}"
+        data-resource-url="{resourceUrl('/')}"
+        >
+
+        {if $noHeader}
+            {$bodyContent|noAutoescape}
+        {else}
+            <a id="top"></a>
+            <a href="#j-main" class="j-508-label">{i18nText('global.skip_navigation')}</a>
+            {if not $noUserBar}
+                {call jive.skin.template.header.systemMessage data="$systemMessageView"/}
+            {/if}
+
+            {if $trialBean.trialActive and not $user.partner and not $user.guest and not $noTrial}
+                {call jive.skin.template.header.trial data="all"/}
+            {/if}
+
+            {if $complianceMessagingBean}
+                {call jive.skin.template.header.licenseBanner data="$complianceMessagingBean"/}
+            {/if}
+
+            {if $preHeader}
+                {$preHeader|noAutoescape}
+            {/if}
+
+            /**-- Main Header --*/
+            <div id="j-header-wrap"
+                data-company-name="{$headerInfoView.companyName}"
+                data-no-user-bar="{if $noUserBar}true{else}false{/if}"
+                role="banner"
+                >
+                {call jive.nav.header}
+                    {param headerInfo: $headerInfoView/}
+                    {param nav: $navBar/}
+                    {param user: $user/}
+                    {param selectedLinkID: $selectedLinkID/}
+                    {param communityName: $communityName /}
+                    {param hideUserBar: $noUserBar ? true : false/}
+                    {param customizeSite: $customizeSite ? true : false/}
+                    {param showSatelliteMenu : $showSatelliteMenu /}
+                {/call}
+            </div>
+
+            <div id="mobile-overlay"></div>
+
+        <div id="j-main-wrapper">
+            <section id="j-main" class="clearfix">
+
+                <div id="{if $bodyID}{$bodyID}{else}jive-body{/if}" class="clearfix">
+                    {if $pageBreadcrumb}{$pageBreadcrumb|noAutoescape}{/if}
+                    {$bodyContent|noAutoescape}
+                </div>
+
+            </section>
+            {if $postFooter}{$postFooter|noAutoescape}{/if}
+        {/if}
+
+
+        /*-- Footer --*/
+        {if not $noFooter}
+        <div id="j-footer-wrap" class="j-js-footer-wrap">
+            {if $headerInfoView.headerType == 'custom' and $customFooter}
+                {call jive.nav.customFooter}
+                    {param html: $customFooter /}
+                {/call}
+            {/if}
+
+            <footer id="j-footer" role="contentinfo" >
+                {call jive.nav.footer  data="$instanceInfoView"}
+                    {param showHelpLink: $showHelpLink /}
+                    {param jiveLogoFooterEnabled: $jiveLogoFooterEnabled /}
+                    {param realtimeStatsEnabled: $realtimeStatsEnabled /}
+                {/call}
+
+                {if not $customizeSite}
+                    {call jive.skin.template.javascript.footer data="all"/}
+                    {if $realtimeUiEnabled}
+                        <div id="realtime" class="noprint">
+                            /* style from RTC will override this, we're applying display:none to hide if there's an issue w/RTC */
+                            <div class="realtimeBarPlaceholder" style="display: none">
+                                <div class="plus">
+                                    <div class="cross"></div>
+                                </div>
+                                <div class="room">
+                                    {i18nText('realtime.bar.rooms')}
+                                    <span class="j-action-down-arrow j-ui-elem"></span>
+                                </div>
+                                <div class="contacts">
+                                    {i18nText('realtime.bar.contacts')}
+                                    <span class="j-action-down-arrow j-ui-elem"></span>
+                                </div>
+                                <div class="me">
+                                    <img alt="" class="avatar" src="{buildUrl('/api/core/v3/people/' + $user.id + '/avatar')|noAutoescape}" />
+                                    <div class="userStatus">
+                                        <div class="dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="realtimeBar"></div>
+                        </div>
+                    {/if}
+                {/if}
+            </footer>
+        </div>
+        {else}
+            {call jive.skin.template.javascript.thirdPartyReportingCode data="all" /}
+        {/if}
+
+        {if not $noHeader}
+            </div> // closes #j-main-wrapper
+        {/if}
+
+        {call jive.skin.template.header.pageTooltips data="all"/}
+
+        /* must exist when page is rendered to work correctly with VoiceOver screen reader */
+        <div class="j-alert-container" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+        {if $timingView.body}{$timingView.body|noAutoescape}{/if}
+
+        {if $devMode}
+        <span class="j-i-contain-script-tags">
+        {/if}
+
+        {call jive.skin.template.javascript.core data="all"/}
+        {outputResources('script','core', false)}
+
+        <script>
+            var containerType = '{$targetObject.objectType}';
+            var containerID = '{$targetObject.id}';
+            {if $spotlightSearchEnabled}
+                var spotlightSearchURL = "{buildUrl('spotlight-search')|escapeJs}";
+            {/if}
+        </script>
+
+        {if $onboardingEnabled}
+            {call jive.onboarding.jsInit data="all"/}
+        {/if}
+
+        {call jive.skin.template.javascript.rte data="all"/}
+
+        {if $externalizeI18n}
+            <script src="{resourceUrl($i18nBundleResourcePath)}"></script>
+        {/if}
+
+        {outputResources('script','', false)}
+        {outputResources('script','eim', false)}
+
+        {call jive.skin.template.javascript.pluginJavascript data="all"/}
+
+        {call jive.skin.template.javascript.pluginTemplates data="all"}
+            {param head: false/}
+        {/call}
+
+        {outputResources('script','plugins', false)}
+
+        {if $devMode}
+        </span>
+        {/if}
+
+        {if $licenseBeaconEnabled}
+            <img src="{buildUrl('/beacon','t', $timestamp)}" alt=""/>
+        {/if}
+        {if $thirdPartyAnalytics.enabled}
+            {if $thirdPartyAnalytics.iFrameUrl}
+                <script>
+                    function __pushContextToAnalyticsFrame(w,f) {lb}
+                      var c = JSON.parse({$thirdPartyAnalytics.pageContext|noAutoescape});
+                      c.location = w.location.href;
+                      c.referrer = w.document.referrer;
+                      f.contentWindow.postMessage(JSON.stringify(c), "*");
+                      // todo
+                    {rb}
+                </script>
+                <iframe id="thirdpartyanalytics" src="{$thirdPartyAnalytics.iFrameUrl}" onLoad="__pushContextToAnalyticsFrame(window,this)" style="width:1px;height:1px;"></iframe>
+            {/if}
+        {/if}
+
+        {call jive.skin.template.javascript.marketoAnalyticsCode data="$thirdPartyAnalytics"/}
+
+        {if $thirdPartyAnalytics.enabled}
+            {if $thirdPartyAnalytics.scriptTags}
+                {foreach $script in $thirdPartyAnalytics.scriptTags}
+                    {$script|noAutoescape}
+                {/foreach}
+            {/if}
+        {/if}
+
+        {if $kMetricsView.enabled}{$kMetricsView.footerScript|noAutoescape}{/if}
+        {if $adRollView.enabled}{$adRollView.script|noAutoescape}{/if}
+        {if $timingView.footer}{$timingView.footer|noAutoescape}{/if}
+        {if $uiDebug}{call jive.template.region.uidebug/}{/if}
+        <script>
+            /* PRB000582727  - Script to by-pass external-links.jspa - Starts*/
+            var anchor = document.getElementsByTagName("A");
+            for (var i = 0; i<anchor.length; i++){lb}
+              try{lb}
+                url = anchor[i].getAttribute("href");
+                var index = url.indexOf('external-link.jspa?url=');
+                if (index > 0){lb}
+                  processedUrl = url.substr(index + 23);
+                  var decodedURL = decodeURIComponent(processedUrl).replace(/\+/g, ' ');
+                  anchor[i].setAttribute('href', decodedURL);
+                  //Firefox onclick alert handling for file protocol
+                  if(decodedURL.includes('file://')){lb}
+		    anchor[i].onclick =function(){lb}if(navigator.userAgent.indexOf('Trident')==-1){lb}alert('This link can only be used from Internet Explorer');return false{rb}{rb};
+		  {rb}
+                {rb}
+              {rb}
+              catch (err){lb}
+                // Ignore the errors
+              {rb}
+            {rb}
+            /* PRB000582727  - Script to by-pass external-links.jspa - Ends*/
+       </script>
+    </body>
+
+    </html>
+
+{/template}
+
+/**
+ * This template will render content shown in a div or iframe.
+ *
+ * @depends template=jive.skin.template.javascript.header scope=server id=aHeader
+ * @depends template=jive.skin.template.javascript.core   scope=server id=core
+
+ * @param displayLanguage
+ * @param headContent
+ * @param bodyContent
+ * @param pluginJavascriptSrcURLs
+ * @param bodyClass
+ * @param title
+ * @param communityName
+ * @param i18nBundleResourcePath
+ * @param externalizeI18n
+ */
+{template .embedded}
+
+    <!DOCTYPE html>
+
+    <html lang="{$displayLanguage}">
+
+    <head>
+
+         <title>{if $title}{$title|truncate:50} | {/if}{$communityName}</title>
+
+        /**-- CSS needs to come before bulk of JS else "flash of style" happens --*/
+        {call jive.skin.template.header.css.main data="all"/}
+
+        {call jive.skin.template.javascript.pluginTemplates data="all"}
+            {param head: true/}
+        {/call}
+
+        {call jive.skin.template.javascript.header data="all"/}
+
+        {outputResources('script','aHeader', false)}
+
+        {call jive.skin.template.javascript.core data="all"}
+            {param embedded: true/}
+        {/call}
+        {outputResources('script','core', false)}
+
+        {call jive.skin.template.javascript.rte data="all"/}
+
+        {outputResources('script','', false)}
+
+        {call jive.skin.template.javascript.pluginJavascript data="all"/}
+
+        {call jive.skin.template.javascript.pluginTemplates data="all"}
+            {param head: false/}
+        {/call}
+
+        {outputResources('script','plugins', false)}
+
+        {if $headContent}{$headContent|noAutoescape}{/if}
+
+        {if $externalizeI18n}
+            <script src="{resourceUrl($i18nBundleResourcePath)}"></script>
+        {/if}
+    </head>
+
+    <body class="{if $bodyClass}{$bodyClass}{/if}">
+
+        {$bodyContent|noAutoescape}
+
+    </body>
+
+    </html>
+
+{/template}
+
+/**
+ * This template is solely for dependency management of AJAXed HTML responses so that any dependencies in the core
+ * bundle are not downloaded twice.
+ *
+ * @depends template=jive.skin.template.javascript.header scope=server id=aHeader
+ * @depends template=jive.skin.template.javascript.core   scope=server id=core
+ */
+{template .ajaxload}
+{/template}
+
+/**
+ * This template is for loading in the Responsive CSS
+ */
+{template .responsive}
+    <link rel="stylesheet" href="{resourceUrl('/styles/jive-responsive.css')}" type="text/css" media="all" />
+{/template}
+
+/**
+ * Wrapper for the chrome region renderer
+ * @param templateView
+ * @param bodyClass
+ * @param? titleKey
+ * @param? titleArgs
+ * @param region
+ * @param uiDebug
+ * @param selectedLinkID
+ * @param? jsPageController
+ * @param? pageConfig
+ * @param? cssOverride
+ * @param? cssUrls
+ */
+{template .chromeRegion}
+     {call .main data="$templateView"}
+        // Some params we'll want to pass in the future
+//      {param metaDescription: i18nText('eae.inbox.description')/}
+        {param selectedLinkID: $selectedLinkID/}
+        {param title: $titleKey ? i18nText($titleKey, $titleArgs) : '' /}
+        {param cssOverride: $cssOverride /}
+        {param headContent}
+        {/param}
+        {param stylesContent}
+            {if $cssUrls}
+                {foreach $url in $cssUrls}
+                    /* Loads the Bless version of of the file if we're dealing with < IE10, because lower versions of IE can't handle long CSS files.
+                    This chops it up and hides the monolithic file... which is faster. */
+                    <!--[if IE]>
+                        <link rel="stylesheet" href="{resourceUrl('/styles'+$url+'.ie.css')}" type="text/css" media="all"/>
+                    <![endif]-->
+                    /* no need for IE10 Conditional Comment because IE10 doesn't read CCs */
+                    <!--[if !IE]> -->
+                        <link rel="stylesheet" href="{resourceUrl('/styles'+$url+'.css')}" type="text/css" media="all"/>
+                    <!-- <![endif]-->
+                {/foreach}
+            {/if}
+            {/param}
+        {param bodyClass: $bodyClass ?: '' /}
+        {param bodyContent: $region /}
+        {param jsPageController:$jsPageController /}
+        {param pageConfig:$pageConfig /}
+        {param uiDebug: $uiDebug /}
+     {/call}
+{/template}

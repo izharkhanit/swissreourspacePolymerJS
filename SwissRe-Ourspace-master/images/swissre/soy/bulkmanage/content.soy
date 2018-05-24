@@ -1,0 +1,179 @@
+{namespace jive.place.bulkmanage autoescape="contextual"}
+
+
+/**
+ * Renders the content section for a "place".
+ *
+ * @param place the {@link Place} that we are displaying.
+ * @param browseViewID A unique name for this browse view.
+ * @param archetypeID The ID of the archetype associated with this browse view.
+ * @param itemsView A collection of {@link ContentObjectViewBean}s.
+ * @param filterGroup A {@link FilterGroupBean} object with nested filters.
+ * @param guest Whether or not the current user is the guest user
+ * @param targetUserID The userID of the items being displayed.
+ * @param? layoutClass An optional class passed to the layout div element
+ * @param urlParams map of query parameters for the last request
+ * @param urlPath path for the last request
+ * @param canonicalUrl
+ * @param templateView The model to render the page template.
+ * @param headerSettings The currently applied header settings
+ * @param outcomesEnabled
+ */
+{template .content}
+     {call jive.skin.template.main data="$templateView"}
+            {param title}
+                {i18nText('bulkmanage.browse.header.colon')} {$place.name|noAutoescape}
+            {/param}
+            {param canonicalUrl: $canonicalUrl/}
+            {param metaDescription: $place.description/}
+            {param selectedLinkID: 'jive-nav-link-place'/}
+            {param headContent}
+
+                {call jive.place.head data="all" /}
+                
+                <link rel="stylesheet" href="{resourceUrl('/styles/jive-bulkmanage.css')}" type="text/css" media="all" />
+                //<link rel="stylesheet" href="{resourceUrl('/styles/jive-popup.css') |noAutoescape}" type="text/css" media="all" />
+                <link rel="stylesheet" href="{resourceUrl('/styles/jive-places.css')}" type="text/css" media="all" />
+                {if isNonnull($headerSettings)}
+                        {call jive.integration.backgroundImage data="$headerSettings"}
+                            {param class: 'place-background-image'/}
+                            {param headerSettings: $headerSettings /}
+                        {/call}
+                {/if}
+
+
+                {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    require(['page/places/bulk_manage_content','documentReady'], function(manageContent) {lb}
+                        manageContent({lb}
+                            archetypeID:    '{$archetypeID|escapeJs}',
+                            browseViewID:   '{$browseViewID|escapeJs}',
+                            filterGroup:    {buildJson($filterGroup)|noAutoescape},
+                            guest:          {$guest},
+                            itemViewID:     'detail',
+                            pageSize:       {$itemsView.pageSize |escapeJs},
+                            place:          {buildJson($place)|noAutoescape},
+                            targetUserID:   '{$targetUserID}',
+                            token:          '{$itemsView.token}'
+                        {rb});
+                    {rb});
+                {/param}
+            {/call}
+        {/param}
+        {param bodyClass: 'j-body-place j-body-bulkmanage'/}
+        {param bodyContent}
+
+            {call jive.place.header data="all" /}
+
+
+            <!-- BEGIN layout -->
+            <div class="j-layout j-layout-sl j-contained-tabs-place j-browse-content j-rc4 clearfix {if $layoutClass}{$layoutClass}{/if}">
+                <div class="j-bulkmanage-intro">
+                    <h2>{i18nText('bulkmanage.browse.header')}</h2>
+                    <p>
+                        {i18nText('bulkmanage.browse.desc')}
+                    </p>
+                </div>
+                <div class="j-column-wrap-l">
+                    <div class="j-column j-column-l j-rc5">
+                        <div class="j-bulk-filters clearfix">
+
+                            <!-- BEGIN browse & filter block -->
+                            {call jive.bulkmanage.browse.filter.filters data="$filterGroup"}
+                                {param itemsView: $itemsView /}
+                                {param urlParams: $urlParams /}
+                                {param urlPath: $urlPath /}
+                            {/call}
+                        </div>
+
+                        <div id="j-browse-item-grid" class="j-box-body" role="main" aria-label="{i18nText('browse.filter.grid')}">
+
+                            {call jive.bulkmanage.browse.grid.itemGrid data="$itemsView"}
+                                {param browseViewID: $browseViewID/}
+                                {param archetypeID: $archetypeID/}
+                                {param noResultTemplateConfig: ['templateName': 'jive.place.noContent', 'data': ['i18nKeyPrefix': $place.placeI18nKeyPrefix, 'unfiltered': true ]]/}
+                            {/call}
+                        </div>
+
+                        {call jive.browse.grid.moreSearchResultsAvailableHolder data="$itemsView"/}
+
+                        <div class="j-browse-filter-row j-bottom-row j-rc4">
+                            {call jive.shared.soy.paginationLinks}
+                                {param current: $itemsView.pageNumber /}
+                                {param max: $itemsView.pageNumber + ($itemsView.hasNext ? 1 : 0) /}
+                                {param pageSize: $itemsView.pageSize /}
+                                {param urlParams: $urlParams /}
+                                {param urlPath: $urlPath /}
+                            {/call}
+                        </div>
+                        <!-- END browse & filter block -->
+                        
+                    </div>
+                <!-- END large column -->
+            </div>
+
+
+                <!-- BEGIN small column -->
+
+            <div class="j-column-wrap-s j-sidebar-left">
+                <div class="j-column j-column-s j-column-s-nav">
+                {if ($filterGroup.filters)}
+                    {foreach $filter in $filterGroup.filters}
+                        {if ($filter.parentOfNested)}
+                          <nav class="j-second-nav-categories hierarchical-categories j-box j-categories-nav">
+
+                                 <header>
+                                      <h4>{i18nText('global.categories')}</h4>
+                                 </header>
+
+                             <ul class="j-icon-list">
+                            {foreach $categoryFilter in $filter.children}
+                                {if $categoryFilter.nested}
+                                    {call jive.bulkmanage.browse.filter.categoryFilterGroupItem data="$categoryFilter"}
+                                        {param descriptionIsKey: false/}
+                                        {param iconClass}{if $categoryFilter.parent}jive-icon-glyph icon-categories category-filter-expand-arrow{else}jive-icon-glyph icon-categories category-no-arrow{/if}{/param}
+                                        {param selected: indexOf($filterGroup.appliedFilterIDs, $categoryFilter.id) > -1 /}
+                                        {param urlPath: $urlPath /}
+                                    {/call}
+                                {/if}
+                            {/foreach}
+                            </ul>
+
+                            {call jive.place.clearCategoriesLink data="$filter"}
+                                {param appliedFilterIDs: $filterGroup.appliedFilterIDs /}
+                                {param urlParams: $urlParams /}
+                                {param urlPath: $urlPath /}
+                            {/call}
+                          </nav>
+                        {else}
+                             <nav class="j-second-nav j-second-nav-categories j-box j-categories-nav">
+                                 <header>
+                                      <h4>{i18nText('global.categories')}</h4>
+                                 </header>
+                                 <ul class="j-icon-list">
+                                      <li class="no-categories">{i18nText('bulkmanage.browse.no.categories')}</li>
+                                 <ul>
+                             </nav>
+                        {/if}
+                    {/foreach}
+                {/if}
+
+                </div>
+            </div>
+            <!-- END small column -->
+
+
+        </div>
+        <!-- END layout -->
+
+//            <div id="bulkmanage-main-close">
+//               <input type="button" value="{i18nText('global.close')}" onclick="location.href='{buildUrl($place.objectURL)}';" />
+//            </div>
+
+            {if $outcomesEnabled}<div class="outcomesEnabled" style="display:none;"/>{/if}
+            
+            {call jive.bulkmanage.modal /}
+
+        {/param}
+     {/call}
+{/template}

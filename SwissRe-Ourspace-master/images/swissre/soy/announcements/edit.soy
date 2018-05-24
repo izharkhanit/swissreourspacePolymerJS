@@ -1,0 +1,207 @@
+{namespace jive.announcements autoescape="contextual"}
+
+/**
+ * Renders the edit UI for announcements
+ *
+ * @param announcementId The id of the announcement to edit, or -1 for create.
+ * @param parentType container type
+ * @param parentId container id
+ * @param tokenName
+ * @param tokenValue
+ * @param isModerated
+ * @depends path=/resources/scripts/apps/shared/models/core_deferred.js lazy=true
+ * @depends path=/resources/scripts/apps/announcements/edit/main.js
+ */
+{template .edit}
+<head>
+    <title>
+        {if $announcementId == -1}
+            {i18nText('announcement.manage.add.title')}
+        {else}
+            {i18nText('announcement.edit.edit.title')}
+        {/if}
+    </title>
+</head>
+<body class="jive-body-formpage jive-body-formpage-announcement j-announcement-create">
+    <header>
+        <h3>
+        {if $announcementId == -1}
+            {i18nText('announcement.manage.add.title')}
+        {else}
+            {i18nText('announcement.edit.edit.title')}
+        {/if}
+        </h3>
+    </header>
+    <div class="js-edit js-announcement j-layout j-layout-ls j-box j-rc5 j-contained">
+        <div class="j-description">
+            {if $parentId == 1 and $parentType== 14}
+            <span class="font-color-meta">{i18nText('announcement.create.desc')}</h4>
+            {else}
+            <span class="font-color-meta">{i18nText('announcement.place.create.dec')}</h4>
+            {/if}
+        </div>
+
+        <form class="js-announcementForm j-form" name="editAnnouncement" action="#" method="POST">
+            <div class="j-column-wrap-l">
+                <div class="j-column j-column-l">
+                    <div class="j-box-body-padding js-editControls"></div>
+                </div>
+            </div>
+	    //Upgrade - Swissre Theme migration
+            <div class="j-column j-column-s">
+                <div class="j-preview-wrapper js-preview-wrapper">
+                    <header><h4 class="font-color-meta">{i18nText('announcement.preview')}</h4></header>
+                    <div class="js-preview-box"></div>
+                </div>
+            </div>
+        </form>
+        {call .imageForm data="all" /}
+    </div>
+    <script>
+        $j(function(){lb}
+            define(['apps/announcements/edit/main'], function(M) {lb}
+                M({lb}
+                    isModerated : {$isModerated},
+                    announcementId: {$announcementId},
+                    announcementType: 22,
+                    containerType: '{$parentType}',
+                    containerId: '{$parentId}'
+                {rb});
+            {rb});
+        {rb});
+    </script>
+</body>
+{/template}
+
+
+/**
+ * @param announcement AnnouncementEntity to edit
+ * @param timezoneOffset
+ */
+{template .announcementEditControls}
+    {call jive.content.moderationWarning/}
+
+    <div class="j-form-row">
+        <input type="checkbox" id="includeLink" name="includeLink" class="js-includeLink" {if $announcement.subjectURI} checked="checked" {/if} value="includeLink" />
+        <label for="includeLink">
+            {i18nText('announcement.edit.includeLink.label')}
+            <span id="include-link-desc" class="jive-form-label-desc" {if not($announcement.subjectURI)} style="display: none" {/if}>{i18nText('announcement.edit.includeLink.label.desc')}</span>
+        </label>
+        <label for="uri" class="j-508-label">{i18nText('announcement.edit.link.label')}</label>
+        <div class="js-uri-wrapper">
+            <input type="text" id="uri" name="uri" class="js-subjectURI" required="required" aria-required="true" value="{$announcement.subjectURI ? $announcement.subjectURI : ''}" maxlength="3500"/>
+        </div>
+    </div>
+
+    <p class="j-508-label" aria-live="polite" aria-atomic="true" tabindex="-1" role="alert" id="url-autocomplete-warning">
+        {i18nText('announcement.url.autocomplete.label')}
+    </p>
+
+    <p class="j-form-row">
+        <label class="jive-formfield-required" for="subject">
+            {i18nText('announcement.subject.text')}
+            <span class="jive-form-label-desc">{i18nText('announcement.subject.text.desc')}</span>
+        </label>
+        <input type="text" id="subject" name="subject" class="js-subject" required="required" aria-required="true" value="{$announcement.subject|noAutoescape}" size="60" maxlength="75" />
+    </p>
+
+    <div class="j-form-row">
+        <input type="checkbox" id="includeImage" name="includeImage" class="js-includeImage" {if $announcement.image} checked="checked" {/if} value="includeImage" />
+        <label for="includeImage">
+            {i18nText('announcement.image.include')}
+            <span class="jive-form-label-desc">{i18nText('announcement.image.include.desc')}</span>
+        </label>
+        <div class="js-file-input" tabindex="-1">
+            <a tabindex="-1" role="button" href="javascript:;" class="j-draganddrop js-no-image-link j-draganddrop-target" {if $announcement.image} style="display: none" {/if}>
+                <div class="js-image-message">
+                    {i18nText('announcement.draganddrop')}
+                    <p id="drag-drop-message" class="font-color-meta" style="display: none">
+                        {i18nText('announcement.draganddrop.desc')}
+                    </p>
+                </div>
+            </a>
+            <div class="imagePreviewContainer" {if not $announcement.image} style="display: none" {/if} tabindex="0" role="img" aria-label="{i18nText('announcement.imageUpload.label')}">
+                <img src="{$announcement.image ? $announcement.image : buildUrl('/images/blank.gif')}"
+                     class="imagePreview"
+                     alt="{i18nText('announcement.imageUpload.label')}" />
+            </div>
+            <p tabindex="0">
+                <a href="javascript:;">{i18nText('announcement.image.replace')}</a>
+            </p>
+        </div>
+        //Upgrade - Swissre theme migration
+        <div style="font-size:12px">
+          Do not attach / upload copyrighted information or business records. When in doubt consult the Ourspace Policy or contact somebody from Intellectual Property, Legal, Knowledge & Records or Compliance.</div>
+        </div>
+    </div>
+
+    <p class="j-form-row">
+        <label for="body">
+            {i18nText('announcement.body.text')}
+            <span class="jive-form-label-desc">{i18nText('announcement.body.text.desc')}</span>
+        </label>
+        <textarea id="body" class="js-body jive-form-textarea" rows="25" cols="80">{$announcement.content ? $announcement.content.text : ''}</textarea>
+    </p>
+    <p class="j-form-row">
+        <label for="publishDate">
+            {i18nText('announcement.activeDate.text')}{sp}
+            <a  href='#' class="tooltip" title="{i18nText('announcement.activeDate.tooltip', $timezoneOffset)}"
+                aria-label="{i18nText('announcement.activeDate.tooltip', $timezoneOffset)}">
+                <span class="jive-icon-glyph icon-info"></span>
+            </a>
+        </label>
+
+        {call jive.shared.form.datepicker}
+            {param id: 'publishDate' /}
+            {param className: 'js-publishDateCtrl' /}
+            {param name: 'publishDate' /}
+            {param value: parseDate($announcement.publishDate) /}
+            {param initialize: false /}
+            {param futureOnly: true /}
+        {/call}
+    </p>
+    <p class="j-form-row">
+        <label for="endDate">
+            {i18nText('announcement.expirationDate.text')}
+            <span>{i18nText('announcement.expirationDate.text.desc')}</span>
+        </label>
+        {call jive.shared.form.datepicker}
+            {param id: 'endDate' /}
+            {param className: 'js-endDateCtrl' /}
+            {param name: 'endDate' /}
+            {param value: parseDate($announcement.endDate) /}
+            {param initialize: false /}
+            {param futureOnly: true /}
+        {/call}
+    </p>
+    <div class="j-form-row">
+        <input type="checkbox" id="notification" class="js-notification" name="notification" {if $announcement.id}disabled="disabled"{else}checked="checked"{/if} />
+        <label for="notification">{i18nText('eae.inbox.send.inbox.notifications')}</label>
+//        TODO: i18n
+    </div>
+
+    <input type="hidden" name="hiddenPublishDate" class="js-publishDate" value="{parseDate($announcement.publishDate)}" />
+    <input type="hidden" name="hiddenEndDate" class="js-endDate" value="{parseDate($announcement.endDate)}" />
+
+    <div class="j-form-row js-save-cancel-buttons">
+        <button type="submit" name="save" value="save" class="j-btn-callout">{i18nText('announcement.saveButton.text')}</button>
+        <button type="button" name="cancel" value="{buildUrl('/')}">{i18nText('announcement.cancelButton.text')}</button>
+    </div>
+{/template}
+
+/**
+ * Image upload form.
+ *
+ * @param tokenName
+ * @param tokenValue
+ */
+{template .imageForm}
+    <form class="imageUploadForm" name="imageUpload" action="{buildUrl('/__services/v2/rest/rteImages')}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="dummyValue" value="dummy" /> //Necessary to work around an issue with CXF
+        <input type="hidden" name="jive.token.name" value="{$tokenName}" />
+        <input type="hidden" name="{$tokenName}" value="{$tokenValue}" />
+        <input type="hidden" name="objectId" value="-1" />
+        <input type="hidden" name="objectType" value="22" />
+        <input type="file" class="imageFileInput" name="imageFile" id="imageFileInput" aria-label="{i18nText('place.tile.hero_unit.config.select')}"/>
+    </form>
+{/template}

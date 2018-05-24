@@ -1,0 +1,86 @@
+{namespace jive.polls}
+
+/**
+ * Edit an existing poll.
+ *
+ * @depends path=/resources/scripts/apps/content/polls/create/main.js
+ *
+ * @param bean com.jivesoftware.community.content.polls.action.beans.EditPollActionBean
+ * @param templateView The model to render the page template.
+ */
+{template .edit}
+    {call jive.skin.template.main data="$templateView"}
+        {param title: i18nText('polls.edit_poll2.title', $bean.subject) /}
+        {param asyncLoadRTE: false/}
+        {param headContent}
+            {call jive.content.head/}
+            {call jive.shared.soy.resourceInlineJs}
+                    {param code}
+                        $j(function() {lb}
+                            new jive.content.polls.Main({lb}
+                                actionBean: {buildJson($bean)|noAutoescape},
+                                selector: '#edit-poll',
+                                edit: true
+                            {rb});
+
+                            require(['appContainer'], function(appContainer) {lb}
+                                appContainer.initEditContext({buildJson($bean)|noAutoescape});
+                            {rb});
+                        {rb});
+                    {/param}
+                {/call}
+        {/param}
+        {param bodyClass: 'jive-body-formpage jive-body-formpage-poll'/}
+        {param bodyContent}
+
+            <form class="j-form" novalidate method="post" name="edit-poll" id="edit-poll">
+
+
+                <div class="jive-edit-poll jive-create-large jive-content j-rc4">
+
+                    {call jive.content.moderationWarning/}
+                    
+                    {call jive.content.header}
+                        {param header: i18nText('polls.edit_poll2.title', $bean.subject) /}
+                        {param headerIcon: 'jive-icon-poll' /}
+                        {param containerContext: $bean.containerContextBean /}
+                    {/call}
+
+
+                        {call .dataPassthrough}
+                            {param bean: $bean/}
+                        {/call}
+
+                        {call jive.content.subject}
+                            {param subject: $bean.subject /}
+                            {param subjectLabel: i18nText('polls.title.label') /}
+                            {param required: i18nText('polls.enterAValidName.text') /}
+                        {/call}
+
+                        {call jive.content.editor}
+                            {param body: $bean.body /}
+                            {param bodyLabel: i18nText('polls.description.label') /}
+                        {/call}
+
+                        {call .pollOptions}
+                            {param minPollOptions: $bean.pollOptionsBean.minOptions /}
+                            {param maxPollOptions: $bean.pollOptionsBean.maxOptions /}
+                        {/call}
+
+                </div>
+
+                {call jive.publishbar.main data="$bean.publishBarViewBean" /}
+                // Swissre Theme migration
+                <div class="j-minor-edit">
+                    <b>Note</b>: You are currently editing a poll. No e-mail notifications will be sent for this update.
+                </div>				
+                {call jive.content.composebuttons}
+                    {param submitButton: i18nText('global.save') /}
+                    {param showDraftButton: false /}
+                {/call}
+
+            </form>
+        {/param}
+    {/call}
+{/template}
+

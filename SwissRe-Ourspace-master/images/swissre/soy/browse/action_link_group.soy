@@ -1,0 +1,51 @@
+{namespace jive.browse.actionlink}
+
+/**
+ * Renders a list of action links.
+ *
+ * @param visibleActionLinks a collection of links to display
+ * @param? titleKey an i18n key to be used as the title header for the links section (defaults to global.actions)
+ * @param? bodyKey an optional i18n key for body tobe displayed below the header
+ * @param? listID an optional ID for the list of links
+ *
+ * @depends template=jive.shared.soy.actionLink
+ */
+{template .actionLinkGroup}
+    {if ($visibleActionLinks) and length($visibleActionLinks) > 0}
+    <div class="j-box j-box-actions j-rc5"
+        aria-labelledby="action-box-header{if $listID}-{$listID}{/if}"
+        {if $bodyKey}aria-describedby="action-box-body{if $listID}-{$listID}{/if}"{/if}>
+        <header><h4 id="action-box-header{if $listID}-{$listID}{/if}">
+        {if $titleKey}
+            {i18nText($titleKey)}
+        {else}
+            {i18nText('global.actions')}
+        {/if}
+        </h4></header>
+        {if $bodyKey}
+            <div class="j-box-body" id="action-box-body{if $listID}-{$listID}{/if}">
+                <p>{i18nText($bodyKey)}</p>
+            </div>
+        {/if}
+        <div class="j-box-body j-rc4">
+            <ul class="j-icon-list j-actions-list" {if ($listID)}id="{$listID}"{/if}>
+                {foreach $actionLink in $visibleActionLinks}
+                    {if $actionLink.visible}
+                    <li>{call jive.shared.soy.actionLink data="$actionLink"/}</li>
+                    {/if}
+                {/foreach}
+            </ul>
+        </div>
+    </div>
+    {/if}
+     // To hide videos from jive 9 upgrade . Swiss re Theme customization.
+       <script>
+   var videoElement = document.getElementsByClassName("jive-icon-video");
+   for(var i = 0; i < videoElement.length; i++){lb}
+      if(videoElement.item(i).parentElement.parentNode!=null) {lb}
+   		   videoElement.item(i).parentElement.parentNode.style.display = "none" ;
+   		 {rb} 
+		{rb}
+  
+</script>
+{/template}

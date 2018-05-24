@@ -1,0 +1,297 @@
+{namespace jive.content}
+
+
+/**
+ * @param? title
+ */
+{template .head}
+    {if $title}<title>{$title}</title>{/if}
+    <link rel="stylesheet" href="{resourceUrl('/styles/jive-compose.css')}" type="text/css" media="all" />
+    <link rel="stylesheet" href="{resourceUrl('/styles/jive-content.css')}" type="text/css" media="all" />
+    <meta name="asyncLoadRTE" content="false" />
+{/template}
+
+/**
+ * Embed CSS links into FTL templates filtered through cssUrl() to determine RTL/LTR directionality
+ *
+ * @param cssPathName
+ * @param mediaTarget
+ */
+{template .ftlCss}
+    <link rel="stylesheet" href="{resourceUrl($cssPathName)}" type="text/css" media="{$mediaTarget}"/>
+{/template}
+
+/**
+ * @param header
+ * @param headerIcon
+ * @param? containerContext com.jivesoftware.community.content.action.beans.ContainerContextActionBean
+ */
+{template .header}
+    <header>
+        <h2>
+            <span class="jive-icon-big {$headerIcon}"></span>
+            {$header}
+            {if $containerContext}
+                {if $containerContext.displayDetails}
+                <span class="details">
+                    {sp}{i18nText('global.in')}{sp}
+                    {if $containerContext.displayContainerLink}
+                        <a href="{$containerContext.containerURL}">{$containerContext.containerName}</a>
+                    {else}
+                        {$containerContext.containerName}
+                    {/if}
+                </span>
+                {/if}
+            {/if}
+        </h2>
+    </header>
+{/template}
+
+/**
+ * Renders input elements for data items present in the bean which need to make it to the REST service
+ * back-end.
+ *
+ * @param bean concrete implementation of com.jivesoftware.community.content.action.beans.BaseContentActionBean
+ */
+{template .dataPassthrough}
+    <input type="hidden" name="mobileEditor" value="{$bean.mobileUI}" />
+    <input type="hidden" name="cancelURL" value="{$bean.cancelURL}" />
+    {if $bean.fromQuest}
+         <input type="hidden" name="fromQuest" value="{$bean.fromQuest}" />
+         {if $bean.questStep}
+             <input type="hidden" name="questStep" value="{$bean.questStep}" />
+         {/if}
+    {/if}
+    {call jive.shared.token.jiveToken}
+        {param tokenGUID: $bean.token /}
+        {param name: $bean.tokenName /}
+        {param isForm: true /}
+    {/call}
+{/template}
+
+/**
+ * @param body content for the wsysiwyg editor
+ * @param? required text for the required message
+ * @param? bodyLabel optional label text
+ * @param? id of the textarea
+ */
+{template .editor}
+    <div class="jive-editor-panel jive-large-editor-panel">
+        <label for="{if $id}{$id}{else}wysiwygtext{/if}" class="j-508-label">{if $bodyLabel}{$bodyLabel}{/if}</label>
+        <textarea id="{if $id}{$id}{else}wysiwygtext{/if}" {if $required}required data-required="{$required}" {/if}name="body" rows="15" cols="30" style="color: white;">{if $body}{$body}{/if}</textarea>
+    </div>
+    // Swissre Theme migration
+    <br><br>
+    <div style="font-size:12px">Do not attach / upload copyrighted information or business records. When in doubt consult the Ourspace Policy or contact somebody from Intellectual Property, Legal, Knowledge & Records or Compliance.</div>
+{/template}
+
+/**
+ * @param subject the subject value for the field
+ * @param required text for the required message
+ * @param? subjectLabel optional label text
+ * @param? placeHolder optional subject placeHolder
+ */
+{template .subject}
+    <div id="jive-compose-title" class="j-compose-title">
+        <label for="subject" class="j-508-label">{$placeHolder ? $placeHolder : $subjectLabel ? $subjectLabel : i18nText('global.subject')}</label>
+        <input type="text"
+                name="subject"
+                aria-required="true"
+                {if $required} required data-required="{$required}"{/if}
+                size="75"
+                maxlength="255"
+                id="subject"
+                autocomplete="off"
+                value="{if $subject}{$subject}{/if}"
+                placeholder="{$placeHolder ? $placeHolder : $subjectLabel ? $subjectLabel : i18nText('global.subject')}" />
+    </div>
+{/template}
+
+/**
+ * For error handling
+ *
+ * @param submitButton the value of the submit button element
+ * @param showDraftButton flag indicating that the "Save Draft" button should be rendered
+ * @param? disableSubmitButton if the submit button should be disabled on initial render
+ */
+{template .composebuttons}
+    <div class="jive-composebuttons">
+        <input type="hidden" id="draft" name="draft" value="false" /> // formal drafts
+        <button type="submit" id="submitButton" class="j-btn-callout" data-submit-id="publish" {if $disableSubmitButton}disabled{/if}>{$submitButton}</button>
+        {if $showDraftButton}
+            <button type="submit" id="draftButton" class="j-btn-global" data-submit-id="draft">{i18nText('doc.create.save_draft.button')}</button>
+        {/if}
+        <button type="submit" class="j-btn-global" data-submit-id="cancel" formmethod="POST" formaction="/cancel" formnovalidate formenctype="application/json">{i18nText('global.cancel')}</button>
+    </div>
+{/template}
+
+/**
+ *
+ */
+{template .progressbar}
+    /* upload progress meter for attachments */
+    <div id="progressBar">
+        <div>
+            <div id="progressBarText"></div>
+            <div id="progressBarBox"><div id="progressBarBoxContent"></div></div>
+        </div>
+    </div>
+{/template}
+
+/**
+ * @param userContextBean com.jivesoftware.community.content.action.beans.UserContextBean
+ */
+{template .guestinfo}
+    <div id="jive-compose-anonymous">
+        <div class="clearfix">
+            <h4><label for="name">{i18nText('global.name.colon')}</label></h4>
+            <input type="text" name="name" aria-required="true" required size="30" maxlength="75" id="name" value="{if $userContextBean.name}{$userContextBean.name}{/if}">
+
+            <h4><label for="email">{i18nText('global.email.colon')}</label></h4>
+            <input type="email" name="email" aria-required="true" required size="30" maxlength="75"  id="email" value="{if $userContextBean.email}{$userContextBean.email}{/if}">
+        </div>
+    </div>
+{/template}
+
+/**
+ *  @param? isMinorEdit
+ *  @depends template=jive.shared.soy.resourceInlineJs
+ */
+{template .minoredit}
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+            $j(function() {lb}
+           // Code to hide the minor edit checkbox for 1st version of the document goes here . During jive 9 upgrade.
+                $j(document).ready(function() {lb}
+                    var currentDocumentURL = window.location.href;
+                    if(currentDocumentURL.indexOf("edit") > -1 && currentDocumentURL.indexOf("DOC-") > -1 ) {lb}
+                        var newDocuemntURL = currentDocumentURL.slice(currentDocumentURL.indexOf('?') + 1).split('&');
+                        var params = newDocuemntURL[0].split("=");
+                        if(params[1]!=null) {lb}
+                        var docuemntIdAjaxUrl = document.location.origin+"/api/core/v3/contents?filter=entityDescriptor("+102+","+params[1]+")";
+                        var docuemntidData = JSON.parse(
+                            $j.ajax({lb}
+                                type: "GET",
+                                url: docuemntIdAjaxUrl,
+                                async: false
+                            {rb}).responseText.replace(/^throw [^;]*;/, '')
+                        );
+                        var contentID=(docuemntidData.list[0].contentID);
+                        var versionIdURL = document.location.origin+"/api/core/v3/versions/"+contentID;
+                        var versionsData = JSON.parse(
+                            $j.ajax({lb}
+                                type: "GET",
+                                url: versionIdURL,
+                                async: false
+                            {rb}).responseText.replace(/^throw [^;]*;/, '')
+                        );
+                        var documentStatus=(versionsData.list[0].status);
+                        var documentversion=(versionsData.list[0].versionNumber);
+                        {rb}
+                        if (documentversion==1 && documentStatus=="incomplete" ){lb}
+                            $j('.j-minor-edit').hide();
+
+                        {rb}
+                    {rb}
+                    if(currentDocumentURL.indexOf("blog/update-post.jspa") > -1){lb}
+                            $j('.j-minor-edit').hide();
+                    {rb}
+                {rb});
+            {rb});
+        {/param}
+    {/call}
+    <div class="j-minor-edit">
+        <input type="checkbox" name="minorEdit" value="true" id="jive-compose-minoredit"{if $isMinorEdit} checked="checked"{/if} />
+        <strong>
+            <label for="jive-compose-minoredit">{i18nText('doc.create.minor_edit.checkbox')}</label>
+        </strong>
+    </div>
+{/template}
+
+
+/**
+ *
+ */
+{template .moderationWarning}   
+
+     <div id="jive-moderation-box" class="jive-content-moderation-box" style="display:none;">
+        <span class="jive-icon-med jive-icon-warn"></span>{i18nText('mod.content.create')}
+     </div>
+
+{/template}
+
+/**
+ * Banner that notifies the user that the Finalized/Outdated outcomes will be removed if they edit this object.
+ * @param outcomes The outcomes for this object
+ * @param? user The effective user. The warning message will not be displayed when user is provided, and the outcome is a reserved/wip outcome, and that user is the user that created the outcome
+ */
+{template .outcomeRemovalWarning}
+    {foreach $outcome in $outcomes}
+        {if $outcome.outcomeTypeID == 2} //finalized
+            <div id="jive-unfinalize-box" class="jive-content-remove-outcome-warn-box">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('outcomes.warningBanner.finalized')}
+            </div>
+        {elseif $outcome.outcomeTypeID == 7} // outdated
+            <div id="jive-unoutdated-box" class="jive-content-remove-outcome-warn-box">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('outcomes.warningBanner.outdated')}
+            </div>
+        {elseif $outcome.outcomeTypeID == 8} // official
+            <div id="jive-unofficial-box" class="jive-content-remove-outcome-warn-box">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('outcomes.warningBanner.official')}
+            </div>
+        {elseif $outcome.outcomeTypeID == 9 and (not $user or ($user and $user.id and stringToInt($user.id) != $outcome.userID)) } // in progress
+            <div id="jive-unwip-box" class="jive-content-remove-outcome-warn-box">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('outcomes.warningBanner.wip')}
+            </div>
+        {/if}
+    {/foreach}
+{/template}
+
+/**
+ * Warnings to be displayed on Edit RTE's
+ * @param? extendedAuthors
+ */
+{template .rte_message}
+    {if $extendedAuthors}
+        <div class="j-rte-message">
+            <span class="jive-icon-med jive-icon-partner"></span>
+            <span class="font-color-meta-light j-browse-external-access">
+                <em>
+                   {call .extendedAuthors data="all"/}
+                </em>
+            </span>
+        </div>
+    {/if}
+{/template}
+
+/**
+ * Extended Share message
+ * @param objectId
+ * @param objectType
+ * @param type
+ *
+ * @depends path=/resources/scripts/apps/extendedinvitations/main.js
+ */
+{template .extendedAuthors}
+    {let $listText}
+         <a href="#" class="js-extended-authors j-extended-authors" data-objecttype="{$objectType}" data-objectid="{$objectId}">
+            {if $type == 'document'}
+                {i18nText('share.warn.document.extended.authors.people')}
+            {elseif $type == 'thread'}
+                {i18nText('share.warn.discussion.extended.authors.people')}
+            {else}
+                {i18nText('share.warn.content.extended.authors.people')}
+            {/if}
+        </a>
+    {/let}
+    {if $type == 'document'}
+        {i18nText('share.warn.document.extended.authors', SanitizedHtml($listText))}
+    {elseif $type == 'thread'}
+        {i18nText('share.warn.discussion.extended.authors', SanitizedHtml($listText))}
+    {else}
+        {i18nText('share.warn.content.extended.authors', SanitizedHtml($listText))}
+    {/if}
+{/template}
+
+
+

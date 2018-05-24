@@ -1,0 +1,32 @@
+[
+    {
+        "longitude": "105.023129",
+        "date": "Wednesday, February 28, 2018 5:58 PM",
+        "latitude": "68.122058",
+        "amount": "-526.08",
+        "company": "RENOVIZE",
+        "address": "972 Judge Street, Rushford, Washington, 1492",
+        "picture": "http://placehold.it/32x32",
+        "id": "5aafd4d31ca43cca66fa301e"
+    },
+    {
+        "longitude": "-89.212418",
+        "date": "Tuesday, September 26, 2017 8:38 PM",
+        "latitude": "-21.343339",
+        "amount": "193.80",
+        "company": "TUBESYS",
+        "address": "792 Middleton Street, Charco, Arizona, 9666",
+        "picture": "http://placehold.it/32x32",
+        "id": "5aafd4d35b79a63602234037"
+    },
+    {
+        "longitude": "159.716443",
+        "date": "Sunday, January 8, 2017 12:50 AM",
+        "latitude": "65.854208",
+        "amount": "419.74",
+        "company": "ZILLIDIUM",
+        "address": "390 Anthony Street, Highland, Pennsylvania, 1569",
+        "picture": "http://placehold.it/32x32",
+        "id": "5aafd4d3562801439b183023"
+    }
+]

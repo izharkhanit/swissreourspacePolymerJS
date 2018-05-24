@@ -1,0 +1,73 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="transaction-item.html">
+
+<dom-module id="transaction-list">
+  <template>
+    <style>
+      :host,
+      .lg-hidden {
+        display: block;
+      }
+
+      .transaction-item {
+        padding: 0em;
+      }
+
+      /* desktop */
+
+      @media (min-width: 799px) {
+        .lg-hidden {
+          display: none;
+        }
+      }
+    </style>
+    <paper-listbox on-iron-select="_onTransactionSelect">
+      <template is="dom-repeat" items="[[_transactions]]" as="transaction">
+        <transaction-item class="transaction-item" transaction-id="[[transaction.id]]" selected-transaction={{_selectedTransaction}}
+          longitude="[[transaction.longitude]]" date="[[transaction.date]]" latitude="[[transaction.latitude]]" amount="[[transaction.amount]]"
+          company="[[transaction.company]]" address="[[transaction.address]]" picture="[[transaction.picture]]"></transaction-item>
+      </template>
+    </paper-listbox>
+    <iron-ajax id="transactionApi" url=[[apiUrl]] handle-as="json" last-response={{_transactions}} debounce-duration="300"></iron-ajax>
+  </template>
+  <script>
+    /**
+     * `transaction-list`
+     * A simple polymer component using paper-item to show list of transaction for specific account
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class TransactionList extends Polymer.Element {
+      static get is() { return 'transaction-list'; }
+      static get properties() {
+        return {
+          _transactions: {
+            type: Array,
+            notify: true
+          },
+          apiUrl: {
+            type: String,
+            notify: true,
+            observer: '_onTransactionApiUrlChanged'
+          },
+          _selectedTransaction: {
+            type: Object,
+            notify: true
+          }
+        };
+      }
+      _onTransactionApiUrlChanged(newValue, oldValue) {
+        this.$.transactionApi.generateRequest();
+      }
+      _onTransactionSelect(ironSelectEvent) {
+        this.set('_selectedTransaction', ironSelectEvent.detail.item.__data);
+      }
+    }
+    window.customElements.define(TransactionList.is, TransactionList);
+  </script>
+</dom-module>

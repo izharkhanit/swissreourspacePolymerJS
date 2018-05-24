@@ -1,0 +1,276 @@
+{namespace jive.places}
+
+/**
+* Renders the page for "my places".
+*
+* @param? canonicalUrl the canonical url of this page
+* @param? nextUrl the next paginated url for this page
+* @param? previousUrl the previous paginated url of this page
+* @param subNavLinks Links to display as subnavigation for the browse view.
+* @param templateView The model to render the page template.
+*/
+{template .main}
+    {call jive.skin.template.main data="$templateView"}
+         {param title}
+             {i18nText('global.browse')} - {i18nText('browse.places.all.title')}
+         {/param}
+         {param canonicalUrl: $canonicalUrl/}
+         {param nextUrl : $nextUrl/}
+         {param previousUrl : $previousUrl/}
+         {param bodyClass: 'j-body-yourplaces'/}
+         {param bodyContent}
+             {call jive.nav.browseSubNav}
+                 {param links: $subNavLinks/}
+        {param labelHtml: i18nText('browse.places.subnav.label') /}
+                 {param selectedLinkID: 'jive-nav-link-places'/}
+             {/call}
+             <header class="j-page-header"></header>
+            {call .body data="all"/}
+         {/param}
+         {param selectedLinkID: 'jive-nav-link-places'/}
+    {/call}
+{/template}
+
+/**
+* Renders the content section for "my places".
+*
+* @param browseViewID A unique name for this browse view.
+* @param archetypeID The ID of the archetype associated with this browse view.
+* @param itemsView An {@link ItemsViewBean} object which has associated items.
+* @param filterGroup A {@link FilterGroupBean} object with nested filters.
+* @param targetUserID The userID of the items being displayed.
+* @param parentID The parent container id.
+* @param? layoutClass An optional class passed to the layout div element
+* @param urlParams map of query parameters for the last request
+* @param urlPath path for the last request
+* @param? viewingSelf Whether or not the current user is viewing their own information
+* @param? guest Whether or not the current user is the guest user
+* @param? targetUserName The target user's name.
+* @param? accountCreationEnabled Whether or not account creation is enabled
+* @param? validationEnabled Whether or not account validation is enabled
+* @param? fromQuest The request is part of a quest
+* @param? questStep The current quest step
+*
+* @depends path=/resources/scripts/apps/browse/user/model/user_source.js
+* @depends path=/resources/scripts/apps/browse/container/model/container_source.js
+* @depends path=/resources/scripts/apps/filters/main.js
+* @depends path=/resources/scripts/apps/filters/recommended_content.js
+* @depends path=/resources/scripts/apps/filters/hierarchical_content.js
+* @depends path=/resources/scripts/apps/filters/following.js
+* @depends path=/resources/scripts/apps/filters/membership.js
+* @depends path=/resources/scripts/apps/socialgroup/membership/main.js
+* @depends path=/resources/scripts/apps/socialgroup/membership/views/membership_view.js
+* @depends path=/resources/scripts/apps/socialgroup/membership/models/membership_source.js
+* @depends path=/resources/scripts/apps/filters/recommended_content.js
+* @depends path=/resources/scripts/apps/filters/activity_time_pagination.js
+* @depends path=/resources/scripts/apps/navbar/menu/create/create_quick.js
+* @depends path=/resources/scripts/apps/browse/activity/info/main.js
+* @depends template=jive.shared.soy.paginationLinks
+* @depends template=jive.guest.page.loginTip
+* @depends template=jive.places.noResults
+*
+* @allowDependsWildcard
+*
+* @depends i18nKeys=sgroup.form.type.*
+*/
+{template .body}
+
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+        $j(document).ready(
+            function() {lb}
+                var filterApp = new (jive.oo.compose(
+                    jive.Filters.Main,
+                    jive.Filters.RecommendedContent,
+                    jive.Filters.ActivityTimePagination,
+                    jive.Filters.HierarchicalContent,
+                    jive.Filters.Following,
+                    jive.Filters.Membership
+                ))({lb}
+                    itemSource: new jive.Browse.Container.ItemSource(),
+                    userPrefSource: new jive.Browse.User.ItemSource(),
+                    guest: {$guest},
+                    targetUserID: '{$targetUserID}',
+                    browseViewID: '{$browseViewID |escapeJs}',
+                    archetypeID: '{$archetypeID |escapeJs}',
+                    {if $fromQuest}
+                    fromQuest: '{$fromQuest}',
+                    questStep: '{$questStep}',
+                    {/if}
+                    filterGroup: {buildJson($filterGroup) |noAutoescape},
+                    itemViewID: '{$itemsView.itemViewID |escapeJs}',
+                    numResults: {length($itemsView.items) |escapeJs},
+                    pageSize: {$itemsView.pageSize |escapeJs},
+                    pageNumber: {$itemsView.pageNumber |escapeJs},
+                    paginationStrategy: '{$itemsView.paginationStrategy |escapeJs}',
+                    activityTime: {if ($itemsView.activityTime)}{$itemsView.activityTime |escapeJs}{else}0{/if},
+                    token: '{$itemsView.token}',
+                    recommenderType: 'places',
+                    noResultTemplateConfig: {lb}
+                        templateName: 'jive.places.noResults',
+                        data: {lb}
+                            filterIDs: {buildJson($filterGroup.appliedFilterIDs)|noAutoescape},
+                            viewingSelf: {$viewingSelf},
+                            targetUserName: '{$targetUserName}'
+                        {rb}
+                    {rb}
+                {rb});
+                var jiveFollow = new jive.FollowApp.Main({lb}
+                    i18n:null
+                {rb});
+                var jiveMembership = new jive.MembershipApp.Main({lb}{rb});
+                var createQuick = new jive.Navbar.Menu.CreateQuick.Main('#places-action-links a.js-createmenu-containerchooser');
+            {rb});
+             {/param}
+                 {/call}
+
+                <!-- BEGIN main body -->
+                <div class="j-layout j-layout-sl clearfix {if $layoutClass}{$layoutClass}{/if} j-rc5">
+                    <div class="j-colum-wrap-s">
+                        <div class="j-column j-column-s">
+
+                            {call jive.browse.filter.filterGroup data="$filterGroup"}
+                                {param urlPath: $urlPath /}
+                            {/call}
+
+                            {call jive.browse.actionlink.actionLinkGroup data="all" }
+                                {param titleKey}browse.places.links.title{/param}
+                                {param bodyKey}browse.places.links.body{/param}
+                                {param listID}places-action-links{/param}
+                            {/call}
+
+                        </div>
+                    </div>
+                    <div class="j-column-wrap-l">
+                        <div class="j-column j-column-l j-rc5">
+
+                         <!-- Display guest tip if unauthenticated -->
+                        {if ($guest)}
+                            {call jive.guest.page.loginTip}
+                                {param i18nKey}browse.guesttip.places{/param}
+                                {param accountCreationEnabled: $accountCreationEnabled/}
+                                {param validationEnabled: $validationEnabled/}
+                            {/call}
+                        {/if}
+
+                            {call jive.browse.filter.filters data="$filterGroup"}
+                                {param itemsView: $itemsView /}
+                                {param urlParams: $urlParams /}
+                                {param urlPath: $urlPath /}
+                                {param hideFilterGroup: $filterGroup.defaultRecommended /}
+                            {/call}
+                            <div id="parent-space-message" class="j-browse-places-parentmessage clearfix j-rc4" {if $parentID == 0 or $itemsView.itemViewID == 'hierarchy'}style="display: none;"{/if}>
+                                {call .parentChain data="$itemsView"/}
+                            </div>
+
+                <div id="j-browse-item-grid" class="j-box-body" role="main" aria-label="{i18nText('browse.filter.grid')}">
+                                {call jive.browse.grid.itemGrid data="$itemsView"}
+                                    {param browseViewID: $browseViewID/}
+                                    {param archetypeID: $archetypeID/}
+                                    {param noResultTemplateConfig: ['templateName': 'jive.places.noResults', 'data': ['filterIDs': $filterGroup.appliedFilterIDs, 'targetUserName': $targetUserName, 'viewingSelf' : $viewingSelf]]/}
+                                {/call}
+                            </div>
+
+                            {call jive.browse.grid.moreSearchResultsAvailableHolder data="$itemsView"/}
+
+                            <div class="j-browse-filter-row j-bottom-row j-rc4">
+                                {call jive.shared.soy.paginationLinks}
+                                    {param current: $itemsView.pageNumber /}
+                                    {param max: $itemsView.pageNumber + ($itemsView.hasNext ? 1 : 0) /}
+                                    {param pageSize: $itemsView.pageSize /}
+                                    {param urlParams: $urlParams /}
+                                    {param urlPath: $urlPath /}
+                                {/call}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+             </div>
+             <!-- END main body -->
+{/template}
+
+/**
+* displays content if there are no item results
+* @param? filterIDs the currently selected filterIDs
+* @param? targetUserName The target user's name.
+* @param? viewingSelf Whether or not the current user is viewing their own information
+*/
+{template .noResults}
+    <div class="j-browse-info j-empty font-color-meta clearfix">
+        {if $viewingSelf}
+            {if $filterIDs and length($filterIDs) == 1}{/if}/*delete this if statement as it is only here so soy doesn't break because of unused params*/
+        /*Uncomment the following if statements to allow for conditional no result displays by filter*/
+            /*{if $filterIDs and length($filterIDs) == 1}
+                {if $filterIDs[0] == 'all'}
+                    ALL VIEW - Nothing exists in the system
+                {elseif $filterIDs[0] == 'following'}
+                    FOLLOWING VIEW - You aren't following anything.
+                {elseif $filterIDs[0] == 'member'}
+                    MEMBER VIEW - you haven't joined any groups
+                {elseif $filterIDs[0] == 'owner'}
+                    OWNER VIEW - you haven't created any groups.
+                {elseif $filterIDs[0] == 'historyarchetype[containers]'}
+                    HISTORY VIEW - you haven't viewed any containers.
+                {else}
+                    DEFAULT VIEW - Fallback empty top level filter
+                {/if}
+            {else}*/
+				<span class="j-empty-doc"></span>
+			    <h3 class="font-face-deco">{i18nText('browse.places.empty.header')}</h3>
+			    <p>{i18nText('browse.places.empty.message')}</p>
+            /*{/if}*/
+        {elseif $targetUserName}
+            {i18nText('profile.places.nofollow.label', $targetUserName)}
+            {sp}<a href="#" >{i18nText('browse.places.link')}</a>
+        {/if}
+    </div>
+{/template}
+
+/**
+*  Build a parent chain.
+*
+* @param parentItemChain A chain of parent item beans, starting with the specified community or root if none specified.
+* @param? startID The ID of the community to start at.
+* @param? startType The type of the community to start at.
+**/
+{template .parentChain}
+    {if $parentItemChain}
+        {if length($parentItemChain) > 0}
+        	<p class="font-color-meta">{i18nText('browse.places.viewing.subspaces')}</p>
+        {/if}
+        <ul class="clearfix">
+        {if ($startID and $startType)}
+            {foreach $parent in $parentItemChain}
+                {if ($startID == $parent.id and $startType == $parent.type)}
+                    {call .parentChainInner data="all"}
+                        {param startIndex: index($parent)/}
+                    {/call}
+                {/if}
+            {/foreach}
+        {else}
+            {call .parentChainInner data="all"}
+                {param startIndex: 0/}
+            {/call}
+        {/if}
+        </ul>
+    {/if}
+{/template}
+
+/**
+*  Parent chain inner loop.
+*
+* @param parentItemChain A chain of parent item beans, starting at a specified index.
+* @param? startIndex The ID of the community to start at.
+**/
+{template .parentChainInner}
+    {foreach $parent in $parentItemChain}
+        {if index($parent) >= $startIndex}
+        <li>{if not isLast($parent)}<a href="#" class="up-to-parent-space" data-object-type="{$parent.type}" data-object-id="{$parent.id}">{/if}
+            <span><span id="parent-space-name">{$parent.subject}</span></span>
+            {if not isLast($parent)}</a><span class="parent-space-name-separator font-color-meta-light">&raquo;</span>{/if}
+        </li>
+        {/if}
+    {/foreach}
+{/template}

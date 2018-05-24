@@ -1,0 +1,816 @@
+{namespace jive.preferences autoescape="contextual"}
+
+/**
+ * The general user preferences form
+ *
+ * @depends template=jive.shared.token.jiveToken
+ * @depends path=/resources/scripts/apps/userprefs/general/generalPrefsMain.js
+ *
+ * @param data - templateData
+ *
+ * @depends i18nKeys=settings.watch_description.text
+ * @depends i18nKeys=settings.changeWatchEmail.text
+ */
+{template .generalPreferences}
+
+    {call jive.shared.soy.resourceInlineJs}
+        {param code}
+
+            {if $data.multipleLanguageSearchEnabled}
+                var userSystemDefaultSearchLanguage = '{$data.userSystemDefaultSearchLang}';
+            {/if}
+
+            function addLocale(language, code, displayName) {lb}
+                if (!locales[language]) {lb}
+                    locales[language] = new Array();
+                {rb}
+                var localesList = locales[language];
+                localesList[localesList.length] = new Locale(code,displayName);
+            {rb}
+
+            function Locale(code, displayName) {lb}
+                this.code = code;
+                this.displayName = displayName;
+            {rb}
+
+            require([
+                'jquery',
+                'apps/profile/preferences/preferences_controller',
+                'apps/userprefs/general/generalPrefsMain',
+            ], function($j, ProfilePreferencesController) {lb}
+                $j('#jive-userLanguage').bind('change',function(e) {lb}
+                    $j('#jive-userLocale').empty();
+                    if (e.target.value == 'NO_LANGUAGE') {lb}
+                        $j('#jive-userLocale').append('<option value="NO_LOCALE" selected="selected">--------</option>');
+                    {rb}
+                    else {lb}
+                        var localeList = locales[e.target.value];
+                        for (var i = 0; i< localeList.length; i++) {lb}
+                            var locale = localeList[i];
+                            $j('#jive-userLocale').append('<option value="' + locale.code + '">' + locale.displayName + '</option>');
+                        {rb}
+                    {rb}
+                {rb});
+
+                {if $data.multipleLanguageSearchEnabled}
+                    $j('#jive-searchSelectLanguage').bind('click', function(e) {lb}
+                        var checked = $j('#jive-searchSelectLanguage').prop('checked');
+                        if (checked) {lb}
+                            $j('#jive-searchLanguageDefault').prop('disabled', false);
+                        {rb} else {lb}
+                            $j('#jive-searchLanguageDefault').prop('disabled', true);
+                            $j('#jive-searchLanguageDefault').val(userSystemDefaultSearchLanguage);
+                        {rb}
+                    {rb});
+                {/if}
+
+                $j('#jive-userLanguage').trigger('change'); // force event to populate locale drop down
+                {if $data.isUserLocaleSet}
+                    $j('#jive-userLocale').find('option[value="{$data.userLocale}"]').prop('selected', true);
+                {/if}
+
+                jive.ProfilePreferences.GlobalController = new ProfilePreferencesController();
+            {rb});
+
+            var locales = new Object();
+
+            {foreach $theLocale in $data.locales}
+                addLocale("{$theLocale.values['language']}", "{$theLocale.id}", "{$theLocale.values['displayCode']}");
+            {/foreach}
+        {/param}
+    {/call}
+
+    {call jive.error.form.actionErrors}
+        {param fieldErrors:$data.fieldErrors /}
+        {param actionErrors:$data.actionErrors /}
+        {param actionMessages:$data.actionMessages /}
+    {/call}
+
+    <form class="j-form" action="{buildUrl($data.actionURL)|noAutoescape}" method="post" name="settingsform">
+        {if $data.canToggleMobilePrefs}
+            <input type='hidden' id='mobileConfigured'>
+        {/if}
+
+        {call jive.shared.token.jiveToken}
+            {param tokenGUID:$data.jiveTokenGUID /}
+            {param name:$data.jiveTokenName /}
+            {param isForm:true /}
+        {/call}
+
+            <section class="j-form-multirow">
+                <header>
+                    {i18nText('settings.watch.notification.header')}
+                    <span class="font-color-meta-light">{i18nText('settings.watch.notification.header.subtext')}</span>
+                </header>
+
+
+    //Toggle all notification preferences
+                <fieldset class="j-form-row clearfix j-pref-notif-global-toggle">
+                    <div class="clearfix">
+                        <div class="j-pref-label">
+                            <legend>
+                                {i18nText('settings.notifications.receiveNotifications.label')}
+                            </legend>
+                        </div>
+
+                        <ul class="j-form-group j-form-group-toggle" aria-label="{i18nText('settings.email.receiveEmail.label')}">
+                            <li>
+                                <input type="radio" name="receiveNotifications" value="true" id="email_global_on"
+                                    {if $data.receiveNotifications}checked="checked"{/if}>
+                                <label for="email_global_on" class="j-form-label-special" aria-label="{i18nText('settings.email.receiveEmail.yes')}">
+                                    {i18nText('settings.email.receiveEmail.yes')}
+                                </label>
+                            </li>
+                            <li>
+                                <input type="radio" name="receiveNotifications" value="false" id="email_global_off"
+                                    {if not $data.receiveNotifications}checked="checked"{/if}>
+                                <label for="email_global_off" class="j-form-label-special" aria-label="{i18nText('settings.email.receiveEmail.no')}">
+                                    {i18nText('settings.email.receiveEmail.no')}
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    {if not $data.canToggleMobilePrefs}
+                        <div class="j-prefs-getmobile font-color-okay clearfix">
+                            <p>
+                                <i class="jive-icon-glyph icon-mobile"></i>{sp}
+                                {i18nText('prefs.mobile.activate.settings')}{sp}
+                                {i18nText('prefs.mobile.activate.applinks')}
+                            </p>
+                        </div>
+                    {/if}
+                </fieldset>
+
+                {if $data.notificationsEnabled}
+
+                {if $data.publicationStreams}
+                    {foreach $stream in $data.publicationStreams}
+
+                    <fieldset class="j-form-row j-prefs-news-notification-toggles j-prefs-notification-toggles clearfix">
+                        <div class="j-pref-label">
+                            <legend>
+                                <i class="jive-icon-glyph icon-newspaper" role="img"></i> {i18nText('settings.watch.news.stream.label')}: <span class="j-pref-label-news-stream">{$stream.name}</span>
+                            </legend>
+                        </div>
+
+                            <ul class="j-form-group j-form-group-toggle"
+                                {call jive.preferences.streamPrefAccessibleLabelText }
+                                    {param streamName:$stream.name /}
+                                    {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                    {param streamDescKey:$stream.descriptionKey /}
+                                {/call}
+                        >
+
+                            <li>
+                                <input  type="checkbox" id="mobile_{$stream.id}_on"
+                                        disabled="disabled" alt="{i18nText('prefs.mobile.activate.settings')}"
+                                    {if $stream.receiveMobile}checked="checked" data-orig-checked="true"{/if}
+                                    >
+                                <label for="mobile_{$stream.id}_on" class="j-form-label-special j-pref-label-notif-toggle setting-disabled"
+                                    {call jive.preferences.streamPrefAccessibleLabelText }
+                                        {param streamName:$stream.name /}
+                                        {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                        {param streamDescKey:$stream.descriptionKey /}
+                                        {param i18nModifierKey:'prefs.option.switch.on' /}
+                                    {/call}
+                                    title="{i18nText('prefs.mobile.activate.settings')}"
+                                >
+                                    <i class="jive-icon-glyph icon-mobile" role="img"></i>{sp}{i18nText('prefs.mobile.link')}
+                                </label>
+                            </li>
+
+                            <li>
+                                <input type="checkbox" disabled="disabled" id="email_{$stream.id}_on"
+                                    {if $stream.receiveEmails}checked="checked" data-orig-checked="true"{/if}
+                                    >
+                                <label for="email_{$stream.id}_on"
+                                    class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle setting-disabled"
+                                    {call jive.preferences.streamPrefAccessibleLabelText }
+                                        {param streamName:$stream.name /}
+                                        {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                        {param streamDescKey:$stream.descriptionKey /}
+                                        {param i18nModifierKey:'prefs.option.switch.on' /}
+                                    {/call}
+                                >
+                                    <i class="jive-icon-glyph icon-email" role="img"></i>{sp}{i18nText('global.email')}
+                                </label>
+                            </li>
+                        </ul>
+                    </fieldset>
+                    {/foreach}
+                {/if}
+
+                {foreach $stream in $data.streams}
+
+                    <fieldset class="j-form-row clearfix j-prefs-notification-toggles">
+                        <div class="j-pref-label">
+                            <legend>
+                                {$stream.name}
+                            </legend>
+                            <span class="jive-description font-color-meta-light">
+                                {if $stream.descriptionKey}
+                                    {i18nText($stream.descriptionKey)}
+                                {else}
+                                    {i18nText('settings.watch.custom.label')}
+                                {/if}
+                            </span>
+                        </div>
+
+                        <ul class="j-form-group j-form-group-toggle"
+                                {call jive.preferences.streamPrefAccessibleLabelText }
+                                    {param streamName:$stream.name /}
+                                    {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                    {param streamDescKey:$stream.descriptionKey /}
+                                {/call}
+                        >
+                            // eae-constants StreamConstants.java
+                            {if $stream.id != 4}
+                                <li>
+                                    <input type="checkbox" name="mobilePreferences['{$stream.id}']" value="true" id="mobile_{$stream.id}_on"
+                                        {if not $data.canToggleMobilePrefs} disabled=disabled alt="{i18nText('prefs.mobile.activate.settings')}" {/if}
+                                        {if $stream.receiveMobile}checked="checked" data-orig-checked="true"{/if}
+                                  >
+                                    <label for="mobile_{$stream.id}_on" class="j-form-label-special j-pref-label-notif-toggle{if not $data.canToggleMobilePrefs} setting-disabled {/if}"
+                                           {call jive.preferences.streamPrefAccessibleLabelText }
+                                           {param streamName:$stream.name /}
+                                            {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                            {param streamDescKey:$stream.descriptionKey /}
+                                            {param i18nModifierKey:'prefs.option.switch.on' /}
+                                    {/call}
+                                    {if not $data.canToggleMobilePrefs} title="{i18nText('prefs.mobile.activate.settings')}" {/if}
+                                    >
+                                     <i class="jive-icon-glyph icon-mobile" role="img"></i>{sp}{i18nText('prefs.mobile.link')}
+                                    </label>
+                                </li>
+                            {/if}
+                            <li>
+                                <input type="checkbox" name="emailPreferences['{$stream.id}']" value="true" id="email_{$stream.id}_on"
+                                       {if $stream.receiveEmails}checked="checked" data-orig-checked="true"{/if}
+                                       {if not $data.receiveNotifications} disabled="disabled"{/if}
+                                >
+                                <label for="email_{$stream.id}_on"
+                                    class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle  {if not $data.receiveNotifications}setting-disabled{/if}"
+                                       {call jive.preferences.streamPrefAccessibleLabelText }
+                                       {param streamName:$stream.name /}
+                                {param defaultStreamDescKey: 'settings.watch.custom.label' /}
+                                {param streamDescKey:$stream.descriptionKey /}
+                                {param i18nModifierKey:'prefs.option.switch.on' /}
+                                {/call}
+                                >
+                                <i class="jive-icon-glyph icon-email" role="img"></i>{sp}{i18nText('global.email')}
+                                </label>
+                            </li>
+                        </ul>
+                        // eae-constants StreamConstants.java
+                        {if $data.canToggleMobilePrefs and $stream.id != 4}
+                        <input type="hidden" name="mobilePreferences['{$stream.id}']" value="false" id="mobile_{$stream.id}_mobile_disabled"
+                               {if $data.receiveMobile}disabled="disabled"{/if} />
+                        {/if}
+                        <input type="hidden" name="emailPreferences['{$stream.id}']" value="false" id="email_{$stream.id}_email_disabled"
+                               {if $data.receiveNotifications}disabled="disabled"{/if} />
+                    </fieldset>
+                    {if $stream.source == 'communications'}
+                        <fieldset class="j-form-row clearfix j-prefs-notification-toggles j-prefs-sub-toggles">
+                            <div class="j-pref-label">
+                                <legend>
+                                    {i18nText('settings.watch.inbox.label')}: {i18nText('settings.watch.direct.title')}
+                                </legend>
+                                <span class="jive-description font-color-meta-light">
+                                    {i18nText('settings.watch.direct.label')}
+                                </span>
+                            </div>
+
+                            <ul class="j-form-group j-form-group-toggle"
+                                {call jive.preferences.streamPrefAccessibleLabelText }
+                                    {param streamName}{i18nText('eae.streams.communications')}{/param}
+                                    {param defaultStreamDescKey: 'settings.watch.direct.label' /}
+                                    {param i18nModifierKey:'prefs.option.switch.on' /}
+                                {/call}
+                            >
+                                <li>
+                                    <input type="checkbox" name="emailPreferences['directActions']" value="true" id="email_notify_direct_on"
+                                           {if $data.notifyDirectActionsEmail}checked="checked" data-orig-checked="true"{/if}
+                                           {if not $data.receiveNotifications} disabled="disabled"{/if}
+                                    >
+                                    <label for="email_notify_direct_on"
+                                        class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle {if not $data.receiveNotifications}setting-disabled{/if}"
+                                           {call jive.preferences.streamPrefAccessibleLabelText }
+                                           {param streamName}{i18nText('eae.streams.communications')}{/param}
+                                    {param defaultStreamDescKey: 'settings.watch.direct.label' /}
+                                    {param i18nModifierKey:'prefs.option.switch.on' /}
+                                    {/call}
+                                    >
+                                        <i class="jive-icon-glyph icon-email" role="img"></i>{sp}{i18nText('global.email')}
+                                    </label>
+                                </li>
+                            </ul>
+                            {if $data.canToggleMobilePrefs}
+                            <input type="hidden" name="mobilePreferences['directActions']" value="false" id="mobile_notify_direct_mobile_disabled"
+                                   {if $data.receiveMobile}disabled="disabled"{/if} />
+                            {/if}
+                            <input type="hidden" name="emailPreferences['directActions']" value="false" id="email_notify_direct_email_disabled"
+                                   {if $data.receiveNotifications}disabled="disabled"{/if} />
+                        </fieldset>
+
+                        <fieldset class="j-form-row clearfix j-prefs-notification-toggles j-prefs-sub-toggles">
+                            <div class="j-pref-label">
+                                <legend>
+                                    {i18nText('settings.watch.inbox.label')}: {i18nText('settings.watch.inbox.notify.title')}
+                                </legend>
+                                <span class="jive-description font-color-meta-light">
+                                    {i18nText('settings.watch.inbox.notify.label')}
+                                </span>
+                            </div>
+
+                            <ul class="j-form-group j-form-group-toggle"
+                                {call jive.preferences.streamPrefAccessibleLabelText }
+                                    {param streamName}{i18nText('eae.header.text.actions')}{/param}
+                                    {param defaultStreamDescKey: 'settings.watch.inbox.notify.label' /}
+                                {/call}
+                            >
+                                <li>
+                                    <input type="checkbox" name="emailPreferences['inbox']" value="true" id="email_inbox_notifications_on"
+                                           {if $data.notifyInboxEmail}checked="checked"{/if}
+                                           {if not $data.receiveNotifications} disabled="disabled"{/if}
+                                 >
+                                    <label for="email_inbox_notifications_on"
+                                        class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle {if not $data.receiveNotifications}setting-disabled{/if}"
+                                           {call jive.preferences.streamPrefAccessibleLabelText }
+                                           {param streamName}{i18nText('eae.header.text.actions')}{/param}
+                                    {param defaultStreamDescKey: 'settings.watch.inbox.notify.label' /}
+                                    {param i18nModifierKey:'prefs.option.switch.on' /}
+                                    {/call}
+                                    >
+                                    <i class="jive-icon-glyph icon-email" role="img"></i>{sp}{i18nText('global.email')}
+                                    </label>
+                                </li>
+                            </ul>
+                            {if $data.canToggleMobilePrefs}
+                            <input type="hidden" name="mobilePreferences['inbox']" value="false" id="mobile_inbox_notifications_mobile_disabled"
+                                   {if $data.receiveMobile}disabled="disabled"{/if} />
+                            {/if}
+                            <input type="hidden" name="emailPreferences['inbox']" value="false" id="email_inbox_notifications_email_disabled"
+                                {if $data.receiveNotifications}disabled="disabled"{/if} />
+                        </fieldset>
+
+                        <fieldset class="j-form-row clearfix j-prefs-notification-toggles j-prefs-sub-toggles">
+                            <div class="j-pref-label">
+                                <legend>
+                                    {i18nText('settings.watch.inbox.label')}: {i18nText('eae.header.text.moderation')}
+                                </legend>
+                                <span class="jive-description font-color-meta-light">
+                                    {i18nText('settings.watch.moderation.label')}
+                                </span>
+                            </div>
+
+                            <ul class="j-form-group j-form-group-toggle"
+                                {call jive.preferences.streamPrefAccessibleLabelText }
+                                    {param streamName}{i18nText('eae.header.text.moderation')}{/param}
+                                    {param defaultStreamDescKey: 'settings.watch.moderation.label' /}
+                                {/call}
+
+                            >
+                                <li>
+                                    <input type="checkbox" name="emailPreferences['moderationQueue']" value="true" id="email_moderation_on"
+                                           {if $data.notifyModerationQueueEmail}checked="checked"{/if}
+                                           {if not $data.receiveNotifications} disabled="disabled"{/if}
+                                    >
+                                    <label for="email_moderation_on"
+                                        class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle {if not $data.receiveNotifications}setting-disabled{/if}"
+                                            {call jive.preferences.streamPrefAccessibleLabelText }
+                                                {param streamName}{i18nText('eae.header.text.moderation')}{/param}
+                                                {param defaultStreamDescKey: 'settings.watch.moderation.label' /}
+                                                {param i18nModifierKey:'prefs.option.switch.on' /}
+                                            {/call}
+                                    >
+                                        <i class="jive-icon-glyph icon-email" role="img"></i>{sp}{i18nText('global.email')}
+                                    </label>
+                                </li>
+                            </ul>
+                            <input type="hidden" name="mobilePreferences['moderationQueue']" value="false" id="mobile_moderation_disabled"
+                                {if $data.receiveMobile}disabled="disabled"{/if} />
+                            <input type="hidden" name="emailPreferences['moderationQueue']" value="false" id="email_moderation_disabled"
+                                {if $data.receiveEmails or not $data.receiveNotifications} disabled="disabled"{/if}
+                                />
+                        </fieldset>
+                    {/if} <!-- communications stream end -->
+                {/foreach}
+
+                {else}
+                    <div class="j-form-row clearfix">
+                        <span class="jive-description">
+                            {i18nText('settings.watch_prefs.disabled')}
+                        </span>
+                    </div>
+                {/if}
+
+                {if $data.digestEmailEnabled}
+                <fieldset class="j-form-row clearfix j-prefs-notification-toggles">
+                    <div class="j-pref-label" id="settings-digest-freq-label">
+                        <legend>
+                            {i18nText('settings.watch.content.label')}
+                        </legend>
+                        <span class="jive-description font-color-meta-light" id="settings-digest-freq-descriptor">
+                            {i18nText('settings.watch.content.label.subtext')}
+                        </span>
+                    </div>
+                    <ul class="j-form-group j-form-group-list" aria-labelledby="settings-digest-freq-label" aria-describedby="settings-digest-freq-descriptor">
+                        <li class="clearfix">
+                            <input type="radio" name="emailFrequencyOption" value="{$data.digestWeeklyValue}" id="ed_weekly"
+                                {if $data.isDigestWeekly}checked="checked"{/if}
+                                {if not $data.receiveNotifications}disabled="disabled"{/if}>
+                            <label for="ed_weekly" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle" aria-label="{i18nText('settings.watch.content.label')} {i18nText('settings.digest.weekly')}">
+                                {i18nText('settings.digest.weekly')}
+                            </label>
+                        </li>
+                        <li class="clearfix">
+                            <input type="radio" name="emailFrequencyOption" value="{$data.digestSemiWeeklyValue}" id="ed_semiweekly"
+                                {if $data.isDigestSemiWeekly}checked="checked"{/if}
+                                {if not $data.receiveNotifications}disabled="disabled"{/if}>
+                            <label for="ed_semiweekly" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle" aria-label="{i18nText('settings.watch.content.label')} {i18nText('settings.digest.semiweekly')}">
+                                {i18nText('settings.digest.semiweekly')}
+                            </label>
+                        </li>
+                        <li class="clearfix">
+                            <input type="radio" name="emailFrequencyOption" value="{$data.digestDailyValue}" id="ed_daily"
+                                {if $data.isDigestDaily}checked="checked"{/if}
+                                {if not $data.receiveNotifications}disabled="disabled"{/if}>
+                            <label for="ed_daily" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle" aria-label="{i18nText('settings.watch.content.label')} {i18nText('settings.digest.daily')}">
+                                {i18nText('settings.digest.daily')}
+                            </label>
+                         </li>
+                        <li class="clearfix">
+                            <input type="radio" name="emailFrequencyOption" value="{$data.emailNoneValue}" id="ed_email_off"
+                                {if $data.isEmailNone}checked="checked"{/if}
+                                {if not $data.receiveNotifications}disabled="disabled"{/if}>
+                            <label for="ed_email_off" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle"  aria-label="{i18nText('settings.watch.content.label')} {i18nText('settings.email.none')}">
+                                {i18nText('settings.email.none')}
+                            </label>
+                        </li>
+                    </ul>
+                    <input type="hidden" id="js_email_frequency_opt_orig" name="emailFrequencyOption"
+                        value="{if $data.isDigestWeekly}ed_weekly{elseif $data.isDigestSemiWeekly}ed_semiweekly{elseif $data.isDigestDaily}ed_daily{else}ed_email_off{/if}"
+                        {if $data.receiveNotifications}disabled="disabled"{/if}
+                    />
+                </fieldset>
+                {/if}
+
+                {if $data.notificationsEnabled}
+                <fieldset class="j-form-row clearfix j-prefs-notification-toggles">
+                    <div class="j-pref-label noicon" id="settings-watch-include-post-label">
+                        <legend>
+                            {i18nText('settings.watch.include.post.content')}
+                        </legend>
+                    </div>
+
+                    <ul class="j-form-group j-form-group-toggle" aria-labelledby="settings-watch-include-post-label">
+                        <li>
+                            <input type="radio" name="includePostContentInEmail" value="true" id="post-content-yes"
+                                {if $data.includePostContentInEmail}checked="checked"{/if}>
+                            <label for="post-content-yes" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle" aria-label="{i18nText('settings.watch.include.post.content')} {i18nText('settings.watch.include.post.content.yes')}">
+                                {i18nText('settings.watch.include.post.content.yes')}
+                            </label>
+                        </li>
+                        <li>
+
+                            <input type="radio" name="includePostContentInEmail" value="false" id="post-content-no"
+                                {if not $data.includePostContentInEmail}checked="checked"{/if}>
+                            <label for="post-content-no" class="j-form-label-special j-pref-label-notif-toggle j-pref-label-email-toggle" aria-label="{i18nText('settings.watch.include.post.content')} {i18nText('settings.watch.include.post.content.no')}">
+                                {i18nText('settings.watch.include.post.content.no')}
+                            </label>
+                        </li>
+                    </ul>
+                </fieldset>
+                {/if}
+
+            {if $data.notificationsEnabled or $data.digestEmailEnabled}
+            <div class="j-form-row j-pref-email clearfix j-prefs-notification-toggles">
+                <h3 class="j-pref-label noicon">
+                {i18nText('global.email_address')}
+                    <span class="jive-description font-color-meta-light">
+                        {call jive.shared.soy.i18nHelper}
+                            {param i18nKey}
+                                {i18nKey('settings.watch_description.text')}
+                            {/param}
+                            {param arg0}<b>{$data.userEmail}</b>{/param}
+                            {param noAutoEscape}true{/param}
+                        {/call}
+                        {sp}
+                        {if $data.canUpdateEmail}
+                            {call jive.shared.soy.i18nHelper}
+                                {param i18nKey}
+                                    {i18nKey('settings.changeWatchEmail.text')}
+                                {/param}
+                                {param arg0}<a href="edit-profile!input.jspa?targetUser={$data.userID}">{/param}
+                                {param arg1}</a>{/param}
+                                {param noAutoEscape}true{/param}
+                            {/call}
+                        {/if}
+                    </span>
+                </h3>
+            </div>
+            {/if}
+        </section>
+
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div id="j-edit-hidden-rules" class="j-form-row">
+                    <h3><legend class="j-pref-label noicon font-color-meta">
+                        {i18nText('eae.activitystream.builder.hiddenrules')}
+                    </legend></h3>
+
+
+                    <a href="#" class="j-js-edit-hidden-rules" aria-label="{i18nText('eae.activitystream.builder.hiddenrules')}">
+                        {i18nText('global.edit')}
+                    </a>
+                </div>
+            </fieldset>
+        </section>
+
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div class="j-pref-label noicon font-color-meta">
+//                Need this checkbox wired in, and the text to toggle based on whether bookmarks are enabled or not
+                    <input type="checkbox"  name="showDefaultSpotlightResults" role="checkbox" value="false" id="jive_user_spotlight_off"
+                    {if not $data.showDefaultSpotlightResults}checked="checked" aria-checked="true" {else}aria-checked="false"{/if}
+                    aria-label="{i18nText('search.spotlight.focus.preference.text')}">
+                    <legend for="jive_user_spotlight_off">
+                        {i18nText('search.spotlight.focus.preference.text')}
+                    </legend>
+//                    when bookmarks are not enabled use this text:
+//                    {i18nText('search.spotlight.focus.preference.nobookmarks.text')}
+                </div>
+//
+//                <ul class="j-form-group j-form-group-toggle">
+//                    <li>
+//                        <label class="j-form-label-special">
+//                            <input type="radio" name="showDefaultSpotlightResults" value="true" id="jive_user_spotlight_on" {if $data.showDefaultSpotlightResults}checked="checked"{/if}>
+//                            {i18nText('prefs.option.switch.on')}
+//                        </label>
+//                    </li>
+//                    <li>
+//                        <label class="j-form-label-special">
+//                            <input type="radio" name="showDefaultSpotlightResults" value="false" id="jive_user_onboarding_off" {if not $data.showDefaultSpotlightResults}checked="checked"{/if}>
+//                            {i18nText('prefs.option.switch.off')}
+//                        </label>
+//                    </li>
+//                </ul>
+            </fieldset>
+        </section>
+
+        {if $data.onboardingEnabled}
+            <section class="j-form-singlerow">
+                <fieldset class="j-form-row clearfix">
+                    <div class="j-pref-label noicon font-color-meta">
+                        <legend>
+                            {i18nText('settings.onboardingEnabled.gtitle')}
+                        </legend>
+                        <span class="jive-description font-color-meta-light">
+                            {i18nText('settings.onboardingEnabled.text')}
+                        </span>
+                    </div>
+
+                        <ul class="j-form-group j-form-group-toggle">
+                            <li>
+                                <label class="j-form-label-special" for="jive_user_onboarding_on">
+                                    <input type="radio" name="userOnboardingEnabled" value="true" id="jive_user_onboarding_on" {if $data.userOnboardingEnabled}checked="checked"{/if}>
+                                    {i18nText('prefs.option.switch.on')}
+                                </label>
+                            </li>
+                            <li>
+                                <label class="j-form-label-special" for="jive_user_onboarding_off">
+                                    <input type="radio" name="userOnboardingEnabled" value="false" id="jive_user_onboarding_off" {if not $data.userOnboardingEnabled}checked="checked"{/if}>
+                                    {i18nText('prefs.option.switch.off')}
+                                </label>
+                            </li>
+                        </ul>
+                    </fieldset>
+                </section>
+            {/if}
+
+        {if $data.usersChoseHomePage}
+            <section class="j-form-singlerow">
+                <fieldset class="j-form-row clearfix">
+                    <div class="j-pref-label noicon font-color-meta">
+                        <legend>
+                            {i18nText('settings.homePage.title')}
+                        </legend>
+                    </div>
+
+                    <select id="jive-homePage" aria-label="{i18nText('settings.homePage.title')}" name="homePage">
+                        {foreach $homePage in $data.homePageOptions}
+                            <option value="{$homePage.id}" {if $homePage.id == $data.currentHomePage}selected="selected"{/if}>{$homePage.displayName}</option>
+                        {/foreach}
+                    </select>
+                </fieldset>
+            </section>
+        {/if}
+
+            <section class="j-form-singlerow">
+            {call .threadPrefFormElems}
+                {param isDiscussionThreadMode:true /}
+                {param usersChooseThreadMode:$data.usersChooseThreadMode /}
+                {param threadMode:$data.threadMode /}
+            {/call}
+            </section>
+
+            <section class="j-form-singlerow">
+            {call .threadPrefFormElems}
+                {param isDiscussionThreadMode:false /}
+                {param usersChooseThreadMode:$data.usersChooseCommentThreadMode /}
+                {param threadMode:$data.commentThreadMode /}
+            {/call}
+            </section>
+
+            {if $data.usersChooseLocale}
+            <section class="j-form-singlerow">
+                <fieldset class="j-form-row clearfix">
+                    <div class="j-pref-label noicon">
+                        <legend>
+                            {i18nText('global.language')}
+                        </legend>
+                    </div>
+
+                <select size="1" id="jive-userLanguage" aria-label="{i18nText('global.language')}">
+                    <option value="NO_LANGUAGE" {if $data.userDisplayLanguage == 'NO_LANGUAGE'}selected="selected"{/if}>--------</option>
+                    {foreach $theLocale in $data.supportedLocales}
+                        <option value="{$theLocale.values['language']}" {if $data.userDisplayLanguage == $theLocale.values['displayLanguage']}selected="selected"{/if}>{$theLocale.values['fullDisplayLanguage']}</option>
+                    {/foreach}
+                </select>
+            </fieldset>
+        </section>
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div class="j-pref-label noicon font-color-meta">
+                    <legend>
+                        {i18nText('global.locale')}
+                    </legend>
+                    <span class="jive-description font-color-meta-light">
+                        {i18nText('settings.sample_date.label', $data.newDate)}
+                    </span>
+                </div>
+                <select size="1" name="userLocale" id="jive-userLocale" aria-label="{i18nText('global.locale')}">
+                </select>
+            </fieldset>
+        </section>
+        {/if}
+
+        {if $data.usersChooseTimezone}
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div class="j-pref-label noicon font-color-meta">
+                    <laegend>
+                        {i18nText('global.time_zone')}
+                    </legend>
+                    <span class="jive-description font-color-meta-light">
+                        {i18nText('settings.sample_time.label', $data.newTime)}
+                    </span>
+                </div>
+
+                <select size="1" name="timezone" id="jive-timezone">
+                    {foreach $timezone in $data.timezoneList}
+                    // Swissre Theme migration
+                    {if $timezone.id == 'Europe/Dublin' or $timezone.id == 'Europe/London'}
+                            <option value="Europe/London" {if 'Europe/Dublin' == $data.timezoneID or 'Europe/London' == $data.timezoneID}selected="selected"{/if}>{$timezone.displayName}</option>
+                    {else}
+                        <option value="{$timezone.id}" {if $timezone.id == $data.timezoneID}selected="selected"{/if}>{$timezone.displayName}</option>
+                    {/if}
+                    {/foreach}
+                </select>
+
+
+                </fieldset>
+            </section>
+            {/if}
+
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div class="j-pref-label noicon font-color-meta">
+                    <legend>
+                        {i18nText('settings.high_contrast')}
+                    </legend>
+                </div>
+
+                    <ul class="j-form-group j-form-group-toggle">
+                        <li>
+                            <input type="radio" name="wcagStyles" value="true" id="wcagStyles_on"
+                                {if $data.wcagStyles}checked="checked"{/if}>
+                            <label for="wcagStyles_on" class="j-form-label-special">
+                                {i18nText('prefs.option.switch.on')}
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" name="wcagStyles" value="false" id="wcagStyles_off"
+                                {if not $data.wcagStyles}checked="checked"{/if}>
+                            <label for="wcagStyles_off" class="j-form-label-special">
+                                {i18nText('prefs.option.switch.off')}
+                            </label>
+                        </li>
+                    </ul>
+                </fieldset>
+            </section>
+
+            {if $data.multipleLanguageSearchEnabled}
+            <section class="j-form-singlerow">
+                <fieldset class="j-form-row clearfix">
+                    <legend>
+                        {i18nText('search.pref.defaultLanguage')}
+                    </legend>
+
+                    <select id="jive-searchLanguageDefault" name="defaultSearchLanguage" aria-label="{i18nText('search.pref.defaultLanguage')}">
+                        {foreach $searchLanguage in $data.allowedSearchLanguages}
+                            <option value="{$searchLanguage.id}" {if $searchLanguage.id == $data.defaultSearchLanguage}selected="selected"{/if}>{$searchLanguage.displayName}</option>
+                        {/foreach}
+                    </select>
+                </fieldset>
+            </section>
+            {/if}
+
+
+
+        {if $data.usersChooseContentTagEditMode}
+        <section class="j-form-singlerow">
+            <fieldset class="j-form-row clearfix">
+                <div class="j-pref-label noicon font-color-meta" id="tags-add-pref-label-text">
+                    <legend>
+                        {i18nText('tags.add.preference.label.colon')}
+                    </legend>
+                </div>
+
+                    <span class="font-color-meta-light" id="tags-add-pref-label-desc-text">{i18nText('tags.add.preference.desc')}</span>
+
+
+                    <ul class="j-form-group j-form-group-toggle" aria-labelledby="tags-add-pref-label-text" aria-describedby="tags-add-pref-label-desc-text">
+                        <li>
+                            <input type="radio" name="contentTagEditMode" value="true" id="jive_add_tags_pref_on"
+                                {if $data.contentTagEditMode}checked="checked"{/if}>
+                            <label for="jive_add_tags_pref_on" class="j-form-label-special" aria-label="{i18nText('tags.add.preference.label')} {i18nText('prefs.option.switch.on')}">
+                                {i18nText('prefs.option.switch.on')}
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" name="contentTagEditMode" value="false" id="jive_add_tags_pref_off"
+                                {if not $data.contentTagEditMode}checked="checked"{/if}>
+                            <label for="jive_add_tags_pref_off" class="j-form-label-special"  aria-label="{i18nText('tags.add.preference.label')} {i18nText('prefs.option.switch.off')}">
+                                {i18nText('prefs.option.switch.off')}
+                            </label>
+                        </li>
+                    </ul>
+
+                </fieldset>
+            </section>
+            {/if}
+
+        <div class="j-form-row jive-form-row-buttons clearfix">
+            <input type="submit" name="save" class="jive-form-button-submit j-btn-callout" value="{i18nText('global.save')}"/>
+            <input type="submit" name="method:cancel" class="jive-form-button-cancel" value="{i18nText('global.cancel')}"/>
+        </div>
+
+    </form>
+
+{/template}
+
+/**
+ * util to output thread preference form elements
+ *
+ * @param isDiscussionThreadMode
+ * @param usersChooseThreadMode
+ * @param threadMode
+ *
+ */
+{template .threadPrefFormElems}
+    {if $usersChooseThreadMode}
+    <fieldset class="j-form-row">
+        <div class="j-pref-label noicon">
+            <legend>
+                {if $isDiscussionThreadMode}
+                    {i18nText('settings.threadPageView.gtitle.colon')}
+                {else}
+                    {i18nText('settings.commentThreadPageView.gtitle.colon')}
+                {/if}
+            </legend>
+        </div>
+
+        <select size="1" name="{if $isDiscussionThreadMode}threadMode{else}commentThreadMode{/if}" id="jive-{if $isDiscussionThreadMode}threadMode{else}commentThreadMode{/if}"
+        aria-label="{if $isDiscussionThreadMode}{i18nText('settings.threadPageView.gtitle.colon')}{else}{i18nText('settings.commentThreadPageView.gtitle.colon')}{/if}">
+            <option value="flat" {if $threadMode == 'flat'}selected="selected"{/if}>{i18nText('thread.flat.listitem')}</option>
+            <option value="threaded" {if $threadMode == 'threaded'}selected="selected"{/if}>{i18nText('thread.threaded.listitem')}</option>
+        </select>
+    </fieldset>
+    {/if}
+{/template}
+
+/**
+ * output hints for radio button labels that are accessible to screen readers
+ *
+ * @param streamName
+ * @param defaultStreamDescKey
+ * @param? streamDescKey
+ * @param? i18nModifierKey
+ *
+ */
+{template .streamPrefAccessibleLabelText}
+aria-label="{i18nText('settings.watch.stream.name.label')} {$streamName} {i18nText('settings.watch.stream.desc.label')} {if $streamDescKey}{i18nText($streamDescKey)}{else}{i18nText($defaultStreamDescKey)}{/if} {if $i18nModifierKey}{i18nText($i18nModifierKey)}{/if}"
+{/template}

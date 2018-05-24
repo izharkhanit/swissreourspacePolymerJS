@@ -1,0 +1,330 @@
+{namespace jive.nav autoescape="contextual"}
+
+/**
+* Renders the main nav bar for the application.
+* @see com.jivesoftware.community.navbar.rest.NavBarView
+*
+* @param  links A list of global nav links {@see com.jivesoftware.community.navbar.NavBarLink}.
+* @param  mode simple|basic|custom
+* @param? appsMenuShown Whether or not to show the apps menu.
+* @param? createMenuShown Whether or not to show the create menu.
+* @ param? customLinks A list of custom global nav links
+* @param? customizeSite True if within the Theming UI
+* @param? selectedLinkID The ID of the selected link.
+* @param? useJiveViews
+*
+* Logos used by Theming
+* @param customNavLogoType
+* @param customNavLogoImageAltText
+* @param customNavLogoImageUrl
+* @param simpleNavLogoType
+* @param simpleNavLogoImageAltText
+* @param simpleNavLogoImageUrl
+*
+* @depends i18nKeys=global.add_symbol
+*
+* @allowDependsWildcard
+*
+* @depends i18nKeys=nav.bar.create.content.*
+* @depends i18nKeys=nav.bar.create.description.*
+* @depends i18nKeys=nav.bar.create.places.*
+* @depends i18nKeys=nav.bar.create.section.content
+* @depends i18nKeys=nav.bar.create.section.places
+* @depends i18nKeys=nav.bar.manage.section
+* @depends i18nKeys=nav.bar.addons.link
+* @depends i18nKeys=nav.bar.preferences.link
+* @depends i18nKeys=nav.bar.overview.link.page
+* @depends i18nKeys=nav.bar.personal_settings.section
+* @depends i18nKeys=profile.your_content.link
+* @depends i18nKeys=profile.your_places.link
+*
+* @depends template=jive.nav.menu.create.*
+* @depends template=jive.nav.menu.generic
+* @depends path=/resources/scripts/apps/navbar/menu/apps/instances/main.js
+* @depends path=/resources/scripts/apps/navbar/menu/home/navbar_menu_home_main.js
+*/
+{template .navbar}
+    <ul id="j-globalNav" role="menubar" class="j-globalNav"{if $useJiveViews} data-jive-view="minimal/nav/navbar"{/if}>
+        <li id="mobile-menu" class="mobile-tool"><a class="j-globalNavLink" title="{i18nText('global.browse')}"
+             aria-label="{i18nText('global.browse')}"href="#"></a></li>
+        {if $mode == 'simple' or ($mode == 'custom' and $customNavLogoType != 'none')}
+            <li class="j-simple-nav-logo j-globalNav-li">
+                {if $mode == 'simple'}
+                    {call .logo}
+                        {param mode:'simple' /}
+                        {param path:$simpleNavLogoImageUrl /}
+                        {param type:$simpleNavLogoType /}
+                        {param alt:$simpleNavLogoImageAltText /}
+                    {/call}
+                {elseif $mode == 'custom'}
+                    {call .logo}
+                        {param mode:'custom' /}
+                        {param path:$customNavLogoImageUrl /}
+                        {param type:$customNavLogoType /}
+                        {param alt:$customNavLogoImageAltText /}
+                    {/call}
+                {/if}
+            </li>
+        {/if}
+
+        {if $customizeSite}
+            {let $selectedLinkID:'jive-nav-link-home' /}
+        {/if}
+
+        {foreach $link in $links}
+            {if $link.visible and not ($mode != 'basic' and $link.type == 'create')}
+                {call jive.nav.globalLink data="$link"}
+                    {param customizeSite:$customizeSite /}
+                    {param includeCounter:$link.type == 'home' /}
+                    {param selectedLinkID : $selectedLinkID/}
+                    {param showChildren : true/}
+                    // If the apps or create menus are present, add a class to the last link
+                    {param itemCss}
+                        {($appsMenuShown or $createMenuShown) and isLast($link) ? 'jive-nav-link-divider j-globalNav-li' : 'j-globalNav-li'}
+                        {if $link.customName==true}{sp}j-custom-link{/if}
+                    {/param}
+                    {param dynamicChildren: $link.dynamicChildren /}
+                    {param useJiveViews:$useJiveViews /}
+                {/call}
+            {/if}
+        {/foreach}
+
+        // Add nav item button
+        {if $customizeSite}
+            {call .addCustomLink data="all" /}
+        {/if}
+
+        {if $appsMenuShown}
+            <div id="appQuickLaunchMenu" class="j-menu j-quick-menu" style="display: none;"></div>
+            {if not $customizeSite}
+            {call jive.shared.soy.resourceInlineJs}{param code}
+                {literal}
+                    $j(function() {
+                        require(['apps/navbar/menu/apps/instances/main'], function(Main) {
+                            new Main('#appsQuickLaunchLink', '#appQuickLaunchMenu', {
+                                container: '#jive-nav-link-apps'
+                            });
+                        });
+                    });
+                {/literal}
+            {/param}{/call}
+            {/if}
+        {/if}
+
+        {if $mode == 'basic' and $createMenuShown}
+            <div id="menuCreate" class="j-menu j-quick-menu" style="display: none;"></div>
+            {if not $customizeSite}
+            {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    $j(function(){lb}
+                        new jive.Navbar.Menu.Create.Main('#navCreate', '#menuCreate');
+                    {rb});
+                {/param}
+            {/call}
+            {/if}
+        {/if}
+    </ul>
+{/template}
+
+
+/**
+ * @param  bookmarksLink A link to the bookmarks dropdown.
+ * @param  communityName name of the root community
+ * @param  historyLink A link to the bookmarks dropdown.
+
+ * @param  mode simple|basic|custom
+ * @param  user The authenticated user.
+ * @param? container The current container the user is in (only if not in root container)
+ * @param? createMenuShown Whether or not to show the create menu.
+ * @param? collapseCreateMenu
+ * @param? customizeSite True if within the Theming UI
+ * @param? hideSatelliteDisplayName
+ * @param? showSearch Whether or not to show the search box.
+ * @param? showSatelliteMenu
+ * @param? spotlightSearchEnabled Whether or not spotlight search functionality is enabled.
+ * @param? spotlightV2Enabled Whether or not the v2 spotlight UI is enabled.
+ * @param? useJiveViews
+ *
+ * @depends template=jive.soy.spotlight.navbar
+ */
+{template .searchArea}
+<div id="j-links">
+    {if $customizeSite and $mode == 'custom'}
+        {call jive.theme.controls.secondaryNavigationControl /}
+    {/if}
+
+    <ul class="j-globalNav">
+        /* Satellite nav, custom mode */
+        {if $mode == 'basic'}
+            // spotlight v2
+            {call jive.soy.spotlight.navbar data="all" /}
+        {else}
+            <li class="j-nav-create j-nav-user j-globalNav-li js-satellite-nav-container" aria-haspopup="true">
+                {call .satelliteNav data="all"}
+                    {param avatarOnly:($hideSatelliteDisplayName or $mode == 'simple') /}
+                {/call}
+                {call jive.welcome.updateIndicator}
+                    {param count: 0 /}
+                    {param extraCssClasses:' j-navbadge-count j-ui-elem' /}
+                    {param type:'count' /}
+                {/call}
+            </li>
+
+            {if $showSatelliteMenu}
+                <li class="j-globalNav-li j-nav-create j-nav-user j-satNav-user-menu">
+                    // User Profile Arrow
+                    <a href="#" {if $customizeSite} data-user="{buildJson($user)|escapeHtml}"{/if} id="j-satNav" class="j-nav-user j-globalNavLink j-ui-elem" aria-label="{i18nText('main.menu.user')}">
+                        <span class="nav-link j-ui-elem">
+                            // Avatar
+                            {call jive.shared.displayutil.avatar data="$user"}
+                                {param hideLink:true /}
+                                {param hideTooltip:true /}
+                                {param size:24 /}
+                            {/call}
+                            <span class="j-nav-more jive-icon-glyph icon-arrow-down2"></span>
+                        </span>
+                    </a>
+                </li>
+            {/if}
+
+            /* Create nav, custom mode */
+            {if $createMenuShown}
+                <li class="j-nav-create j-nav-cmenu j-globalNav-li js-create-nav-container" aria-haspopup="true">
+                    {call .createMenu}
+                        {param collapsed:($collapseCreateMenu or $mode == 'simple') /}
+                        {param useJiveViews:$useJiveViews /}
+                    {/call}
+                </li>
+            {/if}
+
+            // spotlight v2
+            {call jive.soy.spotlight.navbar data="all" /}
+
+            /*{if $logoutLink.visible}
+                {call .logoutLink /}
+            {/if}*/
+        {/if}
+
+        <li id="mobile-search" class="j-globalNav-li mobile-tool"><a class="j-globalNavLink" title="{i18nText('global.search')}"
+            aria-label="{i18nText('global.search')}" href="#"></a></li>
+    </ul>
+    
+    /* Spotlight Search (v1) */
+    {if ($showSearch)}
+        {if $customizeSite and not $spotlightV2Enabled}
+            {if $mode == 'basic'}
+                {call jive.theme.controls.searchBasicControl /}
+            {elseif $mode == 'simple'}
+                {call jive.theme.controls.searchControl /}
+            {/if}
+        {/if}
+
+        <div id="j-spotlight-search" role="search" data-mode="{$mode}"{if $useJiveViews and not $spotlightV2Enabled} data-jive-view="minimal/search/spotlight"{/if}>
+            {call .searchForm}
+                {param container: $container /}
+                {param spotlightSearchEnabled: $spotlightSearchEnabled and not $spotlightV2Enabled /}
+                {param spotlightSearchDefaultEnabled: $user.prop.search.defaultEnabled /}
+                {param bookmarksVisible : $bookmarksLink.visible/}
+                {param historyVisible : $historyLink.visible/}
+                {param communityName: $communityName/}
+                {param fieldId: 'autosearch' /}
+                {param anchorId: 'searchpopupanchor' /}
+                {param origin: 'spotlight' /}
+            {/call}
+        </div>
+    {/if}
+</div>
+{/template}
+
+
+/**
+ * @param  collapsed
+ * @param? useJiveViews
+ */
+{template .createMenu}
+    <a href="#" id="navCreate" class="j-globalNavLink j-ui-elem" role="menuitem" title="{i18nText('main.menu.create')}" aria-label="{i18nText('main.menu.create')}"
+            {if $useJiveViews} data-jive-view="minimal/nav/create_menu" data-target="#menuCreate"{/if}
+            >
+        <span class="nav-link j-ui-elem">
+            <span class="jive-icon-glyph icon-pencil2 j-create-icon"></span>
+            {if not $collapsed}<span class="j-navLabel">{i18nText('nav.bar.create.link')}</span>{/if}<span class="j-nav-more jive-icon-glyph icon-arrow-down2"></span>
+        </span>
+    </a>
+
+    {if not $useJiveViews}
+        <div id="menuCreate" class="j-menu j-quick-menu" style="display: none;"></div>
+    {/if}
+
+    {call jive.shared.soy.resourceInlineJs}
+                    {param code}
+                        $j(function(){lb}
+                            new jive.Navbar.Menu.Create.Main('#navCreate', '#menuCreate');
+                        {rb});
+                    {/param}
+    {/call}
+{/template}
+
+
+/**
+* Renders the search form for the navbar.
+*
+* @param? containerType
+* @param? containerId
+* @param? containerName
+* @param? containerBrowseId
+* @param spotlightSearchEnabled Whether or not spotlight search functionality is enabled.
+* @param? spotlightSearchDefaultEnabled Whether or not spotlight search functionality is enabled.
+* @param? showSearchButton
+* @param? bookmarksVisible
+* @param? historyVisible
+* @param? excludeContent
+* @param? excludePlaces
+* @param? excludePeople
+* @param? filters
+* @param communityName
+* @param fieldId
+* @param anchorId
+* @param? noAnchor
+* @param? resultFilterTypes
+* @param? origin
+*
+* @depends path=/resources/scripts/apps/autosearch/autosearch.js
+*/
+{template .searchForm}
+    <span class="j-ui-elem j-search-left"><span {if not $noAnchor}id="{$anchorId}" {/if}></span></span>
+    <span>
+        <label for="{$fieldId}" class="j-508-label">{i18nText('global.search')}</label>
+{if not $showSearchButton}
+<div style="float:left;width:100%">
+<div style="float:left;width:67%">
+ {/if}
+        <input data-spotlight-enabled="{$spotlightSearchEnabled}" id="{$fieldId}" class="j-ui-elem" data-component="autosearch" data-popup-anchor="{$anchorId}" placeholder="{i18nText('global.search')}" type="text" role="combobox" aria-labelledby="{$fieldId}" aria-expanded="false"
+         data-hidetypes="{if not $bookmarksVisible or not $spotlightSearchDefaultEnabled}bookmarks{/if}{sp}{if not $historyVisible or not $spotlightSearchDefaultEnabled}frequent recent{/if}{sp}{if $containerType and $containerId and $containerName and $containerBrowseId}all{/if}{if $excludeContent} content{/if}{if $excludePlaces} places{/if}{if $excludePeople} people{/if}"
+            data-community-name="{$communityName ? $communityName : ''}" data-filters="{$filters ? $filters : ''}" data-origin="{$origin ? $origin : ''}"
+            {if $containerType and $containerId and $containerName and $containerBrowseId}data-container="{$containerType}:{$containerId}" data-container-name="{$containerName}" data-container-browseid="{$containerBrowseId}"{/if}
+            {if $resultFilterTypes} data-result-filter-types="{$resultFilterTypes}"{/if}
+            aria-hidden="{not $spotlightSearchEnabled}"
+            aria-busy="{not $spotlightSearchEnabled}"
+
+        />
+    </span>
+
+    <span class="j-ui-elem j-search-right">
+{if $showSearchButton}
+        <span style="float:right"><button data-component="button" data-type="search" data-field="{$fieldId}">{i18nText('global.search')}</button></span>
+     {else}</div><div style="float:right;">
+       <span><a id="new" href="#" data-component="button" data-type="search" data-field="{$fieldId}" onclick="test()" style="color:#0f4dbc;font-size:14px;line-height:29px;padding-right:51px;">{i18nText('global.search')}</a></span></div></div>
+    {/if}
+ <a href="#" id="mob-spotlight-cancel">Cancel</a>
+</span>
+
+    <span class="jive-icon-sml jive-glyph-delete" data-component="button" data-type="clear" data-field="{$fieldId}"></span>
+
+{/template}
+
+
+/**
+ */
+{template .logoutLink private="true"}
+
+{/template}

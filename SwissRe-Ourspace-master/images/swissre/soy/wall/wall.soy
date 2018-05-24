@@ -1,0 +1,424 @@
+{namespace jive.wall autoescape="contextual"}
+
+/**
+ * renderStatusSuccess render status attachments
+ * @param entry the wall entry data
+ */
+{template .renderStatusSuccess}
+    <div class="j-successful-post clearfix">
+        <h3 class="font-color-okay">
+            {if $entry and $entry.status == 'AWAITING_MODERATION'}
+                {i18nText('we.form.posted.moderation')}
+            {else}
+                {i18nText('wallentry.status.post.success.title')}
+            {/if}
+        </h3>
+        <a href="javascript:void(0);" class="j-success-post-dismiss close">{i18nText('wallentry.status.post.success.dismiss')}</a>
+
+        {call .renderActivityStatus}
+            {param entry: $entry /}
+        {/call}
+        {call jive.statusinput.attachments.renderAttachments }
+            {param entry:$entry /}
+        {/call}
+    </div>
+{/template}
+
+/**
+ * renderActivityStatus render wall entry activity status
+ * @param entry the wall entry data
+ */
+{template .renderActivityStatus}
+    {$entry.message |noAutoescape}
+{/template}
+
+/**
+ * Renders an inline comment form.
+ * @param statusID id of the status being commented on
+ * @param user currently logged in user
+ * @param canComment true if user has permission to comment, false otherwise
+ * @param canCreateImage true if the user has permission to upload images, false otherwise
+ * @param canAtMention
+ * @param? visibleToExtCollaborator
+ * @depends i18nKeys=we.form.button.comment.label
+ * @depends i18nKeys=we.form.comment.aria.link.hint
+ * @depends template=jive.content.comment.rte_message
+ */
+{template .commentForm}
+    <li class="comment-form clearfix">
+        {if $canComment}
+            {call jive.shared.displayutil.avatar data="$user"}
+                {param size: 32 /}
+                {param currentUserPartner: $user.partner /}
+            {/call}
+            <div class="jive-comment-arrow"></div>
+            <div class="jive-comment-content">
+                {call .statusInputNotificationBoxes /}
+                <form id="s-c-form-{$statusID}"
+                      name="{$statusID}"
+                      data-status-id="{$statusID}"
+                      class="j-form j-mb-comment-form js-mb-comment-form">
+                    {call .statusInput}
+                        {param statusInputIdPostfix: $statusID /}
+                        {param  default508Txt}
+                            {i18nText('we.form.comment.aria.link.hint')}
+                        {/param}
+                    {/call}
+                    <input type="hidden" name="imageURL" />
+                    {call jive.content.comment.rte_message}
+                        {param externallyVisible: $visibleToExtCollaborator/}
+                    {/call}
+                    {call .statusInputErrorWarnBox /}
+
+                    <div class="j-status-input-actions j-act-comment-actions clearfix">
+                        <input type="button"
+                            class="j-comment-submit j-btn-global j-btn-callout"
+                            id="{$statusID}"
+                            value="{i18nText('we.form.button.comment.label')}" />
+
+                        {call .statusInputActionContainer}
+                            {param displayLinkBtn: false /}
+                            {param displayImageBtn: false /}
+                            {param canCreateImage: $canCreateImage /}
+                            {param canCreateVideo: false /}
+                            {param repost: false /}
+                            {param canAtMention: $canAtMention /}
+                        {/call}
+                    </div>
+                </form>
+            </div>
+        {/if}
+    </li>
+{/template}
+
+/**
+ * Form for reposting a status
+ * @param statusID id of the status message to repost
+ * @param canCreateImage true if the user has permission to upload images, false otherwise
+ * @param canAtMention
+ * @param mbCreationModerated
+ * @depends i18nKeys=eae.mb.default.aria.repost.label
+ */
+{template .repostForm}
+    <div class="j-repost-form jive-form-container clearfix">
+          {if $mbCreationModerated}
+            <div class="jive-content-moderation-box">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('mod.content.create')}
+            </div>
+          {/if}
+          {call .statusInputNotificationBoxes /}
+
+          <form id="s-r-form-{$statusID}"
+                name="{$statusID}"
+                data-status-id="{$statusID}"
+                class="js-mb-repost-form">
+              {call .statusInput}
+                  {param statusInputIdPostfix}s-r-input-{$statusID}{/param}
+                  {param messageCSSClasses: 'j-eae-txt-area' /}
+                  {param  default508Txt}
+                    {i18nText('eae.mb.default.aria.repost.label')}
+                  {/param}
+              {/call}
+              <input type="hidden" name="imageURL" />
+              {call .statusInputErrorWarnBox /}
+          </form>
+
+          <div class="j-status-input-actions j-act-comment-actions clearfix">
+              {call .statusInputActionContainer}
+                  {param displayLinkBtn: false /}
+                  {param displayImageBtn: true /}
+                  {param canCreateImage: $canCreateImage /}
+                  {param canCreateVideo:true /}
+                  {param repost: true /}
+                  {param statusID: $statusID /}
+                  {param canAtMention: $canAtMention /}
+              {/call}
+          </div>
+  </div>
+{/template}
+
+/**
+ * Text entry area for entering a status
+ * @param statusInputIdPostfix unique id postfix to distinguish this input
+ * @param? messageCSSClasses
+ * @param? defaultTxtCSSClasses
+ * @param? defaultTxt initial text to place in the input
+ * @param? default508Txt accessibility hint to provide to visually impaired users
+ * @param? immediatelyFocus true to immediately focus the text input field
+ * @param? displayLinkBtn
+ * @param? displayImageBtn
+ * @param? displayAtMentionBtn
+ */
+{template .statusInput}
+    <div id="statusInputs-{$statusInputIdPostfix}" class="j-mb-entry">
+        <div class="j-rc4 jive-statusinput-default font-color-meta  jive-statusinput {if $defaultTxtCSSClasses}{$defaultTxtCSSClasses|id}{else}jive-form-element-text{/if} jive-js-statusinput-default"{sp} contenteditable="true"
+            {if $immediatelyFocus}style="display:none;ime-mode:auto;"{/if} tabindex="0" role="link">
+            <div class="j-ui-elem triangle"></div>
+            {if $defaultTxt}
+                {$defaultTxt|noAutoescape}
+            {/if}
+            {if $default508Txt}
+                <span class="j-508-label" id="jive-508-label-message-{$statusInputIdPostfix}">{$default508Txt}</span>
+            {/if}
+        </div>
+        <div id="message-{$statusInputIdPostfix}" class="j-rc4 jive-js-statusinput {if $messageCSSClasses}{$messageCSSClasses|id}{else}jive-statusinput jive-form-element-text{/if}" contenteditable="true"
+             style="position:relative;ime-mode:auto;" aria-expanded="false">
+        </div>
+        {if $displayImageBtn or $displayAtMentionBtn or $displayLinkBtn}
+            <div id="j-status-input-info" class="j-status-input-info" style="display:none">
+                <div class="j-statusinput-message">
+                    // character count
+                    <span class="j-js-status-input-characters-remaining j-status-input-chars-left j-rc4"></span>
+                    {call jive.wall.statusInputErrorWarnBox /}
+                </div>
+                <span class="j-statusinput-quick-actions">
+                    {if $displayLinkBtn}
+                    <a href="javascript:void(0);" class="jive-js-link-button j-wall-meta-link" title="{i18nText('we.form.addurl')}" aria-label="{i18nText('we.form.addurl')}">
+                        <span class="jive-icon-glyph icon-link"></span>
+                    </a>
+                    {/if}
+                    {if $displayImageBtn}
+                    <div  tabindex="0" class="jive-js-imgattach-button j-wall-meta-image font-color-link"  data-enabled="{$displayImageBtn}" aria-label="{i18nText('we.form.addimage')}">
+                        <span class="jive-icon-glyph icon-image"></span>
+                    </div>
+                    {/if}
+                    {if $displayAtMentionBtn}
+                    <a href="javascript:void(0);" class="jive-js-mention-button j-wall-meta-reference" title="{i18nText('we.form.addlink')}" aria-label="{i18nText('we.form.addlink')}">
+                        <span class="jive-icon-glyph icon-mention"></span>
+                    </a>
+                    {/if}
+                </span>
+            </div>
+        {/if}
+        
+<!-- Swiss Re specific code - See INC006340293 -->
+<div id="help-msg-{$statusInputIdPostfix}">&nbsp;</div>
+    <script>
+          var maxLength=300;
+          var statusUpdateDiv = document.getElementById("message-mb-modal-editor");          
+          if (!statusUpdateDiv) {lb}
+         	 statusUpdateDiv = document.getElementById("message-mb-header-editor");
+          {rb}          
+          function checklength() {lb}
+                var messageLength = statusUpdateDiv.textContent.length;
+           	    var message = "Status updates are limited to "+maxLength+" characters. Remaining characters: " + (maxLength - messageLength) + "." ;         	
+            
+                 if (messageLength > maxLength) {lb}
+              		message = "Your status update is <span style='color:#c20000'> "  + messageLength + " </span> characters. Please shorten it to " + maxLength +  " characters.";
+            	{rb}
+	    		var helpDiv = document.getElementById("help-msg-mb-modal-editor");
+            		if(helpDiv){lb}
+               			helpDiv.innerHTML = message;
+            		{rb} else {lb}
+               			document.getElementById("help-msg-mb-header-editor").innerHTML = message;
+            		{rb}
+          		{rb}
+          	try {lb}
+            	statusUpdateDiv.onchange = checklength;
+            	statusUpdateDiv.onkeyup = checklength;
+            	statusUpdateDiv.onkeydown = checklength;
+            	checklength();
+          		{rb} catch (err) {lb}
+            	// Ignore the errors
+          	{rb}
+          		
+</script>
+<script>
+                var header =  document.getElementById("message-mb-header-editor");
+				$j(document).ready(function() {lb}
+
+				$j(header).click(function(){lb}   			
+   				if($j(this).attr('id')=="message-mb-header-editor")
+   				{lb}
+      				statusUpdateDiv = document.getElementById("message-mb-header-editor");
+   			{rb}
+   		{rb});
+{rb});
+</script>
+<!-- Swiss Re specific code - See INC006340293 -->
+</div>
+{/template}
+
+
+/**
+ * General Notification area for errors or warnings that may occur
+ */
+{template .statusInputNotificationBoxes}
+    {call .statusInputNotificationBox}{param cssClass}jive-info-box{/param}{/call}
+    {call .statusInputNotificationBox}{param cssClass}jive-warn-box{/param}{/call}
+    {call .statusInputNotificationBox}{param cssClass}jive-error-box{/param}{/call}
+{/template}
+
+/**
+ * General Notification area for errors or warnings that may occur
+ * @param cssClass
+ */
+{template .statusInputNotificationBox}
+    <div class="{$cssClass}" style="display:none" aria-live="polite" aria-atomic="true"></div>
+{/template}
+
+/**
+ * Errors or warnings that may occur around character lengths
+ * @param error
+ * @param numChars
+ */
+{template .charLenErrors}
+    {if $error}
+        {i18nText('we.chars.over', $numChars)}
+    {else}
+        {i18nText('we.chars.remaining', $numChars)}
+    {/if}
+{/template}
+
+/**
+ * Errors that may occur around submitting a we
+ * @param key
+ */
+{template .submitErrors}
+    {if $key=='over'}
+        {i18nText('we.form.character.limit.over')}
+    {elseif $key=='noplaceselected'}
+        {i18nText('we.form.no.place.selected')}
+    {elseif $key=='none'}
+        {i18nText('we.form.character.limit.none')}
+    {else}
+        {$key}
+    {/if}
+{/template}
+
+/**
+ * Notification area for errors or warnings that may occur while entering a status
+ * @depends i18nKeys=we.form.character.limit.over.one
+ * @depends i18nKeys=we.form.character.limit.over.many
+ * @depends i18nKeys=we.form.character.limit.left
+ */
+{template .statusInputErrorWarnBox}
+    <span class="j-wall-error" style="display:none">
+        <strong>
+            // TODO figure out what is going on here
+            {if i18nText('we.form.character.limit.over.many') == 1}
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('we.form.character.limit.over.one')}
+                    {/param}
+                    {param arg0}
+                        <span class="j-number-over"></span>
+                    {/param}
+                    {param noAutoEscape:true/}
+                {/call}
+            {else}
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('we.form.character.limit.over.many')}
+                    {/param}
+                    {param arg0}
+                        <span class="j-number-over"></span>
+                    {/param}
+                    {param noAutoEscape:true/}
+                {/call}
+            {/if}
+        </strong>
+    </span>
+    <span class="j-wall-warn" style="display:none">
+        <strong>
+            {call jive.shared.soy.i18nHelper}
+                {param i18nKey}
+                    {i18nKey('we.form.character.limit.left')}
+                {/param}
+                {param arg0}
+                    <span class="j-number-left"></span>
+                {/param}
+                {param noAutoEscape:true/}
+            {/call}
+        </strong>
+    </span>
+    <span class="jive-js-error-general j-rc2 j-mb-message" style="display:none" aria-live="polite" aria-atomic="true">
+        <strong>
+            {i18nText('we.form.statusInput.error')}
+        </strong>
+    </span>
+{/template}
+
+/**
+ * status input template
+ * @param? displayLinkBtn boolean that indicates whether to display a link button
+ * @param? canCreateLink boolean that indicates whether a user is allowed to insert link meta
+ * @param displayImageBtn boolean that indicates whether to display an image button
+ * @param canCreateImage boolean that indicates whether the user is allowed to create images
+ * @param canCreateVideo boolean that indicate whether the user is allowed to create video links
+ * @param canAtMention
+ * @param repost boolean that indicates if this is a repost form or not
+ * @param? statusID the id of the status update
+ */
+{template .statusInputActionContainer}
+    {if $canCreateImage and $displayImageBtn}
+        <div class="jive-js-image-container j-attachment-container clearfix"></div>
+    {/if}
+
+    {if $repost}
+        <input type="button" class="j-repost-submit j-btn-callout" data-statusid="{$statusID}" value="{i18nText('we.form.repost')}">
+        <input type="button" class="close" value="{i18nText('global.cancel')}">
+    {/if}
+    {if $canCreateLink and $displayLinkBtn}
+        <a href="javascript:void(0);" class="j-btn-global j-wall-meta-link jive-js-linkattach-button" title="{i18nText('we.form.addurl')}">
+            <span class="jive-icon-glyph icon-link"></span>
+        </a>
+    {/if}
+    {if $canCreateImage and $displayImageBtn}
+        <div class="j-btn-global j-wall-meta-image font-color-link jive-js-imgattach-button" title="{i18nText('we.form.addimage')}">
+            <span class="jive-icon-glyph icon-image"></span>
+        </div>
+    {/if}
+    {if $canAtMention}
+        <a href="javascript:void(0);" class="jive-js-mention-button j-wall-meta-reference j-btn-global" title="{i18nText('we.form.addlink')}" aria-labelledby="j-status-mention-label">
+            <label id="j-status-mention-label" class="j-508-label">{i18nText('we.form.addlink')}</label>
+            <span class="jive-icon-glyph icon-mention" aria-labelledby="j-status-mention-label"></span>
+        </a>
+    {/if}
+
+
+
+    {if $canCreateImage}
+        <div class="j-wall-meta-image-container j-attach-tab j-rc4">
+             <form method="post" enctype="multipart/form-data">
+                 <input type="file" name="image" aria-label="{i18nText('post.attach_files.gtitle')}"/>
+                 <input type="hidden" name="imageURL" />
+                 <input type="submit" value="{i18nText('imgpicker.insert.button')}" tabindex="-1" class="j-508-label"/>
+             </form>
+         </div>
+    {/if}
+    {if $canCreateVideo}
+         <div class="j-wall-meta-video-container j-attach-tab j-rc4">
+             <form method="post">
+                 <input type="file" name="image" aria-label="{i18nText('post.attach_files.gtitle')}"/>
+                 <input type="hidden" name="imageURL" />
+             </form>
+         </div>
+     {/if}
+
+{/template}
+
+/**
+ * Markup to be displayed in modal to confirm a wall entry comment deletion
+ **/
+{template .deleteCommentConfirmation}
+    <div class="jive-modal jive-modal-narrow" id="jive-modal-delete-we-comment">
+        <header>
+            <h2 class="jive-modal-title jive-modal-delete-we-comment">
+                {i18nText('we.delete.comment')}
+            </h2>
+        </header>
+
+        <div class="jive-modal-content jive-modal-delete-we-comment clearfix">
+
+            <div class="jive-warn-box" aria-live="polite" aria-atomic="true">
+                <div><span class="jive-icon-med jive-icon-warn"></span>{i18nText('we.delete.comment.confirm_del')}</div>
+            </div>
+
+            <div class="jive-form-buttons">
+                <input id="we-comment-delete-submit-button" type="button" class="j-btn-callout" name="delete" value="{i18nText('we.delete.comment.button')}">
+                <input id="we-comment-delete-close-button" type="button" class="jive-modal-close close" value="{i18nText('global.cancel')}">
+            </div>
+        </div>
+    </div>
+{/template}

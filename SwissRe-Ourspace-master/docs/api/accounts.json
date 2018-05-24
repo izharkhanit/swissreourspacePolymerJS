@@ -1,0 +1,28 @@
+[
+    {
+        "jointAccount": [],
+        "name": "Swanson, Sue",
+        "balance": "-2337",
+        "iban": "NL42INGB000000001",
+        "id": "1gliqj"
+    },
+    {
+        "jointAccount": [
+            {
+                "name": "Hutchinson, Norman",
+                "id": "5aafe27aec12a339cd577586"
+            }
+        ],
+        "name": "Moss, Leona",
+        "balance": "-1770",
+        "iban": "NL42INGB0000000002",
+        "id": "mprvv"
+    },
+    {
+        "jointAccount": [],
+        "name": "Odonnell, Rios",
+        "balance": "-2833",
+        "iban": "NL42INGB0000000003",
+        "id": "hcvfv"
+    }
+]

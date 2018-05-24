@@ -1,0 +1,98 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-shared-styles.html">
+
+<dom-module id="account-item">
+  <template>
+    <style is="custom-style" include="paper-item-shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+        width: 90%;
+      }
+
+      /* desktop */
+
+      @media (min-width: 799px) {
+        :host {
+          display: block;
+          width: 90%;
+        }
+      }
+
+      .negative-balance-color {
+        color: var(--transaction-item-negative-balance-color);
+      }
+
+      .positive-balance-color {
+        color: var(--transaction-item-positive-balance-color);
+      }
+
+      .iban-number {
+        color: var(--bank-statement-primary-color);
+        font-weight: bold;
+      }
+    </style>
+    <paper-item class="item-content">
+      <paper-item-body two-line>
+        <div account-id="[[accountId]]">
+          <span class="iban-number">[[iban]]</span>
+        </div>
+        <div secondary=true>
+          <span>[[name]]</span>
+          <span joint-account="[[jointAccount]]">[[getJointAccountName()]] </span>
+        </div>
+      </paper-item-body>
+      <div>
+        <span class$="[[_balanceClass]]">[[balance]]</span>
+      </div>
+    </paper-item>
+  </template>
+  <script>
+    /**
+     * `transaction-item`
+     * A simple polymer component using paper-item to show one transaction item for specific account
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class AccountItem extends Polymer.Element {
+      static get is() { return 'account-item'; }
+      isJointAccount() {
+        return ((this.jointAccount && this.jointAccount.length) > 0 ? true : false);
+      }
+      getJointAccountName() {
+        return (this.isJointAccount() ? '+ ' + this.jointAccount[0].name : '');
+      }
+      static get properties() {
+        return {
+          accountId: {
+            type: String
+          },
+          iban: {
+            type: String
+          },
+          name: {
+            type: String
+          },
+          balance: {
+            type: Number,
+            observer: '_onBalanceChanged'
+          },
+          jointAccount: {
+            type: Array
+          },
+          _balanceClass: {
+            type: String
+          }
+        };
+      }
+      _onBalanceChanged(newValue, oldValue) {
+        this.set('_balanceClass', (newValue < 0) ? 'negative-balance-color' : 'positive-balance-color');
+      }
+    }
+    window.customElements.define(AccountItem.is, AccountItem);
+  </script>
+</dom-module>

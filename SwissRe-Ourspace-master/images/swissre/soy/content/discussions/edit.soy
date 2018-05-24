@@ -1,0 +1,125 @@
+{namespace jive.discussions}
+
+/**
+ * Create a new discussion
+ *
+ * @depends path=/resources/scripts/apps/content/discussions/main.js
+ *
+ * @param bean com.jivesoftware.community.content.discussion.action.beans.EditDiscussionActionBean
+ * @param templateView The model to render the page template.
+ */
+{template .edit}
+    {call jive.skin.template.main data="$templateView"}
+        {param title: i18nText('editmsg.edit_message.title', $bean.subject) /}
+        {param asyncLoadRTE: false/}
+        {param headContent}
+            {call jive.content.head/}
+            {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    $j(function() {lb}
+                        jive.discussions.instance = new jive.discussions.Main({lb}
+                            actionBean: {buildJson($bean)|noAutoescape},
+                            suffix: '/{$bean.threadID}',
+                            method: 'PUT',
+                            selector: '#edit-discussion'
+                        {rb});
+                        require(['appContainer'], function(appContainer) {lb}
+                            appContainer.initEditContext({buildJson($bean)|noAutoescape});
+                        {rb});
+                    {rb});
+                {/param}
+            {/call}
+        {/param}
+        {param bodyClass: 'jive-body-formpage jive-body-formpage-discussion j-thread'/}
+        {param bodyContent}
+            <form class="j-form" method="post" name="edit-discussion" id="edit-discussion">
+
+            <!-- BEGIN main body -->
+                <div class="jive-create-thread jive-create-large  jive-content j-rc4 thread-page">
+
+                    {call jive.content.moderationWarning/}
+
+                    {call jive.content.outcomeRemovalWarning}
+                        {param outcomes: $bean.outcomes /}
+                        {param user: $templateView.user /}
+                    {/call}
+
+                    {call jive.content.header}
+                        {param header: i18nText('editmsg.edit_message.gtitle', $bean.subject) /}
+                        {param headerIcon: 'jive-icon-discussion' /}
+                        {param containerContext: $bean.containerContextBean /}
+                    {/call}
+
+                    <span class="j-thread-pointer j-ui-elem"></span>
+
+
+
+                        {if $bean.guest}
+                            {call jive.content.guestinfo data="$bean.userContextBean" /}
+                        {/if}
+
+                        {call .dataPassthrough}
+                            {param bean: $bean /}
+                        {/call}
+
+                        {call jive.content.subject}
+                            {param subject: $bean.subject /}
+                            {param required: i18nText('post.err.pls_enter_subject.text') /}
+                        {/call}
+
+                        {call jive.content.editor}
+                            {param body: $bean.body /}
+                            {param required: i18nText('post.err.pls_enter_a_msg.text') /}
+                        {/call}
+
+                        {call jive.discussions.messageedit}
+                            {param displayName: $bean.displayName /}
+                        {/call}
+
+                        {call jive.content.rte_message data="$bean"}
+                            {param objectId: $bean.objectID/}
+                            {param objectType: $bean.contentType/}
+                            {param type: 'discussion'/}
+                        {/call}
+                </div>
+
+                {call jive.publishbar.main data="$bean.publishBarViewBean" /}
+                // Swissre Theme migration
+                <div class="j-minor-edit">
+                    <b>Note</b>: You are currently editing a discussion. No e-mail notifications will be sent for this update.
+                </div>				
+                {call jive.content.composebuttons}
+                    {param submitButton: i18nText('global.post_message') /}
+                    {param showDraftButton: false /}
+                {/call}
+
+            </form>
+
+            <!-- END main body -->
+        {/param}
+    {/call}
+{/template}
+
+/**
+ * @param bean com.jivesoftware.community.content.discussion.action.beans.EditDiscussionActionBean
+ */
+{template .dataPassthrough}
+    {call jive.content.dataPassthrough}
+        {param bean: $bean /}
+    {/call}
+    <input type="hidden" name="thread" value="{$bean.threadID}"/>
+{/template}
+
+/**
+ * @param displayName
+ */
+{template .messageedit}
+    <div id="jive-edit-by-container">
+        <input type="checkbox" name="addComment" value="true" id="jive-edit-by-checkbox" aria-labelledby="jive-edit-by-checkbox-label">
+        <label id="jive-edit-by-checkbox-label">{i18nText('editmsg.addTextToMsg2.checkbox')}</label>
+        <textarea name="comment" cols="58" rows="2" wrap="virtual" id="jive-edit-by-box" aria-labelledby="jive-edit-by-checkbox-label">
+            {i18nText('editmsg.msg_edited_by_user.text', $displayName)}
+        </textarea>
+    </div>
+{/template}
+

@@ -1,0 +1,113 @@
+{namespace jive.people.profile}
+
+
+/**
+ * @param targetUser
+ * @param user
+ * @param currentTime
+ * @param postfix
+ * @param profileImageEnabled
+ * @param extendedProfileFields
+ * @param otherProfileFields
+ *
+ * @depends i18nKeys=profile.guesttip.text
+ */
+{template .extendedProfileFields}
+    <div class="profile-tile j-extended-profile">
+    {if not $profileImageEnabled}
+        // If profile images are not enabled the profile fields normally displayed in the header will be displayed here.
+        <header class="j-tile-header clearfix">
+            <h3 class="font-color-meta">{i18nText('profile.personal')}</h3>
+        </header>
+        <section class="profile-data">
+            {call .headerProfileFields data="all" /}
+        </section>
+   {else}
+        {if length($extendedProfileFields) == 0 and $user.anonymous}
+            <section class="j-empty-message font-color-meta-light">
+                {call jive.shared.soy.i18nHelper}
+                    {param i18nKey}
+                        {i18nKey('profile.guesttip.text')}
+                    {/param}
+                    {param arg0}<a href="{buildUrl('/login.jspa?referer=' + $targetUser.link)}">{/param}
+                    {param arg1}</a>{/param}
+                    {param arg2}{$targetUser.username}{/param}
+                    {param noAutoEscape}true{/param}
+                {/call}
+            </section>
+        {elseif length($extendedProfileFields) == 0}
+            <header class="j-tile-header clearfix">
+                <h3>{i18nText('profile.personal')}</h3>
+            </header>
+            <section class="j-empty-message font-color-meta-light">
+                <p>{i18nText('profile.engage')}<br>
+                {i18nText('profile.complete')}</p>
+            </section>
+        {else}
+            <header class="j-tile-header clearfix">
+                {if ($targetUser.prop.profile.location)}
+                <h3> {$targetUser.prop.profile.location|truncate:30} <span>{$currentTime}</span></h3>
+                {else}
+                <h3>{i18nText('profile.personal')}</h3>
+                {/if}
+            </header>
+            <section class="profile-data">
+                <ul>
+                    //Upgrade - Profile page change
+                    <li id="lyncMeeetingRoom" style="display:none">
+                        <span class="font-color-meta-light">Skype for Business meeting room</span>
+                              <a href="https://meet.swissre.com/swissre/"  title="" target='_blank' id="lyncMeeetingURL">https://meet.swissre.com/swissre/</a>
+                        </span>
+                    </li>
+                    <script>
+							var email = "{$targetUser.prop.profile.primaryEmailAddress.email}";
+						    var url = "http://ourspace-rss-proxy.swissre.com/?feed=http://wbc-redirect.swissre.com/link.aspx?email="+email +"&redirect=0";
+						{literal}
+                        if (window.XDomainRequest) {
+            				var xdr = new XDomainRequest();
+            				xdr.open("get", url);
+            				xdr.onprogress = function () {
+              				// Nothing
+            			}
+            			xdr.onload = function () {
+
+              				var lyncMeeetingURL= document.getElementById("lyncMeeetingURL");
+							lyncMeeetingURL.innerHTML = xdr.responseText;
+							lyncMeeetingURL.href= xdr.responseText;
+                			document.getElementById("lyncMeeetingRoom").style.display = "inherit";
+            			}
+            			xdr.send();
+          				} else {
+            				var xmlHttpRequest = new XMLHttpRequest();
+            				xmlHttpRequest.open("GET", url, true);
+           					xmlHttpRequest.onreadystatechange = function () {
+              				if (xmlHttpRequest.readyState == 4 && xmlHttpRequest.status < 400) {
+                				var lyncMeeetingURL= document.getElementById("lyncMeeetingURL");
+								lyncMeeetingURL.innerHTML = xmlHttpRequest.responseText;
+								lyncMeeetingURL.href=xmlHttpRequest.responseText;
+                				document.getElementById("lyncMeeetingRoom").style.display = "inherit";
+              				}
+            			}
+            			xmlHttpRequest.send();
+          				}
+						{/literal}
+						</script>
+                    {foreach $field in $extendedProfileFields}
+                        {call .displayField data="all"}
+                            {param field: $field /}
+                        {/call}
+                    {/foreach}
+                </ul>
+            </section>
+        {/if}
+    {/if}
+    <footer class="j-footer-fade">
+        {if ($otherProfileFields and length($otherProfileFields) > 0) or
+            (not $profileImageEnabled and length($extendedProfileFields) > 0) or $postfix}
+        <a id="j-profile-full-bio-button" href="#" class="j-btn-global j-btn-full">{i18nText('profile.fullbio.link')}</a>
+        {/if}
+    </footer>
+    </div>
+
+    {call .fullBio data="all"/}
+{/template}

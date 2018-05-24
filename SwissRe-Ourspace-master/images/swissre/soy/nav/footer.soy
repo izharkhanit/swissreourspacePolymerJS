@@ -1,0 +1,140 @@
+{namespace jive.nav autoescape="contextual"}
+
+/**
+ * Renders the footer nav bar for the application.
+ *
+ * @param licenseVersion the version of the product from the license.
+ * @param revision the SVN revision
+ * @param currentYear the current year to populate the copyright
+ * @param howToBuyLink
+ * @param securityAndScalingLink
+ * 
+ * 
+ * @param trialActive
+ * @param showHelpLink
+ * @param jiveLogoFooterEnabled
+ * @param? realtimeStatsEnabled
+ */
+{template .footer}
+    {if $jiveLogoFooterEnabled}
+        <div id="j-footer-poweredBy">
+            <a class="font-color-meta-light j-copyright" href="http://www.jivesoftware.com/poweredby/" target="_blank"><span class="lnk">{i18nText('dectr.copyrightJiveFooter.text', $currentYear)}</span></a>
+            {if $realtimeStatsEnabled}
+                // for debugging
+                <span id="j-pbj-act" class="js-pbj-act j-poweredby-activity" title="{i18nText('global.access.websocket.stats')}">
+                    {sp}<span class="lnk j-pipe">|</span>{sp}
+                </span>
+            {else}
+                <span class="j-pipe">{sp}|{sp}</span>
+            {/if}
+            <a href="http://www.jivesoftware.com/poweredby/" target="_blank" title="{i18nText('dectr.jiveVersion.link', $licenseVersion, $revision)}" class="j-powered-by">
+            <span class="lnk">{i18nText('global.access.poweredby')}</span> <span class="jive-icon-glyph icon-jivelogo"></span>
+            </a>
+        </div>
+    {/if}
+    <div class="j-footer-nav font-color-meta">
+        <a class="" href="{buildUrl('/')}">{i18nText('global.home')}</a>
+        <span class="j-pipe">{sp}|{sp}</span>
+        <a class="" href="#top">{i18nText('dectr.page.top.link')}</a>
+        {if $trialActive}
+            <span class="j-pipe">{sp}|{sp}</span><a class="" href="{$howToBuyLink}">{i18nText('footer.how.to.buy')}</a>
+            <span class="j-pipe">{sp}|{sp}</span>
+            <a class="" href="{$securityAndScalingLink}">
+                {i18nText('footer.security.and.scaling')}
+            </a>
+            //Upgrade - Swissre Theme migration
+            <span class="j-pipe">{sp}|{sp}</span><a class="font-color-meta" href="http://ourspace.swissre.com/community/support">{i18nText('footer.jive.community')}</a>
+        {/if}
+        {if $showHelpLink}
+            <span class="j-pipe">{sp}|{sp}</span>
+            <!-- Upgrade - Swissre Theme migration -->
+            <a class="font-color-meta" target="_blank" href="http://ourspace.swissre.com/community/support">{i18nText('footer.help')}</a>
+            <span class="j-pipe">{sp}|{sp}</span><a href="http://ourspace.swissre.com/docs/DOC-3000">Ourspace Policies</a><span class="j-pipe">{sp}|{sp}</span>
+            <a href="http://ourspace.swissre.com/community/support?view=discussions">Feedback</a>
+        {/if}
+    </div>
+    <div class="j-footer-jiveVersion font-color-meta">
+        {i18nText('dectr.jiveVersion.link', $licenseVersion, $revision)}
+    </div>
+
+    <script>
+      /* CR00138393: Remove the space create link from create menu */
+      try {lb}
+        if (document.getElementById("create-list-1") != null && document.getElementById("create-list-1").children[1] != null) {lb}
+          document.getElementById("create-list-1").children[1].style.display = "none";
+        {rb}
+      {rb} catch (err) {lb}
+        // Ignore any errors
+      {rb}
+
+      /* CR00141066.157295: Populate subject and body from query param starts */
+      try {lb}
+        var params = window.location.href.split(/\?|\&/);
+        params.forEach(function(autoFillFields) {lb}
+          if (autoFillFields) {lb}
+            var param = autoFillFields.split("=");
+            if (param[0] == 'swissreSubject') {lb}
+              var subjectContent = document.getElementById('subject');
+              var decoded = decodeURIComponent(param[1]);
+              subjectContent.value = decoded;
+            {rb} else if(param[0] == 'swissreBody') {lb}
+              var bodyContent = document.getElementById('wysiwygtext');
+              var decoded = decodeURIComponent(param[1]);
+              bodyContent.innerHTML = decoded;
+            {rb}
+          {rb}
+        {rb});
+      {rb} catch (err) {lb}
+        // Ignore any errors
+      {rb}
+
+      /* CR00141066.157574: Change https protocol to http protocol for desktop browsers */
+      try {lb}
+        if (/Chrome|Firefox|Trident/i.test(navigator.userAgent)) {lb}
+          url = window.location.href;
+          if ((/ourspace*/.test(url)) && (window.location.protocol == "https:")) {lb}
+            var httpURL= window.location.hostname + window.location.pathname + window.location.search;
+            var httpsURL= "http://" + httpURL;
+            window.location = httpsURL;
+          {rb}
+        {rb}
+      {rb} catch (err) {lb}
+        // Ignore any errors
+      {rb}
+
+      /* OPS001911647: Make SharePoint links in the L&H Solutions group open in the same tab / window */
+      try {lb}
+        var hrefs = document.getElementsByTagName("A");
+        var lhSolutions = (window.location.pathname.indexOf("/groups/lh-solutions") === 0);
+        if (!lhSolutions) {lb}
+          for (var i = 0; i < hrefs.length; i++) {lb}
+            if (hrefs[i].href.match("/groups/lh-solutions$") == "/groups/lh-solutions") {lb}
+              lhSolutions = true;
+              break;
+            {rb}
+          {rb}
+        {rb}
+        if (lhSolutions) {lb}
+          for (var i = 0; i < hrefs.length; i++) {lb}
+            if (hrefs[i].href.indexOf("https://shp.swissre.com/sites/lhbmdwg/") === 0 ||
+                decodeURIComponent(hrefs[i].href).indexOf("/external-link.jspa?url=https://shp.swissre.com/sites/lhbmdwg/") !== -1) {lb}
+              hrefs[i].target = "_self";
+            {rb}
+          {rb}
+        {rb}
+      {rb} catch (err) {lb}
+        // Ignore any errors
+      {rb}
+    </script>
+
+    <span id='speakSpan' class='j-508-label' role='marquee' aria-live='assertive' aria-relevant='all'></span>
+{/template}
+
+
+/**
+ * @param html
+ */
+{template .customFooter}
+    //upgrade - Swissre Theme migration
+    <footer id="j-cust-foot" >{$html|noAutoescape}</footer>
+{/template}

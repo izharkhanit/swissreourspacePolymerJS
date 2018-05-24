@@ -1,0 +1,367 @@
+<!--
+  ~ $Revision$
+  ~ $Date$
+  ~
+  ~ Copyright (C) 1999-2010 Jive Software. All rights reserved.
+  ~
+  ~ This software is the proprietary information of Jive Software. Use is subject to license terms.
+  -->
+
+{namespace jive.home autoescape="contextual"}
+
+/**
+ * Renders the content section for user's home page.
+ *
+ * @param streamDisplayName
+ * @param streamType
+ * @param streamID
+ * @param homeNavHelper properties for home nav
+ * @param templateView The model to render the page template.
+ *
+ * TODO: update layout with {if $streamTab != 'discovery'}s{/if}
+ *
+ * @depends path=/resources/scripts/apps/browse/activity/info/views/activity_info_view.js
+ * @depends path=/resources/scripts/apps/activity_stream_builder/activity_stream_builder_controller.js
+ * @depends path=/resources/scripts/jive/acclaim.js
+*/
+{template .main}
+    {call jive.skin.template.main data="$templateView"}
+        {param title: $streamDisplayName/}
+        {param selectedLinkID: 'jive-nav-link-home'/}
+        {param bodyClass: 'j-body-home'/}
+        {param bodyContent}
+            <!-- BEGIN layout -->
+            <div class="j-layout j-layout-sl j-layout clearfix" id="j-streams-main">
+                // Sidebar layout
+                <div class="j-column-wrap-s">
+                    <nav class="j-column j-column-s" role="navigation" aria-label="{i18nText('eae.stream.nav')}">
+                        {call jive.welcome.homeSideNav}
+                            {param homeNavHelper: $homeNavHelper/}
+                            {param selectedLinkID}
+                                {if $streamType == 'all'}
+                                    jive-nav-link-activity
+                                {elseif $streamType == 'connections'}
+                                    jive-nav-link-connections
+                                {elseif $streamType == 'watches'}
+                                    jive-nav-link-watches
+                                {else}
+                                    jive-nav-link-custom-{$streamID}
+                                {/if}
+                            {/param}
+                        {/call}
+                    </nav>
+                </div>
+
+                <!-- BEGIN large column -->
+                <div class="j-column-wrap-l">
+                    <div id="j-dynamic-pane" class="j-column j-column-l">
+                        {call .dynamicPaneContents data="all" /}
+                    </div>
+                </div>
+            </div>
+        {/param}
+    {/call}
+{/template}
+
+/**
+ * Renders the content section for user's home page.
+ *
+ * @param activityStream - the current stream for the viewing user
+ * @depends path=/resources/scripts/apps/trial/views/trial_tip_helper.js
+ * @depends path=/resources/scripts/apps/browse/user/model/user_source.js
+ */
+{template .dynamicPaneContents}
+    <div id="j-activity-page" class="j-stream">
+		<div class="j-stream-container" role="main" aria-labelledby="js-activity-heading">
+			{call .renderStreamCreate data="all"}
+			     {param viewingUser: $activityStream.viewingUser /}
+                 {param canCreateMbEntry: $activityStream.canCreateMbEntry /}
+                 {param canCreateMbImage: $activityStream.canCreateMbImage /}
+                 {param canCreateMbVideo: $activityStream.canCreateMbVideo /}
+                 {param canCreateMbLinkPreview: $activityStream.canCreateMbLinkPreview /}
+
+			{/call}
+            {call jive.eae.activitystream.streamSpecificFilters data="all"}
+                {param anonymous: $activityStream.viewingUser.anonymous /}
+            {/call}
+            {call .renderActivityStream data="all" /}
+		</div>
+    </div>
+{/template}
+
+/**
+ *
+ * @param createMenuData
+ * @param? publishBarViewBean
+ * @param? focusStatusUpdate
+ * @param latestStatusUpdate
+ * @param mobileUI
+ * @param viewingUser
+ * @param canCreateMbEntry
+ * @param canCreateMbImage
+ * @param canCreateMbVideo
+ * @param canCreateMbLinkPreview
+ */
+{template .renderStreamCreate}
+<div class="j-create-container" role="group" aria-label="{i18nText('global.create')}">
+    {if $canCreateMbEntry and not $viewingUser.anonymous}
+
+        {call .activityStreamCreateMenu}
+            {param createMenuData: $createMenuData /}
+            {param canCreateStatusUpdates: $canCreateMbEntry /}
+            {param location: 'amenu' /}
+        {/call}
+
+        <div id="activityHomemoderation-container" style="display:none">
+            <div id="activityHomemoderation-warning" class="jive-content-moderation-box" style="display:none">
+                <span class="jive-icon-med jive-icon-warn"></span>{i18nText('mod.content.create')}
+            </div>
+        </div>
+        <div class="j-main-mb-entry" role="application">
+            <script>
+                    require([
+                        'apps/microblogging/status_input_mb_controller',
+                        'channel!onboarding'
+                    ], function(MBController, onboardingChannel) {lb}
+                        var controller = new MBController({lb}
+                            publishBarIdentifier: 'activityHome',
+                            publishBarViewBean: {buildJson($publishBarViewBean)|noAutoescape}
+                        {rb});
+                        {if $focusStatusUpdate}
+                            controller.getMicrobloggingView().focus();
+                        {/if}
+
+                        onboardingChannel.reply('microbloggingController', controller);
+                    {rb});
+            </script>
+            {call jive.statusinput.containers.microbloggingStatusInput}
+                {param statusID:'mb-header-editor' /}
+                {param user:$viewingUser /}
+                {param latestStatusUpdate: $latestStatusUpdate /}
+                {param canCreateMbImage: $canCreateMbImage /}
+                {param canCreateMbVideo: $canCreateMbVideo /}
+                {param canCreateMbLinkPreview: $canCreateMbLinkPreview /}
+                {param canAtMention: not $mobileUI /}
+                {param focusStatusUpdate: $focusStatusUpdate /}
+                {param publishBarViewBean: $publishBarViewBean /}
+                {param publishBarIdentifier: 'activityHome' /}
+            {/call}
+        </div>
+    {/if}
+</div>
+{/template}
+
+/**
+ * @param mobileUI - RTE option
+ */
+{template .renderActivityStream}
+    <div id="j-activity-streams-wrapper" class="j-stream">
+        <div id="previewable-binary-viewer"></div>
+        <div id="j-stream" class="j-act j-stream-list j-main-stream j-act-stream {if not $mobileUI}j-not-mobile{/if}">
+            {call jive.eae.activitystream.activityStream data="all" /}
+        </div>
+    </div>
+{/template}
+
+/**
+ * @param createMenuData
+ * @param canCreateStatusUpdates
+ * @param location
+ * @depends template=jive.nav.menu.create.contentTypeHref
+ *
+ * @allowDependsWildcard
+ *
+ * @depends i18nKeys=nav.bar.create.*
+ */
+{template .activityStreamCreateMenu}
+    {if $createMenuData.visible and length($createMenuData.sections[0].items)}
+        <script>
+            $j(function(){lb}
+                require([
+                    'apps/activity_stream/activity_stream_create_menu_view'
+                    ], function(CreateMenuView) {lb}
+                    var view = new CreateMenuView({lb}
+                        createMenuData: {buildJson($createMenuData)|noAutoescape},
+                        location: '{$location}'
+                    {rb});
+                    view.postRender();
+                {rb});
+            {rb});
+        </script>
+        <div id="j-as-create-menu">
+            <a href="#" id="as-create-menu-more" class="j-as-create-menu-more" aria-hidden="true" style="display:none;">
+                <span class="lnk">
+                    {i18nText('global.more')}
+                </span>
+                <span class="j-nav-more jive-icon-glyph icon-arrow-down2 j-filter-icon"></span>
+            </a>
+            <div id="j-as-create-menu-items">
+                {if $canCreateStatusUpdates and length($createMenuData.sections) > 0}
+                    <span class="j-as-create-item" role="heading">
+                        <span class="font-color-meta j-create-heading">{i18nText('global.create.colon.caps')}</span>
+                    </span>
+                {/if}
+                {if $canCreateStatusUpdates}
+                    <span class="{if length($createMenuData.sections[0].items) > 1}j-as-create-status-update{/if} j-as-create-item" title="{i18nText('nav.bar.create.description.status')}">
+                        <span class="jive-icon-status jive-icon-med"></span>{i18nText('nav.bar.create.content.status')}
+                    </span>
+                {/if}
+                {foreach $section in $createMenuData.sections}
+                    {if $section.createMenuSection and $section.visible}
+                        {foreach $item in $section.items}
+                            {if $item.uploadable}
+                                {call .activityStreamCreateMenuItem}
+                                    {param item: $item.uploadLink /}
+                                    {param trackingID: $location /}
+                                    {param upload: true /}
+                                {/call}
+                            {/if}
+                            {call .activityStreamCreateMenuItem}
+                                {param item: $item /}
+                                {param trackingID: $location /}
+                            {/call}
+                        {/foreach}
+                    {/if}
+                {/foreach}
+            </div>
+        </div>
+        <div id="j-as-create-menu-pop" class="j-menu j-quick-menu" style="display:none;"></div>
+        <script>
+            // want this script to run inline so the "more" button showing/hiding is handled as soon
+            // as the menu is drawn.  Depends only on jQuery.
+            require([
+                'jquery'
+            ], function($j) {lb}
+                var $upMenu = $j('#j-as-create-menu-items'),
+                    $menuItems = $upMenu.find('.j-as-create-item'),
+                    $moreBtn = $j('#as-create-menu-more'),
+                    upMenuWidth = $upMenu.outerWidth(true),
+                    createMenuItemsTotalWidth = 0;
+                $menuItems.each(function() {lb}
+                    createMenuItemsTotalWidth += $j(this).outerWidth(true);
+                {rb});
+                if (upMenuWidth >= createMenuItemsTotalWidth - 1) {lb}
+                    $moreBtn.hide();
+                {rb}
+                else {lb}
+                    $moreBtn.show();
+                {rb}
+            {rb});
+        </script>
+    {/if}
+{/template}
+
+/**
+ * @param item
+ * @param trackingID
+ * @param? upload
+ */
+{template .activityStreamCreateMenuItem}
+    {if $item.id != 'j-create-link-status'  and $item.visible}
+        <a href="
+            {call .contentTypeHref data="$item"}
+                {param legacy: length(match($item.linkCss, 'js-legacy-create')) > 0/}
+                {param trackingID: $trackingID /}
+            {/call}"
+            class="{$item.linkCss} j-as-create-item"
+            title="{i18nText($item.descriptionKey)}"
+            {if $item.urlParams and $item.urlParams.contentType}
+                {sp}data-content-type="{$item.urlParams.contentType}"
+            {/if}
+            {if $upload}
+                {sp}data-upload="true"
+            {/if}
+            {if length(match($item.linkCss, 'quick')) > 0}
+                {sp}data-quick-create-url="{call .contentTypeHref data="$item"}
+                    {param trackingID: $trackingID /}
+                    {param legacy: true /}
+                {/call}"
+            {/if}
+                {sp}data-ident="{$item.nameKey}">
+            <span class="{$item.iconCss} jive-icon-med"></span>
+            <span class="lnk">{i18nText($item.nameKey)}</span>
+        </a>
+    {/if}
+{/template}
+
+
+/**
+ * @param menuItems
+ * @param trackingID
+ * @param suppressUploadable
+ */
+{template .activityStreamCreateMenuPopover}
+    <ul class="j-icon-list">
+        {foreach $item in $menuItems}
+            {if $item.uploadable and not $suppressUploadable}
+                <li>
+                    {call .activityStreamCreateMenuItem}
+                        {param item: $item.uploadLink /}
+                        {param trackingID: $trackingID /}
+                        {param upload: true /}
+                    {/call}
+                </li>
+            {/if}
+            <li>
+                {call .activityStreamCreateMenuItem}
+                    {param item: $item /}
+                    {param trackingID: $trackingID /}
+                {/call}
+            </li>
+        {/foreach}
+    </ul>
+    
+    <script>
+     var videoElement = document.getElementsByClassName("jive-icon-video");
+   if(videoElement!=null) {lb}
+   	videoElement[1].parentNode.style.display = "none" ;
+   	videoElement[2].parentNode.style.display = "none" ;
+   {rb}
+    </script>
+{/template}
+
+/**
+ * Returns the appropriate href value for a given content type link.
+ *
+ * @param url a create URL associated iwth this content type
+ * @param urlParams parameters associated with this content type
+ * @param trackingID
+ * @param? legacy if true outputs an actual href
+ */
+{template .contentTypeHref}
+    {if $legacy}
+        {if $urlParams}{buildUrl($url, extend(Map(p('sr', $trackingID)), $urlParams))}{else}{buildUrl($url, Map(p('sr', $trackingID)))}{/if}
+    {else}
+        javascript:void(0)
+    {/if}
+{/template}
+
+/**
+ * Renders newCount
+ * @param? count
+ */
+{template .newCount}
+    {if $count > 50}
+        50+
+    {else}
+        {$count}
+    {/if}
+{/template}
+
+/**
+ * Renders updateBadge
+ */
+{template .updateBadge}
+    <div />
+{/template}
+
+/**
+  * Returns the title for the page.
+  *
+  * @param count
+  */
+{template .countForTitle}
+    ({call .newCount}
+        {param count:$count /}
+    {/call})
+{/template}

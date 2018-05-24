@@ -1,0 +1,101 @@
+{namespace jive.blogs}
+
+/**
+ * Edit a Blog Post.
+ *
+ * @depends path=/resources/scripts/apps/content/blogs/main.js
+ *
+ * @param bean com.jivesoftware.community.content.blogs.action.beans.UpdateBlogPostActionBean
+ * @param templateView The model to render the page template.
+ */
+{template .editPost}
+    {call jive.skin.template.main data="$templateView"}
+        {param title: i18nText('blogs.crtpst.edit.title') /}
+        {param asyncLoadRTE: false/}
+        {param headContent}
+            {call jive.content.head/}
+            {call jive.shared.soy.resourceInlineJs}
+                {param code}
+                    $j(function() {lb}
+                        var main = new jive.content.blogs.Main({lb}
+                            actionBean: {buildJson($bean)|noAutoescape},
+                            selector: '#create-blog',
+                            blogID: {$bean.blogID},
+                            postID: {$bean.postID},
+                            edit: true
+                        {rb});
+                        require(['appContainer'], function(appContainer) {lb}
+                            appContainer.initEditContext({buildJson($bean)|noAutoescape});
+                        {rb});
+                    {rb});
+                {/param}
+            {/call}
+        {/param}
+        {param bodyClass: 'jive-body-formpage jive-body-formpage-blog'/}
+        {param bodyContent}
+
+            <form class="j-form" novalidate method="post" name="create-blog" id="create-blog">
+
+                <div class="jive-create-post jive-create-large jive-content blog-post clearfix">
+
+                    {call jive.content.moderationWarning/}
+                     
+                    {call jive.content.header}
+                        {param header: i18nText('blogs.crtpst.edit.text', $bean.subject) /}
+                        {param headerIcon: 'jive-icon-blog' /}
+                        {param containerContext: $bean.containerContextBean /}
+                    {/call}
+
+                    {if $bean.guest}
+                        {call jive.content.guestinfo data="$bean.userContextBean" /}
+                    {/if}
+
+                    {call .dataPassthrough}
+                        {param bean: $bean /}
+                    {/call}
+
+                    {call jive.content.subject}
+                        {param subject: $bean.subject /}
+                        {param subjectLabel: i18nText('global.subject') /}
+                        {param required: i18nText('post.err.pls_enter_subject.text') /}
+                    {/call}
+
+                    {call jive.content.editor}
+                        {param body: $bean.body /}
+                        {param required: i18nText('post.err.pls_enter_body.text') /}
+                    {/call}
+
+                </div>
+
+                {call jive.publishbar.main data="$bean.publishBarViewBean" /}
+                //Upgrade - Swissre Theme migration
+				{if $bean.draft}
+                    {call jive.content.minoredit }
+                        {param isMinorEdit: $bean.minorEdit/}
+                    {/call}
+                {else}
+                    <div class="j-minor-edit">
+                        <b>Note</b>: You are currently editing a blog post. No e-mail notifications will be sent for this update.
+                    </div>
+                {/if}
+				
+                {call jive.content.composebuttons}
+                    {param submitButton: i18nText('blogs.crtpst.publish.btn') /}
+                    {param showDraftButton: $bean.draft /}
+                {/call}
+
+            </form>
+        {/param}
+    {/call}
+{/template}
+
+/**
+ * @param bean com.jivesoftware.community.content.blogs.beans.UpdateBlogPostActionBean
+ */
+{template .dataPassthrough}
+    {call jive.content.dataPassthrough}
+        {param bean: $bean /}
+    {/call}
+    <input type="hidden" name="blogID" value="{$bean.blogID}" />
+    <input type="hidden" name="postID" value="{$bean.postID}" />
+{/template}

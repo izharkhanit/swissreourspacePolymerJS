@@ -1,0 +1,293 @@
+{namespace jive.nav.menu.create}
+/**
+* Renders menu options for selecting a type of content to create.
+*
+* @param sections A collection of {@CreateMenuSection}s, each with link children.
+* @param? smallView use the small create menu if true or the large menu otherwise
+*
+* @depends path=/resources/scripts/apps/navbar/menu/create/main.js
+*/
+{template .contentTypes}
+    <div class="j-pop-desc">
+
+        {if $smallView}
+            <a href="#" class="toggle j-menu-quick-toplink js-use-large-menu font-color-meta" role="presentation">{i18nText('nav.bar.create.use_large_link')}</a>
+        {else}
+            <a href="#" class="toggle j-menu-quick-toplink js-use-small-menu font-color-meta" role="presentation">{i18nText('nav.bar.create.use_small_link')}</a>
+        {/if}
+        <h2>{i18nText('nav.bar.create.link')}</h2>
+    </div>
+    <div class="j-nav-menu-scrollable js-nav-menu-scrollable">
+    {foreach $section in $sections}
+        {if $section.visible}
+            <strong class="j-menu-quick-sectionlabel font-color-meta-light">{i18nText($section.name)}</strong>
+            <ul id="create-list-{index($section)}" class="j-icon-list js-create-list">
+                {foreach $item in $section.items}
+                    {if ($item.visible)}
+                        {if ($item.appAction)}
+                            {call .appActionLink data="$item"}
+                                {param smallView: $smallView/}
+                            {/call}
+                        {else}
+                            {call .contentTypeLinkItem data="$item"}
+                                {param smallView: $smallView /}
+                            {/call}
+                        {/if}
+                    {/if}
+               {/foreach}
+            </ul>
+        {/if}
+    {/foreach}
+    </div>
+    /*CR00138393- To remove the space create link from create menu*/
+   <script>
+      try
+      {lb}
+          if(document.getElementById("create-list-1") != null && document.getElementById("create-list-1").children[1] != null)
+          {lb}
+               document.getElementById("create-list-1").children[1].style.display = "none";
+          {rb}
+       {rb}
+       catch (err) 
+       {lb}
+                // Ignore the errors
+       {rb}
+        // To hide videos from jive 9 upgrade . Swiss re Theme customization.
+      try {lb}
+          if(document.getElementById("create-list-0") != null && document.getElementById("create-list-0").children[7] != null && document.getElementById("create-list-0").children[8] != null)
+          {lb}
+               if(document.getElementById("j-create-link-task") != null )
+          {lb}
+                
+               document.getElementById("create-list-0").children[8].style.display = "none";
+          {rb}
+                if(document.getElementById("j-create-link-task") == null )
+          {lb}
+               document.getElementById("create-list-0").children[7].style.display = "none";
+          {rb}
+         {rb}      
+       {rb}
+       catch (err) 
+       {lb}
+                // Ignore the errors
+       {rb}
+
+        
+    </script>
+{/template}
+
+/**
+ * Displays a link to select a specific type of content.
+ *
+ * @param? uploadable Is the content type available to upload as a creation option?
+ * @param? uploadLink A special link for uploading into the content type instead of creating within the app.
+ * @param? smallView use the small create menu if true or the large menu otherwise
+ * @param? id the link id
+ */
+{template .contentTypeLinkItem}
+    {if $uploadable} /* special behavior for things that can be uploaded */
+         <li>{call .contentTypeLink data="$uploadLink"}
+                {param upload: true/}
+                {param smallView: $smallView/}
+             {/call}
+         </li>
+    {/if}
+    <li {if $id}id="{$id}"{/if}>{call .contentTypeLink data="all"/}</li>
+{/template}
+
+/**
+ * Displays a link to select a specific type of content.
+ *
+ * @param nameKey i18n key for the text to display with this link
+ * @param? smallNameKey i18n key for the text to display with this link in small view
+ * @param descriptionKey i18n key for the extended description to display with this item
+ * @param urlParams parameters associated with this content type
+ * @param iconCss The link icon CSS classes, if any.
+ * @param linkCss The link anchor CSS classes, if any.
+ * @param iconSize The size of the icon to render.  Choices are "sml", "med", and "big".  Default is "med".
+ * @param? upload Is this an upload link?
+ * @param? smallView use the small create menu if true or the large menu otherwise
+ */
+{template .contentTypeLink}
+    {if $iconCss}
+        /* Only certain links need to follow an href to another page.  Currently
+         * this includes groups. */
+        <a href="{call .contentTypeHref data="all"}
+               {param legacy: length(match($linkCss, 'js-legacy-create')) > 0/}
+           {/call}"
+           class="{$linkCss}"
+           {if $urlParams and $urlParams.contentType}
+               {sp}data-content-type="{$urlParams.contentType}"
+           {/if}
+           {if $upload}
+               {sp}data-upload="true"
+           {/if}
+           {if length(match($linkCss, 'quick')) > 0}
+               {sp}data-quick-create-url="{call .contentTypeHref data="all"}{param legacy: true /}{/call}"
+           {/if}>
+            <span class="{$iconCss} jive-icon-{if $iconSize}{$iconSize}{elseif $smallView}med{else}big{/if}"></span>
+            <span class="lnk">{i18nText($smallView and $smallNameKey ? $smallNameKey : $nameKey)}</span>
+
+            {if not $smallView and $descriptionKey}
+                <p class="font-color-normal">{i18nText($descriptionKey)}</p>
+            {/if}
+        </a>
+    {/if}
+{/template}
+
+/**
+ * Returns the appropriate href value for a given content type link.
+ *
+ * @param url a create URL associated iwth this content type
+ * @param urlParams parameters associated with this content type
+ * @param? legacy if true outputs an actual href
+ */
+{template .contentTypeHref}
+    {if $legacy}
+        {if $urlParams}{buildUrl($url, extend(Map(p('sr', 'cmenu')), $urlParams))}{else}{buildUrl($url, Map(p('sr', 'cmenu')))}{/if}
+    {else}
+        javascript:void(0)
+    {/if}
+{/template}
+
+/**
+* A template for quick create items where the HTML lives in an div and is rendered in.
+*
+* @param title The quick menu title
+* @param body The quick menu body
+* @param? bootstrapCompatability
+* @depends template=jive.shared.displayutil.a11yBoundary
+*/
+{template .quick}
+<div class="jive-modal jive-modal-quickcreate">
+    {call jive.shared.displayutil.a11yBoundary}
+        {param type: 'dialog' /}
+    {/call}
+    <header class="j-modal-header">
+        <h2 class="js-title">{$title}</h2>
+    </header>
+    <label class="j-508-label" id="close-modal-508">{i18nText('global.close.modal')}</label>
+    <a href="#" class="j-modal-close-top close" aria-labelledby="close-modal-508" title="{i18nText('global.close.modal')}"{if $bootstrapCompatability} data-dismiss="modal"{/if}>{i18nText('global.close')}  <span class="jive-icon-glyph icon-close-med" role="img"></span></a>
+    <section class="jive-modal-content">
+        {$body|noAutoescape}
+    </section>
+    {call jive.shared.displayutil.a11yBoundary}
+        {param type: 'dialog' /}
+        {param isEnd: true /}
+    {/call}
+</div>
+{/template}
+
+
+/**
+ * Renders an app contributed action link.
+ *
+ * @param id
+ * @param appURL
+ * @param appUUID
+ * @param appInstanceUUID
+ * @param coreAPIType
+ * @param contextObject
+ * @param view
+ * @param tooltip
+ * @param icon
+ * @param label
+ * @param smallView
+ * @param actionUrl
+ * @param windowSpec
+ */
+{template .appActionLink}
+    <li>
+    {if $windowSpec or not $actionUrl}
+        <a href="#"
+            rel="nofollow"
+            class="app-action"
+            data-action-id="{$id}"
+            data-app-url="{$appURL}"
+            data-app-uuid="{$appUUID}"
+            data-app-instance-uuid="{$appInstanceUUID}"
+            data-name="os-action-link"
+            data-selection-type="{$coreAPIType}"
+            data-label="{$label}"
+            data-selection-id="{if $contextObject}{$contextObject.id}{/if}"
+            data-view="{if $view}{$view}{/if}"
+            data-action-url="{if $actionUrl}{$actionUrl}{/if}"
+            data-action-window-spec="{if $windowSpec}{$windowSpec}{/if}"
+            {if $tooltip}title="{$tooltip}"{/if}>
+                {switch $icon}
+                    {case 'edit'}
+                        <span class="jive-icon-glyph icon-edit"></span>
+                    {case 'manage'}
+                        <span class="jive-icon-glyph icon-gear"></span>
+                    {case 'move'}
+                        <span class="jive-icon-glyph icon-move2"></span>
+                    {case 'add'}
+                        <span class="jive-icon-glyph icon-plus-circle2"></span>
+                    {case 'delete'}
+                        <span class="jive-icon-glyph icon-minus-circle2"></span>
+                    {case 'download'}
+                        <span class="jive-icon-glyph icon-download"></span>
+                    {case 'flag'}
+                        <span class="jive-icon-glyph icon-flag"></span>
+                    {case 'graph'}
+                        <span class="jive-icon-glyph icon-stats-up"></span>
+                    {case 'link'}
+                        <span class="jive-icon-glyph icon-link"></span>
+                    {case 'create'}
+                        <span class="jive-icon-glyph icon-pencil2"></span>
+                    {default}
+                        {if ($smallView)}
+                            <span class="jive-icon-med jive-icon-blank"><img src="{$icon}" height="16" width="16" alt="" /></span>
+                        {else}
+                            <span class="jive-icon-big jive-icon-blank"><img src="{$icon}" height="24" width="24" alt="" /></span>
+                        {/if}
+                {/switch}
+            <span class="lnk">{$label}</span>
+        </a>
+        {else}
+        <a href="{$actionUrl}"
+                    rel="nofollow"
+                    data-action-id="{$id}"
+                    data-app-url="{$appURL}"
+                    data-app-uuid="{$appUUID}"
+                    data-app-instance-uuid="{$appInstanceUUID}"
+                    data-name="os-action-link"
+                    data-selection-type="{$coreAPIType}"
+                    data-label="{$label}"
+                    data-selection-id="{if $contextObject}{$contextObject.id}{/if}"
+                    data-view="{if $view}{$view}{/if}"
+                    data-action="{if $actionUrl}{$actionUrl}{/if}"
+                    {if $tooltip}title="{$tooltip}"{/if}>
+                        {switch $icon}
+                            {case 'edit'}
+                                <span class="jive-icon-glyph icon-edit"></span>
+                            {case 'manage'}
+                                <span class="jive-icon-glyph icon-gear"></span>
+                            {case 'move'}
+                                <span class="jive-icon-glyph icon-move2"></span>
+                            {case 'add'}
+                                <span class="jive-icon-glyph icon-plus-circle2"></span>
+                            {case 'delete'}
+                                <span class="jive-icon-glyph icon-cancel-circle2"></span>
+                            {case 'download'}
+                                <span class="jive-icon-glyph icon-download"></span>
+                            {case 'flag'}
+                                <span class="jive-icon-glyph icon-flag"></span>
+                            {case 'graph'}
+                                <span class="jive-icon-glyph icon-stats-up"></span>
+                            {case 'link'}
+                                <span class="jive-icon-glyph icon-link"></span>
+                            {case 'create'}
+                                <span class="jive-icon-glyph icon-pencil2"></span>
+                            {default}
+                                {if ($smallView)}
+                                    <span class="jive-icon-med jive-icon-blank"><img src="{$icon}" height="16" width="16" alt="" /></span>
+                                {else}
+                                    <span class="jive-icon-big jive-icon-blank"><img src="{$icon}" height="24" width="24" alt="" /></span>
+                                {/if}
+                        {/switch}
+                    <span class="lnk">{$label}</span>
+                </a>
+        {/if}
+    </li>
+{/template}
